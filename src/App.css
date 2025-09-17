@@ -133,3 +133,29 @@ button:hover {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
+
+
+.map-block {
+  margin: 15px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+.delivery-info h3 {
+  margin-top: 15px;
+  color: #333;
+}
+
+.delivery-info ul {
+  list-style: none;
+  padding: 0;
+}
+
+.delivery-info li {
+  background: #f9f9f9;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}

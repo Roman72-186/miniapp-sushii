@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { products } from "./data";
 import ProductCard from "./ProductCard";
 import About from "./About";
+import Delivery from "./Delivery";
 import "./App.css";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
       <nav className="nav">
         <button onClick={() => setPage("menu")}>Меню</button>
         <button onClick={() => setPage("about")}>О компании</button>
+        <button onClick={() => setPage("delivery")}>Доставка и оплата</button>
       </nav>
 
       {page === "menu" && (
@@ -45,6 +47,7 @@ function App() {
       )}
 
       {page === "about" && <About />}
+      {page === "delivery" && <Delivery />}
 
       <footer className="footer">
         <img src="/logo.jpg" alt="Sushi House" className="footer-logo" />
