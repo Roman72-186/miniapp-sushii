@@ -11,14 +11,315 @@ export const products = [
       name: "Калифорния",
       description: "Ролл с крабом, авокадо и икрой тобико",
       price: 320,
-      image: "/img/california.jpg"
+      image: "/img/philadelphia.jpg"
     },
     {
       id: 3,
       name: "Мисо суп",
       description: "Традиционный японский суп на основе мисо пасты",
       price: 200,
-      image: "/img/miso.jpg"
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
+    },
+    {
+      id: 3,
+      name: "Мисо суп",
+      description: "Традиционный японский суп на основе мисо пасты",
+      price: 200,
+      image: "/img/philadelphia.jpg"
     }
   ];
   
