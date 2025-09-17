@@ -19,11 +19,17 @@ function ProductCard({ product, telegramId }) {
       const result = await response.json();
 
       if (result.status === "ok") {
-        // Показываем confirm (он не блокирует выполнение JS в Telegram)
-        const shouldClose = window.confirm(`✅ Заказ получен: ${product.name}\nЗакрыть мини-апп?`);
-        if (shouldClose && window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.close();
-        }
+        // показываем уведомление
+        alert(`✅ Заказ получен: ${product.name}`);
+
+        // ждём 2 секунды и закрываем мини-апп
+        setTimeout(() => {
+          if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.close();
+          } else {
+            console.log("❌ WebApp объект не найден (возможно открыто не в Telegram)");
+          }
+        }, 2000);
       } else {
         alert("❌ Ошибка: не удалось отправить заказ");
       }
