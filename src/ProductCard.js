@@ -19,29 +19,17 @@ function ProductCard({ product, telegramId }) {
       const result = await response.json();
 
       if (result.status === "ok") {
-        // Используем нативный алерт Telegram
+        // ✅ Сразу закрываем мини-апп
         if (window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.showAlert(`✅ Заказ получен: ${product.name}`, () => {
-            // Закрываем мини-апп сразу после подтверждения
-            window.Telegram.WebApp.close();
-          });
+          window.Telegram.WebApp.close();
         } else {
           console.log("❌ WebApp объект не найден (возможно открыто не в Telegram)");
         }
       } else {
-        if (window.Telegram && window.Telegram.WebApp) {
-          window.Telegram.WebApp.showAlert("❌ Ошибка: не удалось отправить заказ");
-        } else {
-          alert("❌ Ошибка: не удалось отправить заказ");
-        }
+        console.log("❌ Ошибка: не удалось отправить заказ");
       }
     } catch (error) {
-      if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.showAlert("❌ Ошибка при отправке заказа");
-      } else {
-        alert("❌ Ошибка при отправке заказа");
-      }
-      console.error(error);
+      console.error("❌ Ошибка при отправке заказа", error);
     }
   };
 
