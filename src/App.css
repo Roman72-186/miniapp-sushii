@@ -85,3 +85,51 @@ button {
 button:hover {
   background: #015f0c;
 }
+
+
+.footer {
+  margin-top: 30px;
+  background: #fff;
+  padding: 20px;
+  border-top: 1px solid #ddd;
+  text-align: center;
+}
+
+.footer-logo {
+  height: 50px;
+  margin-bottom: 10px;
+}
+
+.footer-info {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.nav {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.nav button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #ff5722;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.nav button:hover {
+  background: #e64a19;
+}
+
+.page {
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
