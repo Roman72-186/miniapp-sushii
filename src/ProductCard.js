@@ -1,6 +1,6 @@
 import React from "react";
 
-function ProductCard({ product, telegramId, webhookUrl }) {
+function ProductCard({ product, telegramId }) {
   const handleOrder = async () => {
     const payload = {
       telegram_id: telegramId,
@@ -10,7 +10,7 @@ function ProductCard({ product, telegramId, webhookUrl }) {
     };
 
     try {
-      await fetch(webhookUrl, {
+      await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
