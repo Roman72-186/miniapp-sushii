@@ -19,22 +19,28 @@ function ProductCard({ product, telegramId }) {
       const result = await response.json();
 
       if (result.status === "ok") {
-        // показываем уведомление
-        alert(`✅ Заказ получен: ${product.name}`);
-
-        // ждём 2 секунды и закрываем мини-апп
-        setTimeout(() => {
-          if (window.Telegram && window.Telegram.WebApp) {
+        // Используем нативный алерт Telegram
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.showAlert(`✅ Заказ получен: ${product.name}`, () => {
+            // Закрываем мини-апп сразу после подтверждения
             window.Telegram.WebApp.close();
-          } else {
-            console.log("❌ WebApp объект не найден (возможно открыто не в Telegram)");
-          }
-        }, 2000);
+          });
+        } else {
+          console.log("❌ WebApp объект не найден (возможно открыто не в Telegram)");
+        }
       } else {
-        alert("❌ Ошибка: не удалось отправить заказ");
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.showAlert("❌ Ошибка: не удалось отправить заказ");
+        } else {
+          alert("❌ Ошибка: не удалось отправить заказ");
+        }
       }
     } catch (error) {
-      alert("❌ Ошибка при отправке заказа");
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.showAlert("❌ Ошибка при отправке заказа");
+      } else {
+        alert("❌ Ошибка при отправке заказа");
+      }
       console.error(error);
     }
   };
