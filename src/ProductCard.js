@@ -10,12 +10,25 @@ function ProductCard({ product, telegramId }) {
     };
 
     try {
-      await fetch("/api/order", {
+      const response = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      alert(`✅ Заказ отправлен: ${product.name}`);
+
+      const result = await response.json();
+
+      // Если заказ успешно отправлен
+      if (result.status === "ok") {
+        alert(`✅ Заказ получен: ${product.name}`);
+
+        // Попытка закрыть мини-апп в Telegram
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.close();
+        }
+      } else {
+        alert("❌ Ошибка: не удалось отправить заказ");
+      }
     } catch (error) {
       alert("❌ Ошибка при отправке заказа");
       console.error(error);
