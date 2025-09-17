@@ -9,7 +9,7 @@ function App() {
   const telegramId = queryParams.get("telegram_id");
 
   // URL входящего вебхука (получаешь в WatBot)
-  const WATBOT_WEBHOOK_URL = "https://your-watbot-webhook-url.com";
+  const WATBOT_WEBHOOK_URL = "https://api.watbot.ru/hook/3661738:D7qMxR26yeQX5YujZstPP3LllAJ4OPIAi5Hko9Y8FkcP330X";
 
   return (
     <div className="app">
