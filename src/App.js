@@ -10,23 +10,29 @@ function App() {
   useEffect(() => {
     if (window.Telegram && window.Telegram.WebApp) {
       window.Telegram.WebApp.ready();
-      console.log("✅ Telegram WebApp инициализирован");
-    } else {
-      console.log("❌ Telegram WebApp объект не найден");
     }
   }, []);
 
   return (
     <div className="app">
-      <h1>🍣 Наше меню</h1>
+      <div className="header">
+        <img src="/logo.jpg" alt="Sushi House Logo" className="logo" />
+        <span>Sushi House</span>
+      </div>
+
       {!telegramId && (
-        <p style={{ color: "red" }}>
+        <p style={{ color: "red", textAlign: "center" }}>
           ❌ Ошибка: Telegram ID не передан в URL
         </p>
       )}
+
       <div className="products-grid">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} telegramId={telegramId} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            telegramId={telegramId}
+          />
         ))}
       </div>
     </div>
