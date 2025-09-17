@@ -18,12 +18,10 @@ function ProductCard({ product, telegramId }) {
 
       const result = await response.json();
 
-      // Если заказ успешно отправлен
       if (result.status === "ok") {
-        alert(`✅ Заказ получен: ${product.name}`);
-
-        // Попытка закрыть мини-апп в Telegram
-        if (window.Telegram && window.Telegram.WebApp) {
+        // Показываем confirm (он не блокирует выполнение JS в Telegram)
+        const shouldClose = window.confirm(`✅ Заказ получен: ${product.name}\nЗакрыть мини-апп?`);
+        if (shouldClose && window.Telegram && window.Telegram.WebApp) {
           window.Telegram.WebApp.close();
         }
       } else {
