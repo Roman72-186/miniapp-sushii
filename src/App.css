@@ -117,14 +117,14 @@ button:hover {
   padding: 8px 14px;
   border: none;
   border-radius: 8px;
-  background: #ff5722;
+  background: #14c829;
   color: white;
   font-size: 14px;
   cursor: pointer;
 }
 
 .nav button:hover {
-  background: #e64a19;
+  background: #015f0c;
 }
 
 .page {
