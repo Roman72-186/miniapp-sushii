@@ -44,7 +44,7 @@ async function main() {
   const mapped = products.map((p, i) => ({
     id: i + 1,
     name: p.name,
-    description: p.description?.trim() || "Без описания",
+    description: p.description?.trim() || " ",
     price: 0, // цену можно достать из variants, пока ставим 0
     image: "/img/placeholder.png",
   }));
