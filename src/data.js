@@ -1,107 +1,464 @@
 export const products = [
   {
-    id: "9f6653e0-a260-43db-a694-b73b8b276449",
-    name: "Авокадо маки",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6643dba6947644/avokado-maki"
+    "id": 1,
+    "name": "Авокадо маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a26d-49a6-acf9-59c7462d07a4",
-    name: "Аге гурме",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6649a6acf9d07a/age-gurme"
+    "id": 2,
+    "name": "Аге гурме **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a271-49d9-aaa2-a74a63eefbaa",
-    name: "Аляска кунсей",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6649d9aaa2efba/aliaska-kunsei"
+    "id": 3,
+    "name": "Аляска кунсей **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a274-42ad-90cf-b422c509279b",
-    name: "Благородный сёгун",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6642ad90cf9279/blagorodnyi-segun"
+    "id": 4,
+    "name": "Благородный сёгун **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9fa8b803-1917-4d5f-802f-c19b912d4ddb",
-    name: "Бонито мидии",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9fa84d5f802fd4dd/bonito-midii"
+    "id": 5,
+    "name": "Бонито мидии **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9fa8b803-1925-4487-9ba7-663f23f80d7e",
-    name: "Бонито тунец",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9fa844879ba780d7/bonito-tunec"
+    "id": 6,
+    "name": "Бонито тунец **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9fa8b803-1928-430a-8dfa-fa839d683659",
-    name: "Боул с креветками",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9fa8430a8dfa8365/boul-s-krevetkami"
+    "id": 7,
+    "name": "Боул с креветками **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a2bb-412c-af55-61ac30b7850f",
-    name: "Боул с лососем",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f66412caf557850/boul-s-lososem"
+    "id": 8,
+    "name": "Боул с лососем **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a2dc-4bb4-ae97-2840757855f9",
-    name: "Боул с тунцом",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f664bb4ae97855f/boul-s-tuncom"
+    "id": 9,
+    "name": "Боул с тунцом **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a279-4163-9413-20ddcbdece6f",
-    name: "Бруклин",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6641639413ece6/bruklin"
+    "id": 10,
+    "name": "Бруклин **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a27c-44e1-bca7-85c2a93ab3d5",
-    name: "Гламур",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6644e1bca7ab3d/glamur"
+    "id": 11,
+    "name": "Гламур **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a27e-46c5-849d-b6960a486854",
-    name: "Горячий дон жуан",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6646c5849d8685/goriacii-don-zuan"
+    "id": 12,
+    "name": "Горячий дон жуан **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a281-43dd-a51c-eed958b464ee",
-    name: "Гуччи",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f6643dda51c464e/gucci"
+    "id": 13,
+    "name": "Гуччи **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9f6653e0-a283-4478-95fa-42fb65f3818e",
-    name: "Детройт",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9f66447895fa3818/detroit"
+    "id": 14,
+    "name": "Детройт **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   },
   {
-    id: "9fa8b803-192a-46b8-bc5a-161213797d4f",
-    name: "Запеченный лайт",
-    description: "",
-    price: 0,
-    image: "https://sushi-house.zenky.app/products/9fa846b8bc5a97d4/zapecennyi-lait"
+    "id": 15,
+    "name": "Запеченный лайт **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 16,
+    "name": "Запеченный лосось файр **",
+    "description": "Шапка с лососем, сливочный сыр, кунжут, жареный лосось, помидор, соус унаги",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 17,
+    "name": "Запеченный мидуэй **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 18,
+    "name": "Запеченный мистер Грин **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 19,
+    "name": "Запеченный ролл с беконом **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 20,
+    "name": "Запеченный тори ролл **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 21,
+    "name": "Игуана **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 22,
+    "name": "Калифорния **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 23,
+    "name": "Кани гриль **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 24,
+    "name": "Каппа маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 25,
+    "name": "Киото чикен **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 26,
+    "name": "Краб дуэт гриль **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 27,
+    "name": "Маленький принц **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 28,
+    "name": "Манхеттен **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 29,
+    "name": "Мидии маки гриль **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 30,
+    "name": "Мидии терияки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 31,
+    "name": "Нежный поцелуй **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 32,
+    "name": "Ниагара **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 33,
+    "name": "Пикантный лосось **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 34,
+    "name": "Поке с жареным лососем **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 35,
+    "name": "Поке с креветками **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 36,
+    "name": "Розовый **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 37,
+    "name": "Самурай **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 38,
+    "name": "Сказочный тунец **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 39,
+    "name": "Спайси эби маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 40,
+    "name": "Суп Мисо гурме **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 41,
+    "name": "Суп Мисо мен **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 42,
+    "name": "Суп Суимоно **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 43,
+    "name": "Суп Том кха **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 44,
+    "name": "Суп Том ям **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 45,
+    "name": "Суши пицца №3 (курица) **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 46,
+    "name": "Суши-сендвич с лососем **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 47,
+    "name": "Сяке кунсей маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 48,
+    "name": "Сяке маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 49,
+    "name": "Сяке хот **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 50,
+    "name": "Туна гриль **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 51,
+    "name": "Туна маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 52,
+    "name": "Туна фреш **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 53,
+    "name": "Унаги маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 54,
+    "name": "Филадельфия лайт с крабом **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 55,
+    "name": "Филадельфия лайт с огурцом **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 56,
+    "name": "Филадельфия ред **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 57,
+    "name": "Фреш ролл **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 58,
+    "name": "Цветущая сакура **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 59,
+    "name": "Чеддер скин ролл **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 60,
+    "name": "Чизи эби **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 61,
+    "name": "Чикен гриль **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 62,
+    "name": "Чикен лав **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 63,
+    "name": "Чикен фиера **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 64,
+    "name": "Чука маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 65,
+    "name": "Шёлковый путь **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
+  },
+  {
+    "id": 66,
+    "name": "Ясай маки **",
+    "description": "Без описания",
+    "price": 0,
+    "image": "/img/placeholder.png"
   }
 ];
