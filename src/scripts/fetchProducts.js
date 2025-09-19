@@ -27,10 +27,10 @@ async function fetchAllProducts() {
 
     if (!data.data || data.data.length === 0) break;
 
-    const products = data.data.map((item, index) => ({
-      id: index + 1 + (page - 1) * data.data.length, // локальный ID
+    const products = data.data.map((item) => ({
+      id: item.id, // сохраняем реальный id
       name: item.name,
-      description: "", // вместо "Без описания" оставляем пусто
+      description: "", // пусто вместо описания
       price: item.price || 0,
       image: `/img/${item.slug}.png` || "/img/placeholder.png"
     }));
@@ -41,7 +41,6 @@ async function fetchAllProducts() {
     page++;
   }
 
-  // Генерируем data.js
   const output = `export const products = ${JSON.stringify(allProducts, null, 2)};`;
   fs.writeFileSync("./src/data.js", output, "utf-8");
   console.log("✅ Файл data.js обновлён с", allProducts.length, "товарами");
