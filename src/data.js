@@ -1,212 +1,107 @@
 export const products = [
   {
-    id: 1,
+    id: "9f6653e0-a260-43db-a694-b73b8b276449",
     name: "Авокадо маки",
+    description: "",
     price: 0,
-    image: "/img/avokado_maki.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6643dba6947644/avokado-maki"
   },
   {
-    id: 2,
+    id: "9f6653e0-a26d-49a6-acf9-59c7462d07a4",
     name: "Аге гурме",
+    description: "",
     price: 0,
-    image: "/img/age_gurme.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6649a6acf9d07a/age-gurme"
   },
   {
-    id: 3,
+    id: "9f6653e0-a271-49d9-aaa2-a74a63eefbaa",
     name: "Аляска кунсей",
+    description: "",
     price: 0,
-    image: "/img/alaska_kunsei.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6649d9aaa2efba/aliaska-kunsei"
   },
   {
-    id: 4,
+    id: "9f6653e0-a274-42ad-90cf-b422c509279b",
     name: "Благородный сёгун",
+    description: "",
     price: 0,
-    image: "/img/seegun.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6642ad90cf9279/blagorodnyi-segun"
   },
   {
-    id: 5,
+    id: "9fa8b803-1917-4d5f-802f-c19b912d4ddb",
     name: "Бонито мидии",
+    description: "",
     price: 0,
-    image: "/img/bonito_midii.PNG"
+    image: "https://sushi-house.zenky.app/products/9fa84d5f802fd4dd/bonito-midii"
   },
   {
-    id: 6,
+    id: "9fa8b803-1925-4487-9ba7-663f23f80d7e",
     name: "Бонито тунец",
+    description: "",
     price: 0,
-    image: "/img/bonito_tunec.PNG"
+    image: "https://sushi-house.zenky.app/products/9fa844879ba780d7/bonito-tunec"
   },
   {
-    id: 7,
+    id: "9fa8b803-1928-430a-8dfa-fa839d683659",
     name: "Боул с креветками",
+    description: "",
     price: 0,
-    image: "/img/boul_s_krevetkami.PNG"
+    image: "https://sushi-house.zenky.app/products/9fa8430a8dfa8365/boul-s-krevetkami"
   },
   {
-    id: 8,
+    id: "9f6653e0-a2bb-412c-af55-61ac30b7850f",
     name: "Боул с лососем",
+    description: "",
     price: 0,
-    image: "/img/boul_s_lososem.PNG"
+    image: "https://sushi-house.zenky.app/products/9f66412caf557850/boul-s-lososem"
   },
   {
-    id: 9,
+    id: "9f6653e0-a2dc-4bb4-ae97-2840757855f9",
     name: "Боул с тунцом",
+    description: "",
     price: 0,
-    image: "/img/boul_s_tuncom.PNG"
+    image: "https://sushi-house.zenky.app/products/9f664bb4ae97855f/boul-s-tuncom"
   },
   {
-    id: 10,
+    id: "9f6653e0-a279-4163-9413-20ddcbdece6f",
     name: "Бруклин",
+    description: "",
     price: 0,
-    image: "/img/bruklin.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6641639413ece6/bruklin"
   },
   {
-    id: 11,
+    id: "9f6653e0-a27c-44e1-bca7-85c2a93ab3d5",
     name: "Гламур",
+    description: "",
     price: 0,
-    image: "/img/glamur.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6644e1bca7ab3d/glamur"
   },
   {
-    id: 12,
+    id: "9f6653e0-a27e-46c5-849d-b6960a486854",
     name: "Горячий дон жуан",
+    description: "",
     price: 0,
-    image: "/img/don_juan.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6646c5849d8685/goriacii-don-zuan"
   },
   {
-    id: 13,
-    name: "Гучии",
+    id: "9f6653e0-a281-43dd-a51c-eed958b464ee",
+    name: "Гуччи",
+    description: "",
     price: 0,
-    image: "/img/gujji.PNG"
+    image: "https://sushi-house.zenky.app/products/9f6643dda51c464e/gucci"
   },
   {
-    id: 14,
+    id: "9f6653e0-a283-4478-95fa-42fb65f3818e",
     name: "Детройт",
+    description: "",
     price: 0,
-    image: "/img/detroit.PNG"
+    image: "https://sushi-house.zenky.app/products/9f66447895fa3818/detroit"
   },
   {
-    id: 15,
+    id: "9fa8b803-192a-46b8-bc5a-161213797d4f",
     name: "Запеченный лайт",
+    description: "",
     price: 0,
-    image: "/img/zapecheni_lite.PNG"
-  },
-  {
-    id: 16,
-    name: "Запеченный лосось файр",
-    price: 0,
-    image: "/img/losos_fair.PNG"
-  },
-  {
-    id: 17,
-    name: "Запеченный Мидуэй",
-    price: 0,
-    image: "/img/miduei(1).PNG"
-  },
-  {
-    id: 18,
-    name: "Запеченный мистер Грин",
-    price: 0,
-    image: "/img/Miduei.PNG"
-  },
-  {
-    id: 19,
-    name: "Запеченный ролл с беконом",
-    price: 0,
-    image: "/img/roll_s_bekonom.PNG"
-  },
-  {
-    id: 20,
-    name: "Запеченный тори ролл",
-    price: 0,
-    image: "/img/tori_roll.PNG"
-  },
-  {
-    id: 21,
-    name: "Игуана",
-    price: 0,
-    image: "/img/iguana.PNG"
-  },
-  {
-    id: 22,
-    name: "Калифорния",
-    price: 0,
-    image: "/img/kalifornia.PNG"
-  },
-  {
-    id: 23,
-    name: "Кани гриль",
-    price: 0,
-    image: "/img/kani_gril.PNG"
-  },
-  {
-    id: 24,
-    name: "Каппа маки",
-    price: 0,
-    image: "/img/kappa_maki.PNG"
-  },
-  {
-    id: 25,
-    name: "Киото чикен",
-    price: 0,
-    image: "/img/kioto_chiken.PNG"
-  },
-  {
-    id: 26,
-    name: "Краб дуэт гриль",
-    price: 0,
-    image: "/img/krab_duet.PNG"
-  },
-  {
-    id: 27,
-    name: "Маленький принц",
-    price: 0,
-    image: "/img/mal_princ.PNG"
-  },
-  {
-    id: 28,
-    name: "Манхеттен",
-    price: 0,
-    image: "/img/manheten.PNG"
-  },
-  {
-    id: 29,
-    name: "Мидии маки гриль",
-    price: 0,
-    image: "/img/midii_maki_gril.PNG"
-  },
-  {
-    id: 30,
-    name: "Мидии терияки",
-    price: 0,
-    image: "/img/midii_teriaki.PNG"
-  },
-  {
-    id: 31,
-    name: "Нежный поцелуй",
-    price: 0,
-    image: "/img/nejni_kiss.PNG"
-  },
-  {
-    id: 32,
-    name: "Ниагара",
-    price: 0,
-    image: "/img/niagara.PNG"
-  },
-  {
-    id: 33,
-    name: "Пикантный лосось",
-    price: 0,
-    image: "/img/picantnii_losos.jpg"
-  },
-  {
-    id: 34,
-    name: "Розовый",
-    price: 0,
-    image: "/img/pink.PNG"
-  },
-  {
-    id: 35,
-    name: "Самурай",
-    price: 0,
-    image: "/img/samurai.PNG"
+    image: "https://sushi-house.zenky.app/products/9fa846b8bc5a97d4/zapecennyi-lait"
   }
 ];
