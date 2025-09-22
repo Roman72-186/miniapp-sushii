@@ -4,7 +4,7 @@ export const products = [
       "name": "Авокадо маки **",
       "description": "",
       "price": 0,
-      "image": "/img/avokado_maki.PNG"
+      "image": "/public/img/avokado_maki.PNG"
     },
     {
       "id": "9f6653e0-a26d-49a6-acf9-59c7462d07a4",
