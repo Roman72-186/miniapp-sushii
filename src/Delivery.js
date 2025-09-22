@@ -8,7 +8,7 @@ function Delivery() {
       <p>Мы доставляем суши по Калининграду в пределах зоны доставки:</p>
 
       <div className="map-block">
-        <iframe src="https://yandex.ru/map-widget/v1/?um=constructor%3Af5c39d8ee9142bbff72107e936bfdb9cb598d0cc5c22bf8be122fa4b9710d1e8&amp;source=constructor" width="540" height="438" frameborder="0"></iframe>
+        <iframe src="https://yandex.ru/map-widget/v1/?um=constructor%3Af5c39d8ee9142bbff72107e936bfdb9cb598d0cc5c22bf8be122fa4b9710d1e8&amp;source=constructor" width="540" height="438" frameborder="0" title="Карта доставки"></iframe>
       </div>
 
       <div className="delivery-info">
