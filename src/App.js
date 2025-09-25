@@ -4,7 +4,6 @@ import ProductCard from "./ProductCard";
 import About from "./About";
 import Delivery from "./Delivery";
 import "./App.css";
-import { products } from "./api/order";
 
 
 function App() {
