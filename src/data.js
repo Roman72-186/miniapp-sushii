@@ -4,7 +4,7 @@ export const products = [
       "name": "Авокадо маки **",
       "description": "",
       "price": 0,
-      "image": "/public/img/avokado_maki.PNG",
+      "image": "/img/avokado_maki.PNG",
       "code": 1000
     },
     {
@@ -12,7 +12,7 @@ export const products = [
       "name": "Аге гурме **",
       "description": "",
       "price": 0,
-      "image": "/public/img/age_gurme.PNG",
+      "image": "/img/age_gurme.PNG",
       "code": 1001
     },
     {
