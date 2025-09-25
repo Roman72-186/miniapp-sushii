@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { products } from "./api/order";
 import ProductCard from "./ProductCard";
 import About from "./About";
 import Delivery from "./Delivery";
 import "./App.css";
+import { products } from "./data"; 
 
 
 function App() {
