@@ -4,63 +4,72 @@ export const products = [
       "name": "Авокадо маки **",
       "description": "",
       "price": 0,
-      "image": "/public/img/avokado_maki.PNG"
+      "image": "/public/img/avokado_maki.PNG",
+      "code": 1000
     },
     {
       "id": "9f6653e0-a26d-49a6-acf9-59c7462d07a4",
       "name": "Аге гурме **",
       "description": "",
       "price": 0,
-      "image": "/img/age_gurme.PNG"
+      "image": "/public/img/age_gurme.PNG",
+      "code": 1001
     },
     {
       "id": "9f6653e0-a271-49d9-aaa2-a74a63eefbaa",
       "name": "Аляска кунсей **",
       "description": "",
       "price": 0,
-      "image": "/img/alaska_kunsei.PNG"
+      "image": "/public/img/alaska_kunsei.PNG",
+      "code": 1003
     },
     {
       "id": "9fa8b803-1917-4d5f-802f-c19b912d4ddb",
       "name": "Бонито мидии **",
       "description": "",
       "price": 0,
-      "image": "/img/bonito_midii.PNG"
+      "image": "/public/img/bonito_midii.PNG",
+      "code": 1056
     },
     {
       "id": "9fa8b803-1925-4487-9ba7-663f23f80d7e",
       "name": "Бонито тунец **",
       "description": "",
       "price": 0,
-      "image": "/img/bonito_tunec.PNG"
+      "image": "/public/img/bonito_tunec.PNG",
+      "code": 1057
     },
     {
       "id": "9fa8b803-1928-430a-8dfa-fa839d683659",
       "name": "Боул с креветками **",
       "description": "",
       "price": 0,
-      "image": "/img/boul_s_krevetkami.PNG"
+      "image": "/public/img/boul_s_krevetkami.PNG",
+      "code": 1051
     },
     {
       "id": "9f6653e0-a2bb-412c-af55-61ac30b7850f",
       "name": "Боул с лососем **",
       "description": "",
       "price": 0,
-      "image": "/img/boul_s_lososem.PNG"
+      "image": "/public/img/boul_s_lososem.PNG",
+      "code": 1033
     },
     {
       "id": "9f6653e0-a2dc-4bb4-ae97-2840757855f9",
       "name": "Боул с тунцом **",
       "description": "",
       "price": 0,
-      "image": "/img/boul_s_tuncom.PNG"
+      "image": "/public/img/boul_s_tuncom.PNG",
+      "code": 1047
     },
     {
       "id": "9f6653e0-a279-4163-9413-20ddcbdece6f",
       "name": "Бруклин **",
       "description": "",
       "price": 0,
-      "image": "/img/bruklin.PNG"
+      "image": "/public/img/bruklin.PNG",
+      "code": 1006
     },
     {
       "id": "9f6653e0-a27c-44e1-bca7-85c2a93ab3d5",
