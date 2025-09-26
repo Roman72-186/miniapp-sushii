@@ -1,60 +1,26 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 
 function Success() {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const product = params.get("product") || "Заказ";
 
-  const [env, setEnv] = useState({
-    inTelegram: false,
-    platform: "unknown",
-    version: "unknown",
-  });
-
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
-
-    if (tg) {
-      try { tg.ready(); } catch {}
-      // покажем кнопку «Назад» от Telegram, и повесим на неё закрытие
-      try {
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => safeClose());
-      } catch {}
-
-      setEnv({
-        inTelegram: true,
-        platform: tg.platform || "unknown",
-        version: tg.version || "unknown",
-      });
-    } else {
-      setEnv({ inTelegram: false, platform: "no-tg", version: "n/a" });
-    }
-
-    // отписка на всякий случай
-    return () => {
-      try { window.Telegram?.WebApp?.BackButton?.hide(); } catch {}
-    };
+    try { tg?.ready(); tg?.BackButton?.hide?.(); } catch {}
   }, []);
 
-  const safeClose = () => {
+  const closeApp = () => {
     const tg = window.Telegram?.WebApp;
 
-    // лёгкий хаптик
     try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
 
-    // Покажем подтверждение и в колбэке закроем
     if (tg?.showAlert) {
       tg.showAlert("Спасибо! Заказ принят. Возвращаемся в Telegram.", () => {
-        try { tg.close(); } catch {}
-        // ещё пара подстраховок
-        setTimeout(() => { try { tg.requestClose?.(); } catch {} }, 80);
-        setTimeout(() => { try { tg.close(); } catch {} }, 200);
+        setTimeout(() => { try { tg.close(); } catch {} }, 60);
       });
-      // резерв, если колбэк не сработал
-      setTimeout(() => { try { tg.requestClose?.(); } catch {} }, 600);
-      setTimeout(() => { try { tg.close(); } catch {} }, 1200);
+      setTimeout(() => { try { tg.requestClose?.(); } catch {} }, 900);
     } else {
-      // вне Telegram
+      // Вне Telegram просто закрыть вкладку не получится — оставим alert как фолбэк
       alert("Спасибо! Заказ принят.");
       try { window.close(); } catch {}
     }
@@ -62,13 +28,6 @@ function Success() {
 
   return (
     <div className="app" style={{ padding: 16, textAlign: "center" }}>
-      {/* Диагностика окружения (в проде можно скрыть) */}
-      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>
-        {env.inTelegram
-          ? `Telegram WebApp: OK • platform=${env.platform} • version=${env.version}`
-          : "Telegram WebApp не обнаружен (страница, вероятно, открыта вне Telegram)"}
-      </div>
-
       <div className="header">
         <img src="/logo.jpg" alt="Sushi House Logo" className="logo" />
         <span>Sushi House</span>
