@@ -1,7 +1,7 @@
 // /api/order.js  — Vercel Serverless Function (CommonJS)
 
 const TELEGRAM_WEBHOOK_URL =
-  "https://api.watbot.ru/hook/3679113:lNF976LZ8w7ok2w4LHOuxt1X9YqVNGKxbBFbi8uGlUCTyLV3";
+  "https://api.watbot.ru/hook/3706464:j5zg7R5Mfo7jVEWHnF5JkWq7ML2KIfkajdhgFDYbyN3BDaOR";
 
 // Универсальный парсер: Buffer | string | object -> object
 function parseJsonBody(req) {
