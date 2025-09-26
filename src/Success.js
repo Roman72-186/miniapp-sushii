@@ -6,11 +6,18 @@ function Success() {
 
   const closeApp = () => {
     const tg = window.Telegram?.WebApp;
+
+    // лёгкий отклик, если поддерживается
+    try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
+
     if (tg?.showAlert) {
       tg.showAlert("Спасибо! Заказ принят. Возвращаемся в Telegram.", () => {
-        setTimeout(() => { try { tg.close(); } catch {} }, 50);
+        // небольшая задержка повышает шанс успешного закрытия на некоторых клиентах
+        setTimeout(() => { try { tg.close(); } catch {} }, 60);
       });
-      setTimeout(() => { try { tg.close(); } catch {} }, 800);
+
+      // резервное закрытие, если колбэк вдруг не сработает
+      setTimeout(() => { try { tg.close(); } catch {} }, 900);
     } else {
       alert("Спасибо! Заказ принят.");
       try { window.close(); } catch {}
@@ -32,7 +39,6 @@ function Success() {
 
         <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
           <button onClick={closeApp}>Закрыть мини-приложение</button>
-          
         </div>
       </div>
 
