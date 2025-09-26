@@ -1,4 +1,4 @@
-// src/components/ProductCard.js
+// src/ProductCard.js
 import React, { useState } from "react";
 
 function formatPrice(price) {
@@ -7,50 +7,44 @@ function formatPrice(price) {
 }
 
 function ProductCard({ product, telegramId }) {
-  const [loading, setLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  const handleOrder = async () => {
-    setLoading(true);
-
+  const handleOrder = () => {
     const payload = {
-      telegram_id: telegramId,            // может быть null/undefined — сервер ответит ошибкой
+      telegram_id: telegramId || null,
       product_id: product.id,
       product_name: product.name,
-      price: product.price,               // 0 допустим — это на вашей стороне бизнес-логика
+      price: product.price,
       code: product.code || ""
     };
 
+    // 1) Отправляем заказ без ожидания ответа
     try {
-      const response = await fetch("/api/order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-
-      if (result.status === "ok") {
-        const message = `✅ Заказ получен: ${product.name}`;
-        if (window.Telegram?.WebApp) {
-          window.Telegram.WebApp.showAlert(message, () => {
-            window.Telegram.WebApp.close();
-          });
-        } else {
-          alert(message);
-        }
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], {
+          type: "application/json"
+        });
+        navigator.sendBeacon("/api/order", blob);
       } else {
-        const message = result?.error
-          ? `❌ Ошибка: ${result.error}`
-          : "❌ Ошибка: не удалось отправить заказ";
-        window.Telegram?.WebApp?.showAlert(message) || alert(message);
+        // fire-and-forget
+        fetch("/api/order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          keepalive: true, // подсказка браузеру не рвать запрос при закрытии
+        }).catch(() => {});
       }
-    } catch (error) {
-      const message = "❌ Ошибка при отправке заказа";
-      window.Telegram?.WebApp?.showAlert(message) || alert(message);
-      console.error(error);
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      // Логируем, но не мешаем закрытию
+      console.error("send order error:", e);
+    }
+
+    // 2) Мгновенно закрываем WebApp
+    if (window.Telegram?.WebApp?.close) {
+      window.Telegram.WebApp.close();
+    } else {
+      // запасной вариант
+      window.close();
     }
   };
 
@@ -70,8 +64,8 @@ function ProductCard({ product, telegramId }) {
         <b>{formatPrice(product.price) || "Цена уточняется"}</b>
       </p>
 
-      <button onClick={handleOrder} disabled={loading}>
-        {loading ? "Отправка..." : "Заказать"}
+      <button onClick={handleOrder}>
+        Заказать
       </button>
     </div>
   );
