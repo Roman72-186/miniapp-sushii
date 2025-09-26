@@ -1,21 +1,106 @@
-import React, { useEffect, useState } from "react";
-import ProductCard from "./ProductCard";
+// src/App.js
+import React, { useEffect, useMemo, useState } from "react";
+import ProductCard from "./components/ProductCard";
 import About from "./About";
 import Delivery from "./Delivery";
 import "./App.css";
-import { products } from "./data"; 
+import { products as rawProducts } from "./data";
 
+// Карты соответствий: code -> имя файла из /public/img
+const imageByCode = {
+  1000: "avokado_maki.PNG",
+  1001: "age_gurme.PNG",
+  1003: "alaska_kunsei.PNG",
+  1004: "seegun.PNG",
+  1056: "bonito_midii.PNG",
+  1057: "bonito_tunec.PNG",
+  1051: "boul_s_krevetkami.PNG",
+  1033: "boul_s_lososom.PNG",
+  1047: "boul_s_tuncom.PNG",
+  1006: "bruklin.PNG",
+  1007: "glamur.PNG",
+  1008: "don_juan.PNG",
+  1009: "gujji.PNG",
+  1010: "detroit.PNG",
+  1058: "zapeccheni_lite.PNG", // отличается от "zapecheni"
+  1005: "losos_fair.PNG",
+  1012: "Miduei.PNG",
+  1013: "miduei(1).PNG",
+  1014: "roll_s_bekonom.PNG",
+  1059: "tori_roll.PNG",
+  1060: "iguana.PNG",
+  1015: "kalifornia.PNG",
+  1016: "kani_gril.PNG",
+  1017: "kappa_maki.PNG",
+  1061: "kioto_chiken.PNG",
+  1018: "krab_duet.PNG",
+  1020: "mal_princ.PNG",
+  1021: "manheten.PNG",
+  1019: "midii_maki_gril.PNG",
+  1062: "midii_teriaki.PNG",
+  1022: "nejni_kiss.PNG",
+  1023: "niagara.PNG",
+  1024: "picantnii_losos.jpg",
+  1025: "pink.PNG",
+  1026: "samurai.PNG",
+  1048: "e.png",
+  // Остальные коды можно дополнять по мере появления файлов
+};
+
+// Нормализация: чистим название, правим путь, берём картинку по code
+function normalizeProducts(list) {
+  return (list || []).map((p) => {
+    const cleanName =
+      typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
+
+    // 1) если есть картинка в словаре — используем её из /img/
+    // 2) иначе берём то, что в данных, чиня префикс /public/
+    let img =
+      imageByCode[p.code] ? `/img/${imageByCode[p.code]}` : (p.image || "");
+
+    if (img.startsWith("/public/")) {
+      img = img.replace(/^\/public/u, ""); // файлы из public доступны с корня
+    }
+    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/") {
+      img = "/logo.jpg"; // фолбэк, если картинки нет
+    }
+
+    const priceNum = typeof p.price === "number" ? p.price : Number(p.price);
+
+    return {
+      ...p,
+      name: cleanName,
+      image: img,
+      price: Number.isFinite(priceNum) ? priceNum : 0,
+    };
+  });
+}
 
 function App() {
   const [page, setPage] = useState("menu");
-  const queryParams = new URLSearchParams(window.location.search);
-  const telegramId = queryParams.get("telegram_id");
+
+  const urlTelegramId = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("telegram_id");
+  }, []);
+
+  const [telegramId, setTelegramId] = useState(null);
 
   useEffect(() => {
-    if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.ready();
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      if (tg.expand) tg.expand();
+      const tgId = tg.initDataUnsafe?.user?.id
+        ? String(tg.initDataUnsafe.user.id)
+        : null;
+      setTelegramId(tgId || urlTelegramId || null);
+    } else {
+      setTelegramId(urlTelegramId || null);
     }
-  }, []);
+  }, [urlTelegramId]);
+
+  const products = useMemo(() => normalizeProducts(rawProducts), []);
 
   return (
     <div className="app">
@@ -33,18 +118,15 @@ function App() {
       </nav>
 
       {page === "menu" && (
-        <>
-          {!telegramId && (
-            <p style={{ color: "red", textAlign: "center" }}>
-              ❌ Ошибка: Telegram ID не передан в URL
-            </p>
-          )}
-          <div className="products-grid">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} telegramId={telegramId} />
-            ))}
-          </div>
-        </>
+        <div className="products-grid">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              telegramId={telegramId} // без блокировок
+            />
+          ))}
+        </div>
       )}
 
       {page === "about" && <About />}
