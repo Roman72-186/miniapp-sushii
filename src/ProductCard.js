@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 
+// 'alert_close' — показать alert и закрыть мини-апп в колбэке
+// 'redirect'    — перейти на страницу /success
+const CLOSE_BEHAVIOR = "alert_close"; // поменяй на "redirect", если нужен переход
+
 function formatPrice(price) {
   if (typeof price !== "number" || Number.isNaN(price)) return "";
   return new Intl.NumberFormat("ru-RU").format(price) + " ₽";
@@ -8,7 +12,6 @@ function formatPrice(price) {
 function ProductCard({ product, telegramId }) {
   const [imgError, setImgError] = useState(false);
 
-  // отправляем заказ «fire-and-forget», чтобы не ждать ответа
   const fireAndForgetOrder = (payload) => {
     try {
       if (navigator.sendBeacon) {
@@ -22,9 +25,7 @@ function ProductCard({ product, telegramId }) {
           keepalive: true,
         }).catch(() => {});
       }
-    } catch {
-      /* игнорируем — UX важнее */
-    }
+    } catch {}
   };
 
   const handleOrder = () => {
@@ -36,19 +37,30 @@ function ProductCard({ product, telegramId }) {
       code: product.code || "",
     };
 
+    // отправляем заказ без ожидания ответа
     fireAndForgetOrder(payload);
 
     const tg = window.Telegram?.WebApp;
 
-    // лёгкий хаптик, если доступен
-    try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
+    if (CLOSE_BEHAVIOR === "redirect") {
+      // Перейдём на страницу "Заказ принят"
+      const url = `/success?product=${encodeURIComponent(product.name)}`;
+      if (tg?.openLink) {
+        // безопасный способ внутри Telegram WebApp
+        tg.openLink(window.location.origin + url);
+      } else {
+        window.location.href = url;
+      }
+      return;
+    }
 
-    // показываем алерт и закрываем в колбэке
+    // По умолчанию: alert -> закрыть мини-апп
+    try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
     if (tg?.showAlert) {
       tg.showAlert(`✅ Заказ отправлен: ${product.name}`, () => {
         setTimeout(() => { try { tg.close(); } catch {} }, 50);
       });
-      // fallback-таймер на случай, если колбэк не сработает
+      // дубль через таймер (иногда колбэк не триггерится)
       setTimeout(() => { try { tg.close(); } catch {} }, 800);
     } else {
       alert(`✅ Заказ отправлен: ${product.name}`);

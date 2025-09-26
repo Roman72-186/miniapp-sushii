@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import ProductCard from "./ProductCard"; // <-- исправили путь
+import ProductCard from "./ProductCard";
 import About from "./About";
 import Delivery from "./Delivery";
 import "./App.css";
 import { products as rawProducts } from "./data";
+import Success from "./Success"; // <— добавили
 
-// Карты соответствий: code -> имя файла из /public/img
 const imageByCode = {
   1000: "avokado_maki.PNG",
   1001: "age_gurme.PNG",
@@ -45,7 +45,6 @@ const imageByCode = {
   1048: "e.png",
 };
 
-// Нормализация данных (без блокировок)
 function normalizeProducts(list) {
   return (list || []).map((p) => {
     const cleanName =
@@ -53,8 +52,7 @@ function normalizeProducts(list) {
 
     let img = imageByCode[p.code] ? `/img/${imageByCode[p.code]}` : (p.image || "");
     if (img.startsWith("/public/")) img = img.replace(/^\/public/u, "");
-    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/")
-      img = "/logo.jpg";
+    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/") img = "/logo.jpg";
 
     const priceNum = typeof p.price === "number" ? p.price : Number(p.price);
 
@@ -68,6 +66,11 @@ function normalizeProducts(list) {
 }
 
 function App() {
+  // Если путь /success — показываем страницу успеха и всё
+  if (typeof window !== "undefined" && window.location.pathname === "/success") {
+    return <Success />;
+  }
+
   const [page, setPage] = useState("menu");
 
   const urlTelegramId = useMemo(() => {
