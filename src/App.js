@@ -1,6 +1,5 @@
-// src/App.js
 import React, { useEffect, useMemo, useState } from "react";
-import ProductCard from "./components/ProductCard";
+import ProductCard from "./ProductCard"; // <-- исправили путь
 import About from "./About";
 import Delivery from "./Delivery";
 import "./App.css";
@@ -22,7 +21,7 @@ const imageByCode = {
   1008: "don_juan.PNG",
   1009: "gujji.PNG",
   1010: "detroit.PNG",
-  1058: "zapeccheni_lite.PNG", // отличается от "zapecheni"
+  1058: "zapeccheni_lite.PNG",
   1005: "losos_fair.PNG",
   1012: "Miduei.PNG",
   1013: "miduei(1).PNG",
@@ -44,26 +43,18 @@ const imageByCode = {
   1025: "pink.PNG",
   1026: "samurai.PNG",
   1048: "e.png",
-  // Остальные коды можно дополнять по мере появления файлов
 };
 
-// Нормализация: чистим название, правим путь, берём картинку по code
+// Нормализация данных (без блокировок)
 function normalizeProducts(list) {
   return (list || []).map((p) => {
     const cleanName =
       typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
 
-    // 1) если есть картинка в словаре — используем её из /img/
-    // 2) иначе берём то, что в данных, чиня префикс /public/
-    let img =
-      imageByCode[p.code] ? `/img/${imageByCode[p.code]}` : (p.image || "");
-
-    if (img.startsWith("/public/")) {
-      img = img.replace(/^\/public/u, ""); // файлы из public доступны с корня
-    }
-    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/") {
-      img = "/logo.jpg"; // фолбэк, если картинки нет
-    }
+    let img = imageByCode[p.code] ? `/img/${imageByCode[p.code]}` : (p.image || "");
+    if (img.startsWith("/public/")) img = img.replace(/^\/public/u, "");
+    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/")
+      img = "/logo.jpg";
 
     const priceNum = typeof p.price === "number" ? p.price : Number(p.price);
 
@@ -91,9 +82,7 @@ function App() {
     if (tg) {
       tg.ready();
       if (tg.expand) tg.expand();
-      const tgId = tg.initDataUnsafe?.user?.id
-        ? String(tg.initDataUnsafe.user.id)
-        : null;
+      const tgId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
       setTelegramId(tgId || urlTelegramId || null);
     } else {
       setTelegramId(urlTelegramId || null);
@@ -120,11 +109,7 @@ function App() {
       {page === "menu" && (
         <div className="products-grid">
           {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              telegramId={telegramId} // без блокировок
-            />
+            <ProductCard key={product.id} product={product} telegramId={telegramId} />
           ))}
         </div>
       )}
