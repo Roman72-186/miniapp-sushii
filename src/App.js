@@ -4,8 +4,9 @@ import About from "./About";
 import Delivery from "./Delivery";
 import "./App.css";
 import { products as rawProducts } from "./data";
-import Success from "./Success"; // <— добавили
+import Success from "./Success"; // страница "Заказ принят"
 
+// Карты соответствий: code -> имя файла из /public/img
 const imageByCode = {
   1000: "avokado_maki.PNG",
   1001: "age_gurme.PNG",
@@ -45,6 +46,7 @@ const imageByCode = {
   1048: "e.png",
 };
 
+// Нормализация данных (без блокировок)
 function normalizeProducts(list) {
   return (list || []).map((p) => {
     const cleanName =
@@ -66,11 +68,7 @@ function normalizeProducts(list) {
 }
 
 function App() {
-  // Если путь /success — показываем страницу успеха и всё
-  if (typeof window !== "undefined" && window.location.pathname === "/success") {
-    return <Success />;
-  }
-
+  // ВСЕ ХУКИ — ВСЕГДА ВЫЗЫВАЕМ, БЕЗ УСЛОВИЙ
   const [page, setPage] = useState("menu");
 
   const urlTelegramId = useMemo(() => {
@@ -94,40 +92,51 @@ function App() {
 
   const products = useMemo(() => normalizeProducts(rawProducts), []);
 
+  // БЕЗ хуков: просто вычисляем флаг страницы успеха
+  const isSuccessPage =
+    typeof window !== "undefined" && window.location.pathname === "/success";
+
   return (
     <div className="app">
-      <div className="header">
-        <img src="/logo.jpg" alt="Sushi House Logo" className="logo" />
-        <span onClick={() => setPage("menu")} style={{ cursor: "pointer" }}>
-          Sushi House
-        </span>
-      </div>
+      {/* Если сейчас путь /success — показываем Success и выходим из JSX ниже */}
+      {isSuccessPage ? (
+        <Success />
+      ) : (
+        <>
+          <div className="header">
+            <img src="/logo.jpg" alt="Sushi House Logo" className="logo" />
+            <span onClick={() => setPage("menu")} style={{ cursor: "pointer" }}>
+              Sushi House
+            </span>
+          </div>
 
-      <nav className="nav">
-        <button onClick={() => setPage("menu")}>Меню</button>
-        <button onClick={() => setPage("about")}>О компании</button>
-        <button onClick={() => setPage("delivery")}>Доставка и оплата</button>
-      </nav>
+          <nav className="nav">
+            <button onClick={() => setPage("menu")}>Меню</button>
+            <button onClick={() => setPage("about")}>О компании</button>
+            <button onClick={() => setPage("delivery")}>Доставка и оплата</button>
+          </nav>
 
-      {page === "menu" && (
-        <div className="products-grid">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} telegramId={telegramId} />
-          ))}
-        </div>
+          {page === "menu" && (
+            <div className="products-grid">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} telegramId={telegramId} />
+              ))}
+            </div>
+          )}
+
+          {page === "about" && <About />}
+          {page === "delivery" && <Delivery />}
+
+          <footer className="footer">
+            <img src="/logo.jpg" alt="Sushi House" className="footer-logo" />
+            <div className="footer-info">
+              <p><b>📞 Телефон:</b> +7 (401) 290-27-90</p>
+              <p><b>⏰ Время работы:</b> 10:00 – 22:00</p>
+              <p><b>📍 Адрес:</b> г. Калининград, ул. Ю.Гагарина, д. 16Б</p>
+            </div>
+          </footer>
+        </>
       )}
-
-      {page === "about" && <About />}
-      {page === "delivery" && <Delivery />}
-
-      <footer className="footer">
-        <img src="/logo.jpg" alt="Sushi House" className="footer-logo" />
-        <div className="footer-info">
-          <p><b>📞 Телефон:</b> +7 (401) 290-27-90</p>
-          <p><b>⏰ Время работы:</b> 10:00 – 22:00</p>
-          <p><b>📍 Адрес:</b> г. Калининград, ул. Ю.Гагарина, д. 16Б</p>
-        </div>
-      </footer>
     </div>
   );
 }
