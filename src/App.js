@@ -1,12 +1,13 @@
+// src/App.js
 import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
 import About from "./About";
 import Delivery from "./Delivery";
 import "./App.css";
 import { products as rawProducts } from "./data";
-import Success from "./Success"; // страница "Заказ принят"
+import Success from "./Success"; // страница «Заказ принят»
 
-// Карты соответствий: code -> имя файла из /public/img
+// code -> имя файла в /public/img
 const imageByCode = {
   1000: "avokado_maki.PNG",
   1001: "age_gurme.PNG",
@@ -46,7 +47,6 @@ const imageByCode = {
   1048: "e.png",
 };
 
-// Нормализация данных (без блокировок)
 function normalizeProducts(list) {
   return (list || []).map((p) => {
     const cleanName =
@@ -68,37 +68,39 @@ function normalizeProducts(list) {
 }
 
 function App() {
-  // ВСЕ ХУКИ — ВСЕГДА ВЫЗЫВАЕМ, БЕЗ УСЛОВИЙ
   const [page, setPage] = useState("menu");
 
+  // читаем telegram_id из URL
   const urlTelegramId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("telegram_id");
   }, []);
 
+  // сюда положим итоговый telegramId
   const [telegramId, setTelegramId] = useState(null);
 
+  // ⬇️ ВОТ ЭТОТ БЛОК НУЖНО ДОБАВИТЬ/ЗАМЕНИТЬ
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
-      tg.ready();
-      if (tg.expand) tg.expand();
+      try { tg.ready(); } catch {}
+      try { tg.expand?.(); } catch {}
       const tgId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
       setTelegramId(tgId || urlTelegramId || null);
     } else {
       setTelegramId(urlTelegramId || null);
     }
   }, [urlTelegramId]);
+  // ⬆️ КОНЕЦ БЛОКА
 
   const products = useMemo(() => normalizeProducts(rawProducts), []);
 
-  // БЕЗ хуков: просто вычисляем флаг страницы успеха
+  // без условных хуков — просто флаг страницы успеха
   const isSuccessPage =
     typeof window !== "undefined" && window.location.pathname === "/success";
 
   return (
     <div className="app">
-      {/* Если сейчас путь /success — показываем Success и выходим из JSX ниже */}
       {isSuccessPage ? (
         <Success />
       ) : (
