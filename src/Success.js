@@ -32,9 +32,7 @@ function Success() {
 
         <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
           <button onClick={closeApp}>Закрыть мини-приложение</button>
-          <a href="/" style={{ display: "inline-block" }}>
-            <button type="button">Вернуться в меню</button>
-          </a>
+          
         </div>
       </div>
 
