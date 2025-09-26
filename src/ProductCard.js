@@ -2,7 +2,9 @@ import React, { useState } from "react";
 
 // 'alert_close' — показать alert и закрыть мини-апп в колбэке
 // 'redirect'    — перейти на страницу /success
-const CLOSE_BEHAVIOR = "alert_close"; // поменяй на "redirect", если нужен переход
+// const CLOSE_BEHAVIOR = "alert_close"; // поменяй на "redirect", если нужен переход
+const CLOSE_BEHAVIOR = "redirect";
+
 
 function formatPrice(price) {
   if (typeof price !== "number" || Number.isNaN(price)) return "";
