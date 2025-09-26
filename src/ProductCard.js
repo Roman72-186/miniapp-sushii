@@ -1,4 +1,3 @@
-// src/ProductCard.js
 import React, { useState } from "react";
 
 function formatPrice(price) {
@@ -9,42 +8,51 @@ function formatPrice(price) {
 function ProductCard({ product, telegramId }) {
   const [imgError, setImgError] = useState(false);
 
+  // отправляем заказ «fire-and-forget», чтобы не ждать ответа
+  const fireAndForgetOrder = (payload) => {
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+        navigator.sendBeacon("/api/order", blob);
+      } else {
+        fetch("/api/order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {
+      /* игнорируем — UX важнее */
+    }
+  };
+
   const handleOrder = () => {
     const payload = {
       telegram_id: telegramId || null,
       product_id: product.id,
       product_name: product.name,
       price: product.price,
-      code: product.code || ""
+      code: product.code || "",
     };
 
-    // 1) Отправляем заказ без ожидания ответа
-    try {
-      if (navigator.sendBeacon) {
-        const blob = new Blob([JSON.stringify(payload)], {
-          type: "application/json"
-        });
-        navigator.sendBeacon("/api/order", blob);
-      } else {
-        // fire-and-forget
-        fetch("/api/order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          keepalive: true, // подсказка браузеру не рвать запрос при закрытии
-        }).catch(() => {});
-      }
-    } catch (e) {
-      // Логируем, но не мешаем закрытию
-      console.error("send order error:", e);
-    }
+    fireAndForgetOrder(payload);
 
-    // 2) Мгновенно закрываем WebApp
-    if (window.Telegram?.WebApp?.close) {
-      window.Telegram.WebApp.close();
+    const tg = window.Telegram?.WebApp;
+
+    // лёгкий хаптик, если доступен
+    try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
+
+    // показываем алерт и закрываем в колбэке
+    if (tg?.showAlert) {
+      tg.showAlert(`✅ Заказ отправлен: ${product.name}`, () => {
+        setTimeout(() => { try { tg.close(); } catch {} }, 50);
+      });
+      // fallback-таймер на случай, если колбэк не сработает
+      setTimeout(() => { try { tg.close(); } catch {} }, 800);
     } else {
-      // запасной вариант
-      window.close();
+      alert(`✅ Заказ отправлен: ${product.name}`);
+      try { window.close(); } catch {}
     }
   };
 
@@ -60,13 +68,9 @@ function ProductCard({ product, telegramId }) {
       />
       <h3>{product.name}</h3>
       {product.description ? <p>{product.description}</p> : null}
-      <p>
-        <b>{formatPrice(product.price) || "Цена уточняется"}</b>
-      </p>
+      <p><b>{formatPrice(product.price) || "Цена уточняется"}</b></p>
 
-      <button onClick={handleOrder}>
-        Заказать
-      </button>
+      <button onClick={handleOrder}>Заказать</button>
     </div>
   );
 }
