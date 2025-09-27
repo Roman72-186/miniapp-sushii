@@ -15,7 +15,7 @@ function Success() {
     try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
 
     if (tg?.showAlert) {
-      tg.showAlert("Спасибо! Заказ принят. Возвращаемся в Telegram.", () => {
+      tg.showAlert("Спасибо! Подарок выбран. Возвращаемся в Telegram.", () => {
         setTimeout(() => { try { tg.close(); } catch {} }, 60);
       });
       setTimeout(() => { try { tg.requestClose?.(); } catch {} }, 900);
@@ -34,15 +34,22 @@ function Success() {
       </div>
 
       <div style={{ maxWidth: 520, margin: "24px auto" }}>
-        <h2>✅ Заказ принят</h2>
+        <h2>✅ Подарок выбран!</h2>
         <p style={{ marginTop: 8 }}>
-          Спасибо! Мы получили ваш заказ{product ? `: «${product}»` : ""}.
+            Спасибо! Мы получили ваш заказ
+            {product ? `: «${product}»` : ""}. Закройте окно и вернитесь в бот.
         </p>
 
-        <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
-          
+            <div
+                style={{
+                marginTop: 24,
+                display: "flex",
+                gap: 12,
+                justifyContent: "center",
+                }}
+            ></div>
         </div>
-      </div>
+
 
       <footer className="footer">
         <img src="/logo.jpg" alt="Sushi House" className="footer-logo" />
