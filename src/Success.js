@@ -37,18 +37,23 @@ function Success() {
         <h2>✅ Подарок выбран!</h2>
         <p style={{ marginTop: 8 }}>
             Спасибо! Мы получили ваш заказ
-            {product ? `: «${product}»` : ""}. Закройте окно и вернитесь в бот.
+            {product ? `: «${product}»` : ""}.
+            <br />
+            <span style={{ fontWeight: "bold", color: "red" }}>
+            Закройте окно и вернитесь в бот
+            </span>
         </p>
 
-            <div
-                style={{
-                marginTop: 24,
-                display: "flex",
-                gap: 12,
-                justifyContent: "center",
-                }}
-            ></div>
-        </div>
+        <div
+            style={{
+            marginTop: 24,
+            display: "flex",
+            gap: 12,
+            justifyContent: "center",
+            }}
+        ></div>
+      </div>
+
 
 
       <footer className="footer">
