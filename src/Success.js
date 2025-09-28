@@ -36,8 +36,7 @@ function Success() {
       <div style={{ maxWidth: 520, margin: "24px auto" }}>
         <h2>✅ Подарок выбран!</h2>
         <p style={{ marginTop: 8 }}>
-            Спасибо! Мы получили ваш заказ
-            {product ? `: «${product}»` : ""}.
+        Спасибо, далее в боте завершите оформление заказ подарочного ролла.
             <br />
             <span style={{ fontWeight: "bold", color: "red" }}>
             Закройте окно и вернитесь в бот
