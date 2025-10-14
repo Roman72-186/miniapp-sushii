@@ -132,7 +132,7 @@ export const products = [
     "name": "Запеченный мидуэй **",
     "description": "",
     "price": 0,
-    "image": "/public/img/Miduei.PNG",
+    "image": "/public/img/miduei(1).PNG",
     "code": 1012
   },
   {
@@ -140,7 +140,7 @@ export const products = [
     "name": "Запеченный мистер Грин **",
     "description": "",
     "price": 0,
-    "image": "/public/img/miduei(1).PNG",
+    "image": "/public/img/Miduei.PNG",
     "code": 1013
   },
   {
