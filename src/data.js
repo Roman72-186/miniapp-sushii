@@ -337,6 +337,14 @@ export const products = [
     "code": 1064
   },
   {
+    "id": "79cc7fcf-1ced-48e7-9ef3-36ff9d9da337",
+    "name": "Туна гриль **",
+    "description": "",
+    "price": 0,
+    "image": "/img/.png",
+    "code": 1036
+  },
+  {
     "id": "f048a431-19fd-48e3-89f8-8caf45a1d2c5",
     "name": "Туна маки **",
     "description": "",
