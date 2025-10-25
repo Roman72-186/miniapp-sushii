@@ -280,6 +280,14 @@ export const products = [
     "code": 1027
   },
   {
+    "id": "9fa8b803-1940-44ed-87b5-1e8a451d8908",
+    "name": "Суимоно",
+    "description": "",
+    "price": 0,
+    "image": "/img/.png",
+    "code": 1054
+  },
+  {
     "id": "9f6653e0-a2af-47df-b8eb-19a9dc4d934b",
     "name": "Суп Мисо гурме **",
     "description": "",
