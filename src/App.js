@@ -47,7 +47,7 @@ const imageByCode = {
   1025: "pink.PNG",
   1026: "samurai.PNG",
   1048: "e.png",
-  1030: "Поке с креветками.jpg",
+  1031: "Поке с креветками.jpg",
 };
 
 function normalizeProducts(list) {
