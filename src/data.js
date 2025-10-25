@@ -236,7 +236,7 @@ export const products = [
     "name": "Поке с жареным лососем **",
     "description": "",
     "price": 0,
-    "image": "/public/logo.jpg",
+    "image": "/img/.png",
     "code": 1029
   },
   {

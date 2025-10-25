@@ -48,6 +48,7 @@ const imageByCode = {
   1026: "samurai.PNG",
   1048: "e.png",
   1031: "Поке с креветками.jpg",
+  1052: "Поке с курицей.jpg",
 };
 
 function normalizeProducts(list) {
