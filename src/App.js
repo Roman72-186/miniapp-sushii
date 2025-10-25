@@ -29,6 +29,7 @@ const imageByCode = {
   1012: "miduei(1).PNG",
   1013: "Miduei.PNG",
   1014: "roll_s_bekonom.PNG",
+  1058: "zapecheni_lite.PNG",
   1059: "tori_roll.PNG",
   1060: "iguana.PNG",
   1015: "kalifornia.PNG",
@@ -46,6 +47,7 @@ const imageByCode = {
   1025: "pink.PNG",
   1026: "samurai.PNG",
   1048: "e.png",
+  1030: "Поке с креветками.jpg",
 };
 
 function normalizeProducts(list) {
