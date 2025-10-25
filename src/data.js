@@ -136,14 +136,6 @@ export const products = [
     "code": 1012
   },
   {
-    "id": "9f6653e0-a28a-4215-b9e1-775d96403984",
-    "name": "Запеченный мистер Грин **",
-    "description": "",
-    "price": 0,
-    "image": "/public/img/Miduei.PNG",
-    "code": 1013
-  },
-  {
     "id": "9f6653e0-a28d-41c4-95af-26c9e7aa7ad9",
     "name": "Запеченный ролл с беконом **",
     "description": "",
@@ -158,14 +150,6 @@ export const products = [
     "price": 0,
     "image": "/public/img/tori_roll.PNG",
     "code": 1059
-  },
-  {
-    "id": "9fa8b803-192f-4b2a-998b-23729a14221d",
-      "name": "Игуана **",
-      "description": "",
-      "price": 0,
-      "image": "/img/iguana.PNG",
-    "code": 1060
   },
   {
     "id": "9f6653e0-a28f-4c1e-b4ac-e89b58a15174",
@@ -208,14 +192,6 @@ export const products = [
     "code": 1018
   },
   {
-    "id": "9f6653e0-a29b-45d0-9748-243199608dcd",
-    "name": "Маленький принц **",
-    "description": "",
-    "price": 0,
-    "image": "/img/mal_princ.PNG",
-    "code": 1020
-  },
-  {
     "id": "9f6653e0-a29e-473f-94ee-f7aeb0ff9e25",
       "name": "Манхеттен **",
       "description": "",
@@ -256,14 +232,6 @@ export const products = [
     "code": 1023
   },
   {
-    "id": "9f6653e0-a2a5-4482-b883-1eb1dd4ce5c3",
-      "name": "Пикантный лосось **",
-      "description": "",
-      "price": 0,
-      "image": "/img/picantnii_losos.jpg",
-    "code": 1024
-  },
-  {
     "id": "9f6653e0-a2b1-4a44-bba6-3c096aee09cf",
     "name": "Поке с жареным лососем **",
     "description": "",
@@ -296,14 +264,6 @@ export const products = [
     "code": 1025
   },
   {
-    "id": "9f6653e0-a2aa-4d7c-99ba-1cb659df6332",
-    "name": "Самурай **",
-    "description": "",
-    "price": 0,
-    "image": "/public/img/samurai.PNG",
-    "code": 1026
-  },
-  {
     "id": "9fa8b803-1939-4ab7-b23f-9481bb1413fa",
     "name": "Сказочный тунец **",
     "description": "",
@@ -326,22 +286,6 @@ export const products = [
     "price": 0,
     "image": "/img/.png",
     "code": 1028
-  },
-  {
-    "id": "9fa8b803-193b-42b8-bd4a-a642b84f56e6",
-    "name": "Суп Мисо мен **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1053
-  },
-  {
-    "id": "9fa8b803-1940-44ed-87b5-1e8a451d8908",
-    "name": "Суп Том кха **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1054
   },
   
   {
@@ -393,14 +337,6 @@ export const products = [
     "code": 1064
   },
   {
-    "id": "79cc7fcf-1ced-48e7-9ef3-36ff9d9da337",
-    "name": "Туна гриль **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1036
-  },
-  {
     "id": "f048a431-19fd-48e3-89f8-8caf45a1d2c5",
     "name": "Туна маки **",
     "description": "",
@@ -425,14 +361,6 @@ export const products = [
     "code": 1038
   },
   {
-    "id": "8cbb0c8f-68de-4971-bbfa-c21f93f5a279",
-    "name": "Филадельфия лайт с крабом **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1039
-  },
-  {
     "id": "927e11f6-4139-4d43-b381-8f39152e63e8",
     "name": "Филадельфия лайт с огурцом **",
     "description": "",
@@ -441,28 +369,12 @@ export const products = [
     "code": 1040
   },
   {
-    "id": "095507c5-539c-4931-a7fa-0365a31bdf22",
-    "name": "Филадельфия ред **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1041
-  },
-  {
     "id": "8e622900-941d-43b6-9e8a-d7165d25d33f",
     "name": "Фреш ролл **",
     "description": "",
     "price": 0,
     "image": "/img/.png",
     "code": 1042
-  },
-  {
-    "id": "36c4c9b2-2097-422d-9ea7-fbeb711b959d",
-    "name": "Цветущая сакура **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1043
   },
   {
     "id": "c3b06128-cb58-45b0-ab86-9830f31359e0",
@@ -519,13 +431,5 @@ export const products = [
     "price": 0,
     "image": "/img/e.png",
     "code": 1048
-  },
-  {
-    "id": "8c6d30e9-8d57-4977-a9af-5863932f136d",
-    "name": "Ясай маки **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1049
   }
 ];
