@@ -23,6 +23,7 @@ const imageByCode = {
   1008: "don_juan.PNG",
   1009: "gujji.PNG",
   1010: "detroit.PNG",
+  1033: "boul_s_lososem.PNG",
   1058: "zapeccheni_lite.PNG",
   1005: "losos_fair.PNG",
   1012: "miduei(1).PNG",
