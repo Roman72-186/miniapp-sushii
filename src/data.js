@@ -2,7 +2,7 @@ export const products = [
   {
     "id": "9f6653e0-a260-43db-a694-b73b8b276449",
       "name": "Авокадо маки **",
-      "description": "",
+      "description": "Свежий авокадо и ничего лишнего",
       "price": 0,
       "image": "/img/avokado_maki.PNG",
     "code": 1000
@@ -10,7 +10,7 @@ export const products = [
   {
     "id": "9f6653e0-a26d-49a6-acf9-59c7462d07a4",
       "name": "Аге гурме **",
-      "description": "",
+      "description": "Лосось жареный, сыр сливочный, огурец, соус масаго",
       "price": 0,
       "image": "/img/age_gurme.PNG",
       "code": 1001
@@ -18,7 +18,7 @@ export const products = [
   {
     "id": "9f6653e0-a271-49d9-aaa2-a74a63eefbaa",
       "name": "Аляска кунсей **",
-      "description": "",
+      "description": "Лосось копченый, сыр сливочный, огурец, кунжут",
       "price": 0,
       "image": "/img/alaska_kunsei.PNG",
       "code": 1003
@@ -26,7 +26,7 @@ export const products = [
   {
     "id": "9f6653e0-a274-42ad-90cf-b422c509279b",
     "name": "Благородный сёгун **",
-    "description": "",
+      "description": "Снежный краб, лосось копченый, сыр сливочный, помидор, соус унаги, микрозелень",
     "price": 0,
     "image": "/img/seegun.PNG",
     "code": 1004
@@ -34,7 +34,7 @@ export const products = [
   {
     "id": "fbb90cee-c3fd-47d7-a555-484816979bbd",
     "name": "Бонито мидии **",
-    "description": "",
+      "description": "Мидии, сыр сливочный, помидор, стружка тунца",
     "price": 0,
     "image": "/img/.png",
     "code": 1056
@@ -42,7 +42,7 @@ export const products = [
   {
     "id": "2d11f371-8a0c-46d1-9da1-22180a4fb421",
     "name": "Бонито тунец **",
-    "description": "",
+      "description": "Тунец, сыр сливочный, помидор, стружка тунца",
     "price": 0,
     "image": "/img/.png",
     "code": 1057
@@ -50,7 +50,7 @@ export const products = [
   {
     "id": "a2e21c2b-33d4-46b2-aecf-920e04c874f4",
     "name": "Боул с креветками **",
-    "description": "",
+      "description": "Рис, креветки, помидор, чука, кукуруза, соуса манго, нори",
     "price": 0,
     "image": "/img/.png",
     "code": 1051
@@ -58,7 +58,7 @@ export const products = [
   {
     "id": "cdbd0c9a-6a2d-45ef-8e06-cbaa133d00ce",
     "name": "Боул с лососем **",
-    "description": "",
+      "description": "Рис, лосось, помидор, чука, огурец, соус унаги, нори",
     "price": 0,
     "image": "/img/.png",
     "code": 1033
@@ -66,7 +66,7 @@ export const products = [
   {
     "id": "d1b3e011-9832-43da-9319-bb930aca7397",
     "name": "Боул с тунцом **",
-    "description": "",
+      "description": "Рис, тунец, помидор, чука, кукуруза, соус спайси, нори",
     "price": 0,
     "image": "/img/.png",
     "code": 1047
@@ -74,7 +74,7 @@ export const products = [
   {
     "id": "dac7752b-c858-4a84-b404-70753dea26f1",
     "name": "Бруклин **",
-    "description": "",
+      "description": "Лосось копченый, сыр сливочный, огурец",
     "price": 0,
     "image": "/img/.png",
     "code": 1006
@@ -82,7 +82,7 @@ export const products = [
   {
     "id": "9e18c436-42ae-4d3e-8601-b46656258240",
     "name": "Гламур **",
-    "description": "",
+      "description": "Лосось, сыр сливочный, лук зеленый, соус масаго, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1007
@@ -90,7 +90,7 @@ export const products = [
   {
     "id": "09ee4722-9c93-4692-973e-5fca059f6131",
     "name": "Горячий дон жуан **",
-    "description": "",
+      "description": "Лосось жареный, шапка краб, лук зеленый, помидор, соус унаги, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1008
@@ -98,7 +98,7 @@ export const products = [
   {
     "id": "7c0ca49d-6d25-4a1e-bf77-3e5bee457265",
     "name": "Гуччи **",
-    "description": "",
+      "description": "Лосось, сыр сливочный, помидор, огурец, лист салата, соус унаги, соус ореховый, икра масаго",
     "price": 0,
     "image": "/img/.png",
     "code": 1009
@@ -106,7 +106,7 @@ export const products = [
   {
     "id": "fa815f1a-c56a-4bc6-b0b6-38b946cb3d2e",
     "name": "Детройт **",
-    "description": "",
+      "description": "Лосось, огурец, сыр сливочный",
     "price": 0,
     "image": "/img/.png",
     "code": 1010
@@ -114,7 +114,7 @@ export const products = [
   {
     "id": "f95076df-4a1d-48f7-b8a6-454239a4204c",
     "name": "Запеченный лайт **",
-    "description": "",
+      "description": "Лосось, сыр сливочный, помидор, соус терияки, соус манго, кунжут",
     "price": 0,
     "image": "/img/zapecheni_lite.PNG",
     "code": 1058
@@ -122,7 +122,7 @@ export const products = [
   {
     "id": "9f6653e0-a276-48ae-8285-f605f86aefad",
     "name": "Запеченный лосось файр **",
-    "description": "",
+      "description": "Лосось жареный, сыр сливочный, шапка с лососем, томаго, соус унаги, кунжут",
     "price": 0,
     "image": "/img/losos_fair.PNG",
     "code": 1005
@@ -130,7 +130,7 @@ export const products = [
   {
     "id": "9f6653e0-a288-4c36-8494-f1c052072786",
     "name": "Запеченный мидуэй **",
-    "description": "",
+      "description": "Мидии, сыр сливочный, шапка с лососем, шапка с мидиями, томаго, соус унаги, соус свит чили, кунжут",
     "price": 0,
     "image": "/public/img/miduei(1).PNG",
     "code": 1012
@@ -138,7 +138,7 @@ export const products = [
   {
     "id": "9f6653e0-a28d-41c4-95af-26c9e7aa7ad9",
     "name": "Запеченный ролл с беконом **",
-    "description": "",
+      "description": "Бекон, сыр чеддер, курица, помидор",
     "price": 0,
     "image": "/public/img/roll_s_bekonom.PNG",
     "code": 1014
@@ -146,7 +146,7 @@ export const products = [
   {
     "id": "9fa8b803-192d-45a8-9067-6f429772d721",
     "name": "Запеченный тори ролл **",
-    "description": "",
+      "description": "Курица, помидор, лист салата, сыр моцарелла, шапка курицы, соус терияки, кунжут",
     "price": 0,
     "image": "/public/img/tori_roll.PNG",
     "code": 1059
@@ -154,7 +154,7 @@ export const products = [
   {
     "id": "9f6653e0-a28f-4c1e-b4ac-e89b58a15174",
       "name": "Калифорния **",
-      "description": "",
+      "description": "Снежный краб, огурец, авокадо, икра масаго, майонез",
       "price": 0,
       "image": "/img/kalifornia.PNG",
     "code": 1015
@@ -162,7 +162,7 @@ export const products = [
   {
     "id": "9f6653e0-a292-4040-b788-7a212640e041",
       "name": "Кани гриль **",
-      "description": "",
+      "description": "Снежный краб, сыр сливочный, шапка с крабом, томаго, соус унаги, кунжут",
       "price": 0,
       "image": "/img/kani_gril.PNG",
     "code": 1016
@@ -170,7 +170,7 @@ export const products = [
   {
     "id": "9f6653e0-a294-4f24-a569-acfaaef8c4fc",
       "name": "Каппа маки **",
-      "description": "",
+      "description": "Огурец",
       "price": 0,
       "image": "/img/kappa_maki.PNG",
     "code": 1017
@@ -178,7 +178,7 @@ export const products = [
   {
     "id": "9fa8b803-1932-4524-b358-01aca326a85a",
       "name": "Киото чикен **",
-      "description": "",
+      "description": "Курица, чука, сыр сливочный, дайкон, соус ореховый, соус терияки, микрозелень",
       "price": 0,
       "image": "/img/kioto_chiken.PNG",
     "code": 1061
@@ -186,7 +186,7 @@ export const products = [
   {
     "id": "9f6653e0-a297-4dbd-967e-a40f4cbae028",
       "name": "Краб дуэт гриль **",
-      "description": "",
+      "description": "Снежный краб, мидии, шапка с крабом, шапка с мидиями, сыр моцарелла, соус спайси, соус унаги, кунжут",
       "price": 0,
       "image": "/img/krab_duet.PNG",
     "code": 1018
@@ -194,7 +194,7 @@ export const products = [
   {
     "id": "9f6653e0-a29e-473f-94ee-f7aeb0ff9e25",
       "name": "Манхеттен **",
-      "description": "",
+      "description": "Креветка, сыр сливочный, икра масаго",
       "price": 0,
       "image": "/img/manheten.PNG",
     "code": 1021
@@ -202,7 +202,7 @@ export const products = [
   {
     "id": "9f6653e0-a299-4b4c-8876-0e53f4a21263",
       "name": "Мидии маки гриль **",
-      "description": "",
+      "description": "Мидии, шапка с мидиями, томаго, сыр сливочный, соус унаги, кунжут",
       "price": 0,
       "image": "/img/midii_maki_gril.PNG",
     "code": 1019
@@ -210,7 +210,7 @@ export const products = [
   {
     "id": "9fa8b803-1934-413a-b034-1e3fd30c6190",
       "name": "Мидии терияки **",
-      "description": "",
+      "description": "Мидии пряные, сыр сливочный, томаго, соус такемура, кунжут, микрозелень",
       "price": 0,
       "image": "/img/midii_teriaki.PNG",
     "code": 1062
@@ -218,7 +218,7 @@ export const products = [
   {
     "id": "9f6653e0-a2a0-4027-b09f-e48f1b4ea89e",
       "name": "Нежный поцелуй **",
-      "description": "",
+      "description": "Креветки, сыр сливочный, томаго, икра масаго, соус спайси, микрозелень, кунжут",
       "price": 0,
       "image": "/img/nejni_kiss.PNG",
     "code": 1022
@@ -226,7 +226,7 @@ export const products = [
   {
     "id": "9f6653e0-a2a3-44d7-8bee-7a20eb62ff6e",
       "name": "Ниагара **",
-      "description": "",
+      "description": "Шапка с лососем, помидор, томаго, лук зеленый, лист салата, соус унаги, кунжут",
       "price": 0,
       "image": "/img/niagara.PNG",
     "code": 1023
@@ -234,7 +234,7 @@ export const products = [
   {
     "id": "9f6653e0-a2b1-4a44-bba6-3c096aee09cf",
     "name": "Поке с жареным лососем **",
-    "description": "",
+      "description": "Рис, лосось жареный, помидор, соус унаги, соус масаго, лук зеленый, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1029
@@ -242,7 +242,7 @@ export const products = [
   {
     "id": "7f417890-10b0-46de-914b-fb79aeb44985",
     "name": "Поке с креветками **",
-    "description": "",
+      "description": "Рис, креветки, помидор, огурец, соус унаги, соус масаго, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1031
@@ -250,7 +250,7 @@ export const products = [
   {
     "id": "1b6b17df-0120-4576-82ea-ed4f6be67ba7",
     "name": "Поке с курицей **",
-    "description": "",
+      "description": "Рис, курица, соус масаго, соус терияки, помидор, лук зеленый, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1052
@@ -258,7 +258,7 @@ export const products = [
   {
     "id": "9f6653e0-a2a8-4120-a6b3-35607501f344",
       "name": "Розовый **",
-      "description": "",
+      "description": "Лосось, сыр сливочный, помидор, соус масаго",
       "price": 0,
       "image": "/img/pink.PNG",
     "code": 1025
@@ -266,7 +266,7 @@ export const products = [
   {
     "id": "9fa8b803-1939-4ab7-b23f-9481bb1413fa",
     "name": "Сказочный тунец **",
-    "description": "",
+      "description": "Тунец, сыр сливочный, огурец, соус терияки, соус такемура, кунжут, микрозелень",
     "price": 0,
     "image": "/public/img/",
     "code": 1063
@@ -274,7 +274,7 @@ export const products = [
   {
     "id": "9f6653e0-a2ac-40c5-a0f2-a9f6a01ca393",
     "name": "Спайси эби маки **",
-    "description": "",
+      "description": "Креветки, соус спайси",
     "price": 0,
     "image": "/img/.png",
     "code": 1027
@@ -282,7 +282,7 @@ export const products = [
   {
     "id": "9fa8b803-1940-44ed-87b5-1e8a451d8908",
     "name": "Суимоно",
-    "description": "",
+    "description": "Суп с лососем, тилапией, рыбный бульон, водоросли вакамэ, лук зеленый, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1054
@@ -290,7 +290,7 @@ export const products = [
   {
     "id": "9f6653e0-a2af-47df-b8eb-19a9dc4d934b",
     "name": "Суп Мисо гурме **",
-    "description": "",
+      "description": "Рыбный бульон, водоросли вакамэ, грибы шиитаке, паста мисо, зеленый лук, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1028
@@ -299,7 +299,7 @@ export const products = [
   {
     "id": "9f6653e0-a286-460b-9ccc-cc3690107180",
     "name": "Суп Том ям **",
-    "description": "",
+      "description": "Рыбный бульон, креветки, паста том ям, грибы шиитаке, кокосовое молоко, помидор, зеленый лук, кунжут. Подается с рисом.",
     "price": 0,
     "image": "/img/.png",
     "code": 1011
@@ -307,7 +307,7 @@ export const products = [
   {
     "id": "9f6653e0-a2b4-425c-b9cc-7c5545a325b8",
     "name": "Суши пицца №3 (курица) **",
-    "description": "",
+      "description": "Рис, нори, курица, сыр сливочный, грибы шиитаке, помидор, сыр моцарелла, соус унаги, лук зеленый, кунжут",
     "price": 0,
     "image": "/img/3.png",
     "code": 1030
@@ -315,7 +315,7 @@ export const products = [
   {
     "id": "9f6653e0-a2b8-41f1-aecd-1ca3f29e6021",
     "name": "Суши-сендвич с лососем **",
-    "description": "",
+    "description": "Лосось, сыр сливочный, икра масаго, лист салат, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1032
@@ -323,7 +323,7 @@ export const products = [
   {
     "id": "8d69de7f-9d9d-40ca-b975-0c2b6a8c2617",
     "name": "Сяке кунсей маки **",
-    "description": "",
+      "description": "Лосось копченый, икра масаго",
     "price": 0,
     "image": "/img/.png",
     "code": 1034
@@ -331,7 +331,7 @@ export const products = [
   {
     "id": "db0d44eb-e5ba-4714-a221-c8ca153f5e04",
     "name": "Сяке маки **",
-    "description": "",
+      "description": "Лосось",
     "price": 0,
     "image": "/img/.png",
     "code": 1035
@@ -339,7 +339,7 @@ export const products = [
   {
     "id": "62c23f9d-9525-4b4f-b27a-2d0358bb451e",
     "name": "Сяке хот **",
-    "description": "",
+      "description": "Шапка лосось, сыр сливочный, огурец, томаго, соус терияки, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1064
@@ -347,7 +347,7 @@ export const products = [
   {
     "id": "f048a431-19fd-48e3-89f8-8caf45a1d2c5",
     "name": "Туна маки **",
-    "description": "",
+      "description": "Тунец",
     "price": 0,
     "image": "/img/.png",
     "code": 1037
@@ -355,7 +355,7 @@ export const products = [
   {
     "id": "0fcd7d8c-8e15-4278-bcca-a8ed8f292790",
     "name": "Туна фреш **",
-    "description": "",
+      "description": "Тунец, авокадо, икра масаго",
     "price": 0,
     "image": "/img/.png",
     "code": 1065
@@ -363,7 +363,7 @@ export const products = [
   {
     "id": "735e6e4d-1993-480a-bd91-bfa85569b57d",
     "name": "Унаги маки **",
-    "description": "",
+      "description": "Угорь жареный, огурец, соус унаги, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1038
@@ -371,7 +371,7 @@ export const products = [
   {
     "id": "927e11f6-4139-4d43-b381-8f39152e63e8",
     "name": "Филадельфия лайт с огурцом **",
-    "description": "",
+      "description": "Лосось, сыр сливочный, огурец",
     "price": 0,
     "image": "/img/.png",
     "code": 1040
@@ -379,7 +379,7 @@ export const products = [
   {
     "id": "8e622900-941d-43b6-9e8a-d7165d25d33f",
     "name": "Фреш ролл **",
-    "description": "",
+      "description": "Помидор, лист салата, сыр сливочный, кунжут.",
     "price": 0,
     "image": "/img/.png",
     "code": 1042
@@ -387,7 +387,7 @@ export const products = [
   {
     "id": "c3b06128-cb58-45b0-ab86-9830f31359e0",
     "name": "Чеддер скин ролл **",
-    "description": "",
+      "description": "Лосось, грибы шиитаке, сыр сливочный, лист салата, сыр чеддер, соус манго, микрозелень",
     "price": 0,
     "image": "/img/.png",
     "code": 1066
@@ -395,7 +395,7 @@ export const products = [
   {
     "id": "a3fcc907-a059-44c7-9ef1-10e4bbea22b4",
     "name": "Чизи эби **",
-    "description": "",
+      "description": "Креветки, огурец, сыр сливочный, сыр чеддер, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1067
@@ -403,7 +403,7 @@ export const products = [
   {
     "id": "4ef5733b-cbeb-4b12-86eb-34c321190f54",
     "name": "Чикен гриль **",
-    "description": "",
+      "description": "Курица, шапка с курицей, помидор, сыр сливочный, соус унаги, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1044
@@ -411,7 +411,7 @@ export const products = [
   {
     "id": "5bcc457a-4713-40c0-b2c1-68e1337599fe",
     "name": "Чикен лав **",
-    "description": "",
+      "description": "Курица, салат чука, сыр сливочный, помидор, кунжут",
     "price": 0,
     "image": "/img/.png",
     "code": 1045
@@ -419,7 +419,7 @@ export const products = [
   {
     "id": "4bea1444-b3ef-4d4e-8b5c-f97d62076d6e",
     "name": "Чикен фиера **",
-    "description": "",
+      "description": "Курица, сыр чеддер, лист салата, сыр моцарелла, соус унаги, лук зеленый",
     "price": 0,
     "image": "/img/.png",
     "code": 1068
@@ -427,7 +427,7 @@ export const products = [
   {
     "id": "3c842fd8-0401-4bd2-88b9-f194bd55c6f5",
     "name": "Чука маки **",
-    "description": "",
+      "description": "Чука, соус ореховый",
     "price": 0,
     "image": "/img/.png",
     "code": 1046
@@ -435,7 +435,7 @@ export const products = [
   {
     "id": "a1894c5f-42c0-42bb-ab66-6f056bcacb65",
     "name": "Шёлковый путь **",
-    "description": "",
+      "description": "Курица, сыр сливочный, помидор, соус такемура, микрозелень, кунжут",
     "price": 0,
     "image": "/img/e.png",
     "code": 1048
