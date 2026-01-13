@@ -80,14 +80,6 @@ export const products = [
     "code": 1006
   },
   {
-    "id": "9e18c436-42ae-4d3e-8601-b46656258240",
-    "name": "Гламур **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1007
-  },
-  {
     "id": "09ee4722-9c93-4692-973e-5fca059f6131",
     "name": "Горячий дон жуан **",
     "description": "",
@@ -96,28 +88,12 @@ export const products = [
     "code": 1008
   },
   {
-    "id": "7c0ca49d-6d25-4a1e-bf77-3e5bee457265",
-    "name": "Гуччи **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1009
-  },
-  {
     "id": "fa815f1a-c56a-4bc6-b0b6-38b946cb3d2e",
     "name": "Детройт **",
     "description": "",
     "price": 0,
     "image": "/img/.png",
     "code": 1010
-  },
-  {
-    "id": "f95076df-4a1d-48f7-b8a6-454239a4204c",
-    "name": "Запеченный лайт **",
-    "description": "",
-    "price": 0,
-    "image": "/img/zapecheni_lite.PNG",
-    "code": 1058
   },
   {
     "id": "9f6653e0-a276-48ae-8285-f605f86aefad",
@@ -192,14 +168,6 @@ export const products = [
     "code": 1017
   },
   {
-    "id": "9fa8b803-1932-4524-b358-01aca326a85a",
-      "name": "Киото чикен **",
-      "description": "",
-      "price": 0,
-      "image": "/img/kioto_chiken.PNG",
-    "code": 1061
-  },
-  {
     "id": "9f6653e0-a297-4dbd-967e-a40f4cbae028",
       "name": "Краб дуэт гриль **",
       "description": "",
@@ -238,14 +206,6 @@ export const products = [
       "price": 0,
       "image": "/img/midii_teriaki.PNG",
     "code": 1062
-  },
-  {
-    "id": "9f6653e0-a2a0-4027-b09f-e48f1b4ea89e",
-      "name": "Нежный поцелуй **",
-      "description": "",
-      "price": 0,
-      "image": "/img/nejni_kiss.PNG",
-    "code": 1022
   },
   {
     "id": "9f6653e0-a2a3-44d7-8bee-7a20eb62ff6e",
@@ -409,14 +369,6 @@ export const products = [
     "code": 1037
   },
   {
-    "id": "0fcd7d8c-8e15-4278-bcca-a8ed8f292790",
-    "name": "Туна фреш **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1065
-  },
-  {
     "id": "735e6e4d-1993-480a-bd91-bfa85569b57d",
     "name": "Унаги маки **",
     "description": "",
@@ -495,14 +447,6 @@ export const products = [
     "price": 0,
     "image": "/img/.png",
     "code": 1045
-  },
-  {
-    "id": "4bea1444-b3ef-4d4e-8b5c-f97d62076d6e",
-    "name": "Чикен фиера **",
-    "description": "",
-    "price": 0,
-    "image": "/img/.png",
-    "code": 1068
   },
   {
     "id": "3c842fd8-0401-4bd2-88b9-f194bd55c6f5",

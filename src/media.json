@@ -60,33 +60,15 @@
     "media": []
   },
   {
-    "id": "9f6653e0-a27c-44e1-bca7-85c2a93ab3d5",
-    "name": "Гламур **",
-    "slug": "glamur",
-    "media": []
-  },
-  {
     "id": "9f6653e0-a27e-46c5-849d-b6960a486854",
     "name": "Горячий дон жуан **",
     "slug": "goriacii-don-zuan",
     "media": []
   },
   {
-    "id": "9f6653e0-a281-43dd-a51c-eed958b464ee",
-    "name": "Гуччи **",
-    "slug": "gucci",
-    "media": []
-  },
-  {
     "id": "9f6653e0-a283-4478-95fa-42fb65f3818e",
     "name": "Детройт **",
     "slug": "detroit",
-    "media": []
-  },
-  {
-    "id": "9fa8b803-192a-46b8-bc5a-161213797d4f",
-    "name": "Запеченный лайт **",
-    "slug": "zapecennyi-lait",
     "media": []
   },
   {
@@ -144,12 +126,6 @@
     "media": []
   },
   {
-    "id": "9fa8b803-1932-4524-b358-01aca326a85a",
-    "name": "Киото чикен **",
-    "slug": "kioto-ciken",
-    "media": []
-  },
-  {
     "id": "9f6653e0-a297-4dbd-967e-a40f4cbae028",
     "name": "Краб дуэт гриль **",
     "slug": "krab-duet-gril",
@@ -177,12 +153,6 @@
     "id": "9fa8b803-1934-413a-b034-1e3fd30c6190",
     "name": "Мидии терияки **",
     "slug": "midii-teriiaki",
-    "media": []
-  },
-  {
-    "id": "9f6653e0-a2a0-4027-b09f-e48f1b4ea89e",
-    "name": "Нежный поцелуй **",
-    "slug": "neznyi-pocelui",
     "media": []
   },
   {
@@ -369,12 +339,6 @@
     "id": "9f6653e0-a2d7-45fd-9b0f-7fb31de3e696",
     "name": "Чикен лав **",
     "slug": "ciken-lav",
-    "media": []
-  },
-  {
-    "id": "9fa8b807-f8ac-4835-9a97-d9e70c8218d9",
-    "name": "Чикен фиера **",
-    "slug": "ciken-fiera",
     "media": []
   },
   {
