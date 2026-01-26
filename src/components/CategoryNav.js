@@ -1,6 +1,6 @@
 // src/components/CategoryNav.js — Горизонтальная навигация по категориям
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, Fragment } from 'react';
 
 /**
  * Компонент навигации по категориям
@@ -45,16 +45,6 @@ function CategoryNav({ categories, activeCategory, onCategorySelect, productCoun
 
   return (
     <nav className="category-nav grid-layout" ref={navRef}>
-      {/* Кнопка "Все" */}
-      <button
-        className={`category-nav__item ${activeCategory === null ? 'category-nav__item--active' : ''}`}
-        onClick={() => onCategorySelect(null)}
-        ref={activeCategory === null ? activeRef : null}
-      >
-        <span className="category-nav__icon">📋</span>
-        <span className="category-nav__name">Все</span>
-      </button>
-
       {/* Категории */}
       {categories.map(category => {
         const count = productCounts[category.id] || 0;
@@ -71,7 +61,7 @@ function CategoryNav({ categories, activeCategory, onCategorySelect, productCoun
             onDoubleClick={() => handleScrollToCategory(category.id)}
             ref={isActive ? activeRef : null}
           >
-            <span className="category-nav__icon">{category.icon}</span>
+            <span className="category-nav__icon"><Fragment>{category.icon}</Fragment></span>
             <span className="category-nav__name">{category.name}</span>
           </button>
         );

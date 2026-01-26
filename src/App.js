@@ -194,12 +194,25 @@ function App() {
                 <>
                   {/* Вставляем компонент навигации по категориям */}
                   {isCategoryNavVisible && (
-                    <CategoryNav
-                      categories={categories}
-                      activeCategory={activeCategory}
-                      onCategorySelect={setActiveCategory} // Передаем функцию для обновления активной категории
-                      productCounts={productCounts} // Передаем подсчитанные количества
-                    />
+                    <>
+                      {/*
+                        Фильтруем категории, отображаем только нужные
+                        IDs: sets, cold-rolls, hot-rolls, special
+                      */}
+                      {(() => {
+                        const visibleCategoryIds = ['sets', 'cold-rolls', 'hot-rolls', 'special'];
+                        const filteredCategories = categories.filter(cat => visibleCategoryIds.includes(cat.id));
+                        
+                        return (
+                          <CategoryNav
+                            categories={filteredCategories}
+                            activeCategory={activeCategory}
+                            onCategorySelect={setActiveCategory} // Передаем функцию для обновления активной категории
+                            productCounts={productCounts} // Передаем подсчитанные количества
+                          />
+                        );
+                      })()}
+                    </>
                   )}
                   <div className="products-grid">
                     {filteredProducts.map((product) => (
