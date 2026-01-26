@@ -60,12 +60,12 @@ const imageByCode = {
   1046: "Чука маки.jpg",
 };
 
-function normalizeProducts(list, imageByCode) {
+function normalizeProducts(list) {
   return (list || []).map((p) => {
     const cleanName =
       typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
 
-    let img = imageByCode[p.code] ? `/img/${imageByCode[p.code]}` : (p.image || "");
+    let img = imageByCode[p.id] ? `/img/${imageByCode[p.id]}` : (p.image || "");
     if (img.startsWith("/public/")) img = img.replace(/^\/public/u, "");
     if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/") img = "/logo.jpg";
 
@@ -127,7 +127,7 @@ function App() {
 
         if (data.success) {
           // Нормализуем продукты, используя imageByCode
-          const normalizedProducts = normalizeProducts(data.products, imageByCode);
+          const normalizedProducts = normalizeProducts(data.products);
           setProducts(normalizedProducts);
           setCategories(data.categories);
         } else {
