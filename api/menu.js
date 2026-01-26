@@ -107,7 +107,20 @@ module.exports = async (req, res) => {
 
   try {
     // Получаем товары из Frontpad
-    const products = await getProducts();
+    const result = await getProducts(); // Теперь getProducts возвращает { success, data, error }
+
+    // Проверяем, была ли ошибка при получении товаров
+    if (!result.success) {
+      console.error('Menu API error from Frontpad:', result.error);
+      return res.status(500).json({
+        success: false,
+        error: result.error.message || 'Ошибка получения меню из Frontpad',
+        errorCode: result.error.code // Передаем код ошибки для диагностики
+      });
+    }
+
+    // Используем result.data, который содержит массив продуктов
+    const products = result.data;
 
     // Категоризируем и обогащаем данные
     const categorizedProducts = products
