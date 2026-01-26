@@ -3,8 +3,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
 import About from "./About";
 import Delivery from "./Delivery";
+import CategoryNav from './components/CategoryNav'; // Импортируем компонент навигации по категориям
 import "./App.css";
-import { products as rawProducts } from "./data";
+// Удаляем импорт статичных данных: import { products as rawProducts } from "./data";
 import Success from "./Success"; // страница «Заказ принят»
 
 // code -> имя файла в /public/img
@@ -34,7 +35,7 @@ const imageByCode = {
   1018: "krab_duet.PNG",
   1020: "mal_princ.PNG",
   1021: "manheten.PNG",
-  1019: "midii_maki_gril.PNG",
+ 1019: "midii_maki_gril.PNG",
   1062: "midii_teriaki.PNG",
   1023: "niagara.PNG",
   1024: "picantnii_losos.jpg",
@@ -59,7 +60,7 @@ const imageByCode = {
   1046: "Чука маки.jpg",
 };
 
-function normalizeProducts(list) {
+function normalizeProducts(list, imageByCode) {
   return (list || []).map((p) => {
     const cleanName =
       typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
@@ -105,7 +106,61 @@ function App() {
   }, [urlTelegramId]);
   // ⬆️ КОНЕЦ БЛОКА
 
-  const products = useMemo(() => normalizeProducts(rawProducts), []);
+  // --- Новые состояния для загрузки данных с бэкенда ---
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null); // Состояние активной категории
+
+  // Загружаем данные с бэкенда при монтировании компонента
+  useEffect(() => {
+    const fetchMenuData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/menu'); // Запрос к нашему эндпоинту
+        if (!response.ok) {
+          throw new Error(`Ошибка загрузки меню: ${response.status} ${response.statusText}`);
+        }
+        const data = await response.json();
+
+        if (data.success) {
+          // Нормализуем продукты, используя imageByCode
+          const normalizedProducts = normalizeProducts(data.products, imageByCode);
+          setProducts(normalizedProducts);
+          setCategories(data.categories);
+        } else {
+          throw new Error(data.error || 'Неизвестная ошибка при загрузке меню');
+        }
+      } catch (err) {
+        console.error('Ошибка при загрузке меню:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenuData();
+  }, []); // Пустой массив зависимостей означает, что эффект выполнится только один раз
+
+  // Фильтруем продукты по активной категории
+  const filteredProducts = useMemo(() => {
+    if (!activeCategory) {
+      return products; // Показываем все продукты, если категория не выбрана
+    }
+    return products.filter(product => product.category === activeCategory);
+  }, [products, activeCategory]);
+
+  // Подсчитываем количество товаров в каждой категории для отображения в CategoryNav
+  const productCounts = useMemo(() => {
+    const counts = {};
+    products.forEach(product => {
+      const catId = product.category;
+      counts[catId] = (counts[catId] || 0) + 1;
+    });
+    return counts;
+  }, [products]);
+
 
   // без условных хуков — просто флаг страницы успеха
   const isSuccessPage =
@@ -131,11 +186,26 @@ function App() {
           </nav>
 
           {page === "menu" && (
-            <div className="products-grid">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} telegramId={telegramId} />
-              ))}
-            </div>
+            <>
+              {loading && <div>Загрузка меню...</div>}
+              {error && <div>Ошибка: {error}</div>}
+              {!loading && !error && (
+                <>
+                  {/* Вставляем компонент навигации по категориям */}
+                  <CategoryNav
+                    categories={categories}
+                    activeCategory={activeCategory}
+                    onCategorySelect={setActiveCategory} // Передаем функцию для обновления активной категории
+                    productCounts={productCounts} // Передаем подсчитанные количества
+                  />
+                  <div className="products-grid">
+                    {filteredProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} telegramId={telegramId} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
           )}
 
           {page === "about" && <About />}
