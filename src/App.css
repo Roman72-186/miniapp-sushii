@@ -35,6 +35,17 @@ body {
   margin-top: 20px;
 }
 
+/* Стили для выпадающего меню категорий */
+.category-nav.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px; /* Расстояние между кнопками */
+  padding: 10px;
+  background-color: #f0f0f0; /* Фоновый цвет для выпадающего меню */
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
 .product-card {
   background: white;
   border-radius: 15px;

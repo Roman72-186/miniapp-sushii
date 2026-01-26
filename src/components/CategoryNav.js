@@ -44,7 +44,7 @@ function CategoryNav({ categories, activeCategory, onCategorySelect, productCoun
   };
 
   return (
-    <nav className="category-nav" ref={navRef}>
+    <nav className="category-nav grid-layout" ref={navRef}>
       {/* Кнопка "Все" */}
       <button
         className={`category-nav__item ${activeCategory === null ? 'category-nav__item--active' : ''}`}
@@ -73,9 +73,6 @@ function CategoryNav({ categories, activeCategory, onCategorySelect, productCoun
           >
             <span className="category-nav__icon">{category.icon}</span>
             <span className="category-nav__name">{category.name}</span>
-            {count > 0 && (
-              <span className="category-nav__count">{count}</span>
-            )}
           </button>
         );
       })}

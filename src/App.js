@@ -82,6 +82,7 @@ function normalizeProducts(list, imageByCode) {
 
 function App() {
   const [page, setPage] = useState("menu");
+  const [isCategoryNavVisible, setCategoryNavVisible] = useState(false);
 
   // читаем telegram_id из URL
   const urlTelegramId = useMemo(() => {
@@ -180,7 +181,7 @@ function App() {
           </div>
 
           <nav className="nav">
-            <button onClick={() => setPage("menu")}>Меню</button>
+            <button onClick={() => { setPage("menu"); setCategoryNavVisible(!isCategoryNavVisible); }}>Меню</button>
             <button onClick={() => setPage("about")}>О компании</button>
             <button onClick={() => setPage("delivery")}>Доставка и оплата</button>
           </nav>
@@ -192,12 +193,14 @@ function App() {
               {!loading && !error && (
                 <>
                   {/* Вставляем компонент навигации по категориям */}
-                  <CategoryNav
-                    categories={categories}
-                    activeCategory={activeCategory}
-                    onCategorySelect={setActiveCategory} // Передаем функцию для обновления активной категории
-                    productCounts={productCounts} // Передаем подсчитанные количества
-                  />
+                  {isCategoryNavVisible && (
+                    <CategoryNav
+                      categories={categories}
+                      activeCategory={activeCategory}
+                      onCategorySelect={setActiveCategory} // Передаем функцию для обновления активной категории
+                      productCounts={productCounts} // Передаем подсчитанные количества
+                    />
+                  )}
                   <div className="products-grid">
                     {filteredProducts.map((product) => (
                       <ProductCard key={product.id} product={product} telegramId={telegramId} />
