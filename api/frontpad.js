@@ -10,9 +10,21 @@ const FRONTPAD_SECRET = process.env.FRONTPAD_SECRET;
  * @param {Object} params - Дополнительные параметры
  * @returns {Promise<Object>} - Ответ API
  */
+/**
+ * Отправляет запрос к Frontpad API
+ * @param {string} method - Метод API (get_products, get_client, new_order, etc.)
+ * @param {Object} params - Дополнительные параметры
+ * @returns {Promise<{success: boolean, data?: Object, error?: {code: string, message: string}}>} - Результат API
+ */
 async function frontpadRequest(method, params = {}) {
   if (!FRONTPAD_SECRET) {
-    throw new Error('FRONTPAD_SECRET не настроен в переменных окружения');
+    return {
+      success: false,
+      error: {
+        code: 'MISSING_SECRET',
+        message: 'FRONTPAD_SECRET не настроен в переменных окружения'
+      }
+    };
   }
 
   const body = new URLSearchParams({
@@ -20,43 +32,78 @@ async function frontpadRequest(method, params = {}) {
     ...params
   });
 
-  const response = await fetch(`${FRONTPAD_API}?${method}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: body.toString()
-  });
+  try {
+    const response = await fetch(`${FRONTPAD_API}?${method}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString()
+    });
 
-  const data = await response.json();
+    // Проверяем, был ли запрос успешным (статус 2xx)
+    if (!response.ok) {
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: `HTTP ${response.status}: ${response.statusText}`
+        }
+      };
+    }
 
-  if (data.result === 'error') {
-    const errorMessages = {
-      'invalid_secret': 'Неверный секретный ключ Frontpad',
-      'requests_limit': 'Превышен лимит запросов (30/мин)',
-      'api_off': 'API Frontpad выключен',
-      'invalid_plant': 'API недоступен на текущем тарифе',
-      'invalidclientphone': 'Неверный формат номера телефона',
+    const data = await response.json();
+
+    if (data.result === 'error') {
+      const errorMessages = {
+        'invalid_secret': 'Неверный секретный ключ Frontpad',
+        'requests_limit': 'Превышен лимит запросов (30/мин)',
+        'api_off': 'API Frontpad выключен',
+        'invalid_plant': 'API недоступен на текущем тарифе',
+        'invalidclientphone': 'Неверный формат номера телефона',
+      };
+      return {
+        success: false,
+        error: {
+          code: data.error,
+          message: errorMessages[data.error] || `Frontpad API: ${data.error}`
+        }
+      };
+    }
+
+    return {
+      success: true,
+      data: data
     };
-    throw new Error(errorMessages[data.error] || `Frontpad API: ${data.error}`);
+  } catch (networkError) {
+    // Обработка сетевых ошибок (например, нет соединения, таймаут)
+    return {
+      success: false,
+      error: {
+        code: 'NETWORK_ERROR',
+        message: `Ошибка сети при обращении к Frontpad API: ${networkError.message}`
+      }
+    };
   }
-
-  return data;
 }
 
 /**
  * Получает список всех товаров из Frontpad
- * @returns {Promise<Array>} - Массив товаров
+ * @returns {Promise<{success: boolean, data?: Array, error?: {code: string, message: string}}>} - Результат операции
  */
 async function getProducts() {
-  const data = await frontpadRequest('get_products');
+  const result = await frontpadRequest('get_products');
+
+  if (!result.success) {
+    return result; // Возвращаем ошибку напрямую
+  }
 
   // Преобразуем параллельные массивы в массив объектов
   const products = [];
-  const ids = data.product_id || [];
-  const names = data.name || [];
-  const prices = data.price || [];
-  const sales = data.sale || [];
+  const ids = result.data.product_id || [];
+  const names = result.data.name || [];
+  const prices = result.data.price || [];
+  const sales = result.data.sale || [];
 
   for (let i = 0; i < ids.length; i++) {
     products.push({
@@ -67,44 +114,54 @@ async function getProducts() {
     });
   }
 
-  return products;
+  return {
+    success: true,
+    data: products
+  };
 }
 
 /**
  * Получает информацию о клиенте по номеру телефона
  * @param {string} phone - Номер телефона
- * @returns {Promise<Object>} - Данные клиента
+ * @returns {Promise<{success: boolean, data?: Object, error?: {code: string, message: string}}>} - Результат операции
  */
 async function getClient(phone) {
   // Нормализуем телефон - только цифры
   const normalizedPhone = phone.replace(/[^\d]/g, '');
 
-  const data = await frontpadRequest('get_client', {
+  const result = await frontpadRequest('get_client', {
     client_phone: normalizedPhone
   });
 
+  if (!result.success) {
+    return result; // Возвращаем ошибку напрямую
+  }
+
   return {
-    found: data.result === 'success',
-    name: data.name || '',
-    sale: parseFloat(data.sale) || 0,
-    score: parseFloat(data.score) || 0,
-    address: {
-      street: data.street || '',
-      home: data.home || '',
-      pod: data.pod || '',
-      et: data.et || '',
-      apart: data.apart || '',
-    },
-    email: data.email || '',
-    descr: data.descr || '',
-    card: data.card || '',
+    success: true,
+    data: {
+      found: true, // Успешный результат от API означает, что клиент найден
+      name: result.data.name || '',
+      sale: parseFloat(result.data.sale) || 0,
+      score: parseFloat(result.data.score) || 0,
+      address: {
+        street: result.data.street || '',
+        home: result.data.home || '',
+        pod: result.data.pod || '',
+        et: result.data.et || '',
+        apart: result.data.apart || '',
+      },
+      email: result.data.email || '',
+      descr: result.data.descr || '',
+      card: result.data.card || '',
+    }
   };
 }
 
 /**
  * Отправляет новый заказ в Frontpad
  * @param {Object} orderData - Данные заказа
- * @returns {Promise<Object>} - Результат создания заказа
+ * @returns {Promise<{success: boolean, data?: Object, error?: {code: string, message: string}}>} - Результат операции
  */
 async function createOrder(orderData) {
   const {
@@ -140,12 +197,18 @@ async function createOrder(orderData) {
     params.datetime = datetime;
   }
 
-  const data = await frontpadRequest('new_order', params);
+  const result = await frontpadRequest('new_order', params);
+
+  if (!result.success) {
+    return result; // Возвращаем ошибку напрямую
+  }
 
   return {
-    success: data.result === 'success',
-    orderId: data.order_id,
-    orderNumber: data.order_number,
+    success: true,
+    data: {
+      orderId: result.data.order_id,
+      orderNumber: result.data.order_number,
+    }
   };
 }
 

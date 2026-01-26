@@ -3,6 +3,9 @@
 const TELEGRAM_WEBHOOK_URL =
   "https://api.watbot.ru/hook/4302904:1NR5p7lPaeNS6PUNPFs4qZfqfynFcG6ZX0ff2evpL2hWo01Q";
 
+// Импортируем функцию createOrder из api/frontpad.js
+const { createOrder } = require('./frontpad');
+
 // Универсальный парсер: Buffer | string | object -> object
 function parseJsonBody(req) {
   try {
@@ -37,6 +40,42 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: `Поля отсутствуют: ${missing.join(", ")}` });
     }
 
+    // Подготовим данные для заказа во Frontpad
+    // Здесь мы предполагаем, что telegram_id может быть использован как имя клиента
+    // и что у нас есть базовая информация о продукте и цене
+    const orderData = {
+      products: [{
+        id: product_id, // ID товара из запроса
+        quantity: 1,    // Предполагаем, что количество всегда 1, если не передано отдельно
+        // modifiers: [] // Можно добавить модификаторы, если они есть
+      }],
+      client: {
+        name: telegram_id?.toString() || 'Unknown Client', // Используем telegram_id как имя
+        phone: '', // Нужно будет добавить телефон, если доступен
+        street: '', // Адрес, если доступен
+        home: '',
+        apart: '',
+        pod: '',
+        et: '',
+      },
+      payment: 'online', // Предполагаем онлайн-оплату
+      comment: `Telegram ID: ${telegram_id}, Code: ${code || 'N/A'}`, // Комментарий
+      datetime: null, // Время предзаказа, если нужно
+    };
+
+    // Создаем заказ во Frontpad
+    const frontpadResult = await createOrder(orderData);
+
+    if (!frontpadResult.success) {
+      console.error("Frontpad API error:", frontpadResult.error);
+      return res.status(500).json({
+        success: false,
+        error: `Ошибка создания заказа во Frontpad: ${frontpadResult.error.message}`,
+        errorCode: frontpadResult.error.code
+      });
+    }
+
+    // Если заказ успешно создан во Frontpad, отправляем уведомление в Telegram
     const response = await fetch(TELEGRAM_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,15 +92,24 @@ module.exports = async (req, res) => {
 
     if (!response.ok) {
       console.error("Webhook error:", response.status, text);
+      // Важно: заказ уже создан во Frontpad, но уведомление в Telegram не отправилось
+      // Возможно, стоит попробовать повторить отправку уведомления
       return res.status(502).json({
+        success: false,
         error: `Webhook ${response.status}${response.statusText ? " " + response.statusText : ""}`,
-        body: text || null
+        body: text || null,
+        warning: "Заказ успешно создан во Frontpad, но уведомление в Telegram не отправлено."
       });
     }
 
-    return res.status(200).json({ status: "ok" });
+    return res.status(200).json({
+      success: true,
+      status: "ok",
+      frontpadOrderId: frontpadResult.data.orderId, // Возвращаем ID заказа из Frontpad
+      frontpadOrderNumber: frontpadResult.data.orderNumber // Возвращаем номер заказа из Frontpad
+    });
   } catch (err) {
     console.error("API error:", err);
-    return res.status(500).json({ error: "Не удалось отправить заказ" });
+    return res.status(500).json({ error: "Не удалось обработать заказ" });
   }
 };
