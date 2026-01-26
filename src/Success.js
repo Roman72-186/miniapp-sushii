@@ -1,30 +1,10 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 
 function Success() {
-  const params = useMemo(() => new URLSearchParams(window.location.search), []);
-  const product = params.get("product") || "Заказ";
-
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     try { tg?.ready(); tg?.BackButton?.hide?.(); } catch {}
   }, []);
-
-  const closeApp = () => {
-    const tg = window.Telegram?.WebApp;
-
-    try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
-
-    if (tg?.showAlert) {
-      tg.showAlert("Спасибо! Подарок выбран. Возвращаемся в Telegram.", () => {
-        setTimeout(() => { try { tg.close(); } catch {} }, 60);
-      });
-      setTimeout(() => { try { tg.requestClose?.(); } catch {} }, 900);
-    } else {
-      // Вне Telegram просто закрыть вкладку не получится — оставим alert как фолбэк
-      alert("Спасибо! Заказ принят.");
-      try { window.close(); } catch {}
-    }
-  };
 
   return (
     <div className="app" style={{ padding: 16, textAlign: "center" }}>

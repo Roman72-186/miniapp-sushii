@@ -16,12 +16,11 @@ const imageByCode = {
   1056: "bonito_midii.PNG",
   1057: "bonito_tunec.PNG",
   1051: "boul_s_krevetkami.PNG",
-  1033: "boul_s_lososom.PNG",
+  1033: "boul_s_lososem.PNG",
   1047: "boul_s_tuncom.PNG",
   1006: "bruklin.PNG",
   1008: "don_juan.PNG",
   1010: "detroit.PNG",
-  1033: "boul_s_lososem.PNG",
   1058: "zapeccheni_lite.PNG",
   1005: "losos_fair.PNG",
   1012: "miduei(1).PNG",
@@ -41,7 +40,7 @@ const imageByCode = {
   1024: "picantnii_losos.jpg",
   1025: "pink.PNG",
   1026: "samurai.PNG",
-  1048: "e.png",
+  1048: "Шёлковый путь.jpg",
   1031: "Поке с креветками.jpg",
   1052: "Поке с курицей.jpg",
   1027: "Спайси эби маки.jpg",
@@ -58,7 +57,6 @@ const imageByCode = {
   1044: "Чикен гриль.jpg",
   1045: "Чикен лав.jpg",
   1046: "Чука маки.jpg",
-  1048: "Шёлковый путь.jpg",
 };
 
 function normalizeProducts(list) {
