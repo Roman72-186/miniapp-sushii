@@ -26,9 +26,13 @@ module.exports = async (req, res) => {
   try {
     const { telegram_id, product_id, product_name, price, code } = parseJsonBody(req);
 
-    // Валидация — product_name обязателен, telegram_id опционален
-    if (!product_name) {
-      return res.status(400).json({ error: "Поле отсутствует: product_name" });
+    // Валидация
+    const missing = [];
+    if (!telegram_id) missing.push("telegram_id");
+    if (!product_name) missing.push("product_name");
+
+    if (missing.length) {
+      return res.status(400).json({ error: `Поля отсутствуют: ${missing.join(", ")}` });
     }
 
     // Отправляем уведомление в Telegram через WATBOT

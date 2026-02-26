@@ -58,6 +58,10 @@ function SetsPage() {
         <p style={{ margin: "6px 0 0", fontSize: 14, color: "#777" }}>
           Выберите сет — он входит в вашу подписку
         </p>
+        {/* DEBUG: убрать после отладки */}
+        <p style={{ margin: "4px 0 0", fontSize: 11, color: "#bbb" }}>
+          TG ID: {telegramId || "не получен"} | URL param: {new URLSearchParams(window.location.search).get("telegram_id") || "нет"} | WebApp: {window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "нет"}
+        </p>
       </div>
 
       <div className="products-grid">
