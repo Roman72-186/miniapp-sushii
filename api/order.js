@@ -26,15 +26,9 @@ module.exports = async (req, res) => {
   try {
     const { telegram_id, product_id, product_name, price, code } = parseJsonBody(req);
 
-    // Мягкая валидация — вернём 400 с причинами, чтобы проще было отладить
-    const missing = [];
-    if (!telegram_id) missing.push("telegram_id");
-    if (!product_id) missing.push("product_id");
-    if (!product_name) missing.push("product_name");
-    if (price === undefined || price === null) missing.push("price");
-
-    if (missing.length) {
-      return res.status(400).json({ error: `Поля отсутствуют: ${missing.join(", ")}` });
+    // Валидация — product_name обязателен, telegram_id опционален
+    if (!product_name) {
+      return res.status(400).json({ error: "Поле отсутствует: product_name" });
     }
 
     // Отправляем уведомление в Telegram через WATBOT
@@ -42,10 +36,10 @@ module.exports = async (req, res) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        telegram_id,
-        product_id,
+        telegram_id: telegram_id || "",
+        product_id: product_id || "",
         product_name,
-        price,
+        price: price ?? 0,
         code: code ?? ""
       })
     });
