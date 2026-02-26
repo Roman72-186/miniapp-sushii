@@ -8,6 +8,7 @@ import "./App.css";
 // Удаляем импорт статичных данных: import { products as rawProducts } from "./data";
 import Success from "./Success"; // страница «Заказ принят»
 import SetsPage from "./SetsPage"; // страница сетов по подписке
+import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет уже получен»
 
 // code -> имя файла в /public/img
 const imageByCode = {
@@ -169,10 +170,14 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/success";
   const isSetsPage =
     typeof window !== "undefined" && window.location.pathname === "/sets";
+  const isSetsReceivedPage =
+    typeof window !== "undefined" && window.location.pathname === "/sets-received";
 
   return (
     <div className="app">
-      {isSetsPage ? (
+      {isSetsReceivedPage ? (
+        <SetsReceivedPage />
+      ) : isSetsPage ? (
         <SetsPage />
       ) : isSuccessPage ? (
         <Success />
