@@ -7,6 +7,7 @@ import CategoryNav from './components/CategoryNav'; // Импортируем к
 import "./App.css";
 // Удаляем импорт статичных данных: import { products as rawProducts } from "./data";
 import Success from "./Success"; // страница «Заказ принят»
+import SetsPage from "./SetsPage"; // страница сетов по подписке
 
 // code -> имя файла в /public/img
 const imageByCode = {
@@ -163,13 +164,17 @@ function App() {
   }, [products]);
 
 
-  // без условных хуков — просто флаг страницы успеха
+  // без условных хуков — просто флаги страниц
   const isSuccessPage =
     typeof window !== "undefined" && window.location.pathname === "/success";
+  const isSetsPage =
+    typeof window !== "undefined" && window.location.pathname === "/sets";
 
   return (
     <div className="app">
-      {isSuccessPage ? (
+      {isSetsPage ? (
+        <SetsPage />
+      ) : isSuccessPage ? (
         <Success />
       ) : (
         <>
