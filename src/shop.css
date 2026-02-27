@@ -687,6 +687,12 @@ body.shop-body {
   color: #fff;
 }
 
+.shop-radio-hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}
+
 .shop-radio-label input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;

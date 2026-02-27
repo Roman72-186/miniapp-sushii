@@ -2,8 +2,15 @@
 
 import React, { useState } from 'react';
 
+const PICKUP_POINTS = [
+  { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–22:00' },
+  { id: '2', address: 'ул. Согласия, д. 46', hours: '10:00–22:00' },
+  { id: '3', address: 'ул. Автомобильная, д. 12Б', hours: '10:00–22:00' },
+];
+
 function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [deliveryType, setDeliveryType] = useState('delivery');
+  const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [timeType, setTimeType] = useState('asap');
   const [payment, setPayment] = useState('cash');
   const [name, setName] = useState('');
@@ -17,8 +24,10 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  const selectedPickup = PICKUP_POINTS.find(p => p.id === pickupPoint);
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError(null);
 
     if (!name.trim()) { setError('Укажите имя'); return; }
@@ -28,6 +37,8 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
     setSubmitting(true);
 
     try {
+      const pickupAddress = selectedPickup ? selectedPickup.address : '';
+
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,7 +52,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           client: {
             name: name.trim(),
             phone: phone.trim(),
-            street: deliveryType === 'delivery' ? street.trim() : '',
+            street: deliveryType === 'delivery' ? street.trim() : pickupAddress,
             home: deliveryType === 'delivery' ? home.trim() : '',
             apart: deliveryType === 'delivery' ? apart.trim() : '',
             pod: deliveryType === 'delivery' ? pod.trim() : '',
@@ -49,7 +60,10 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           },
           payment,
           delivery_type: deliveryType,
-          comment: comment.trim(),
+          comment: [
+            comment.trim(),
+            deliveryType === 'pickup' ? `Самовывоз: ${pickupAddress}` : '',
+          ].filter(Boolean).join(' | '),
           telegram_id: telegramId || '',
         }),
       });
@@ -104,6 +118,31 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
             </div>
           </div>
         </div>
+
+        {/* Пункт самовывоза */}
+        {deliveryType === 'pickup' && (
+          <div className="shop-form-section">
+            <h3 className="shop-form-section__title">Пункт самовывоза</h3>
+            <div className="shop-form-section__block">
+              <div className="shop-radio-group">
+                {PICKUP_POINTS.map(point => (
+                  <label key={point.id} className="shop-radio-label">
+                    <input
+                      type="radio"
+                      name="pickup"
+                      checked={pickupPoint === point.id}
+                      onChange={() => setPickupPoint(point.id)}
+                    />
+                    <div>
+                      <div>{point.address}</div>
+                      <div className="shop-radio-hint">{point.hours}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Время */}
         <div className="shop-form-section">
@@ -267,12 +306,16 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         )}
       </form>
 
-      {/* Фиксированный футер с итого и кнопкой */}
+      {/* Фиксированный футер */}
       <div className="shop-checkout__footer">
         <div className="shop-checkout__footer-inner">
           <div className="shop-checkout__summary">
             <div>Сумма заказа: <span className="shop-checkout__summary-total">{total}₽</span></div>
-            <div>Стоимость доставки: <span className="shop-checkout__summary-total">0₽</span></div>
+            {deliveryType === 'delivery' ? (
+              <div>Доставка: <span className="shop-checkout__summary-total">бесплатно</span></div>
+            ) : (
+              <div>Самовывоз: <span className="shop-checkout__summary-total">{selectedPickup?.address}</span></div>
+            )}
           </div>
           <button
             className="shop-checkout__submit"
