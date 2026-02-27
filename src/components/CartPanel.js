@@ -31,6 +31,12 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     <p className="shop-cart__item-name">{item.product.cleanName || item.product.name}</p>
                     <p className="shop-cart__item-price">{item.product.price}₽ / шт</p>
                   </div>
+                  <button
+                    className="shop-cart__item-remove"
+                    onClick={() => onRemove(item.product.id)}
+                  >
+                    &times;
+                  </button>
                   <div className="shop-cart__item-controls">
                     <button
                       className="shop-cart__item-btn"
@@ -47,12 +53,6 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     </button>
                   </div>
                   <span className="shop-cart__item-total">{item.product.price * item.quantity}₽</span>
-                  <button
-                    className="shop-cart__item-remove"
-                    onClick={() => onRemove(item.product.id)}
-                  >
-                    &times;
-                  </button>
                 </div>
               ))}
               <button className="shop-cart__clear" onClick={onClear}>
