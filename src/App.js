@@ -1,39 +1,16 @@
 // src/App.js
 import React, { useEffect, useMemo, useState } from "react";
-import ProductCard from "./ProductCard";
 import About from "./About";
 import Delivery from "./Delivery";
-import CategoryNav from './components/CategoryNav'; // Импортируем компонент навигации по категориям
 import "./App.css";
-import { getProductImage } from "./config/imageMap";
 import Success from "./Success"; // страница «Заказ принят»
 import SetsPage from "./SetsPage"; // страница сетов по подписке
 import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет уже получен»
 import RollsPage from "./RollsPage"; // страница подарочных роллов по подписке
 
-function normalizeProducts(list) {
-  return (list || []).map((p) => {
-    const cleanName =
-      typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
-
-    // Ищем картинку по названию товара
-    const img = getProductImage(cleanName);
-
-    const priceNum = typeof p.price === "number" ? p.price : Number(p.price);
-
-    return {
-      ...p,
-      name: cleanName,
-      image: img,
-      price: Number.isFinite(priceNum) ? priceNum : 0,
-    };
-  });
-}
-
 function App() {
-  const [page, setPage] = useState("menu");
-  const [isCategoryNavVisible, setCategoryNavVisible] = useState(false);
-  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [page, setPage] = useState("home");
+  const [loadingButton, setLoadingButton] = useState(null); // какая кнопка сейчас грузится
   const [subscriptionError, setSubscriptionError] = useState(null);
 
   // читаем telegram_id из URL
@@ -45,7 +22,6 @@ function App() {
   // сюда положим итоговый telegramId
   const [telegramId, setTelegramId] = useState(null);
 
-  // ⬇️ ВОТ ЭТОТ БЛОК НУЖНО ДОБАВИТЬ/ЗАМЕНИТЬ
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
@@ -57,44 +33,6 @@ function App() {
       setTelegramId(urlTelegramId || null);
     }
   }, [urlTelegramId]);
-  // ⬆️ КОНЕЦ БЛОКА
-
-  // --- Новые состояния для загрузки данных с бэкенда ---
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeCategory, setActiveCategory] = useState(null); // Состояние активной категории
-
-  // Загружаем данные с бэкенда при монтировании компонента
-  useEffect(() => {
-    const fetchMenuData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/menu'); // Запрос к нашему эндпоинту
-        if (!response.ok) {
-          throw new Error(`Ошибка загрузки меню: ${response.status} ${response.statusText}`);
-        }
-        const data = await response.json();
-
-        if (data.success) {
-          // Нормализуем продукты, используя imageByCode
-          const normalizedProducts = normalizeProducts(data.products);
-          setProducts(normalizedProducts);
-          setCategories(data.categories);
-        } else {
-          throw new Error(data.error || 'Неизвестная ошибка при загрузке меню');
-        }
-      } catch (err) {
-        console.error('Ошибка при загрузке меню:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMenuData();
-  }, []); // Пустой массив зависимостей означает, что эффект выполнится только один раз
 
   // Проверка подписки и переход на страницу
   const handleSubscriptionCheck = async (requiredType) => {
@@ -103,7 +41,7 @@ function App() {
       return;
     }
 
-    setSubscriptionLoading(true);
+    setLoadingButton(requiredType);
     setSubscriptionError(null);
 
     try {
@@ -121,8 +59,14 @@ function App() {
       }
 
       // Тариф 290 = скидки на меню, 490 = роллы, 1190 = сеты
-      if (requiredType === 'discount' && data.tarif === '290') {
-        // TODO: переход на страницу меню со скидками
+      if (requiredType === 'discount-sets' && data.tarif === '290') {
+        // TODO: переход на страницу сетов со скидкой -20%
+        setSubscriptionError("Раздел скоро появится");
+      } else if (requiredType === 'discount-hot' && data.tarif === '290') {
+        // TODO: переход на страницу запечённых роллов со скидкой -30₽
+        setSubscriptionError("Раздел скоро появится");
+      } else if (requiredType === 'discount-cold' && data.tarif === '290') {
+        // TODO: переход на страницу холодных роллов со скидкой -30₽
         setSubscriptionError("Раздел скоро появится");
       } else if (requiredType === 'rolls' && (data.tarif === '490' || data.tarif === '1190')) {
         window.location.href = '/rolls';
@@ -130,7 +74,7 @@ function App() {
         window.location.href = '/sets';
       } else if (requiredType === 'sets' && data.tarif === '490') {
         setSubscriptionError("Ваша подписка не включает сеты");
-      } else if (requiredType !== 'discount' && data.tarif === '290') {
+      } else if (data.tarif === '290' && !requiredType.startsWith('discount')) {
         setSubscriptionError("Ваш тариф не включает этот раздел");
       } else {
         setSubscriptionError("Подписка не найдена");
@@ -139,35 +83,9 @@ function App() {
       console.error('Ошибка проверки подписки:', err);
       setSubscriptionError("Ошибка проверки подписки");
     } finally {
-      setSubscriptionLoading(false);
+      setLoadingButton(null);
     }
   };
-
-  // Только роллы (холодные и горячие) — без имбиря, соусов, напитков и прочего
-  const rollsOnly = useMemo(() => {
-    return products.filter(product =>
-      product.category === 'cold-rolls' || product.category === 'hot-rolls'
-    );
-  }, [products]);
-
-  // Фильтруем по активной категории (внутри роллов)
-  const filteredProducts = useMemo(() => {
-    if (!activeCategory) {
-      return rollsOnly;
-    }
-    return rollsOnly.filter(product => product.category === activeCategory);
-  }, [rollsOnly, activeCategory]);
-
-  // Подсчитываем количество товаров в каждой категории (только роллы)
-  const productCounts = useMemo(() => {
-    const counts = {};
-    rollsOnly.forEach(product => {
-      const catId = product.category;
-      counts[catId] = (counts[catId] || 0) + 1;
-    });
-    return counts;
-  }, [rollsOnly]);
-
 
   // без условных хуков — просто флаги страниц
   const isSuccessPage =
@@ -193,82 +111,56 @@ function App() {
         <>
           <div className="header">
             <img src="/logo.jpg" alt="Sushi House Logo" className="logo" />
-            <span onClick={() => setPage("menu")} style={{ cursor: "pointer" }}>
-              Sushi House
-            </span>
+            <span>Sushi House</span>
           </div>
 
           <nav className="nav">
-            <button onClick={() => { setPage("menu"); setCategoryNavVisible(!isCategoryNavVisible); }}>Меню</button>
+            <button onClick={() => setPage("home")}>Главная</button>
             <button onClick={() => setPage("about")}>О компании</button>
             <button onClick={() => setPage("delivery")}>Доставка и оплата</button>
           </nav>
 
-          {telegramId && (
+          {page === "home" && (
             <div className="subscription-buttons">
               <button
                 className="subscription-btn discount-btn"
-                onClick={() => handleSubscriptionCheck('discount')}
-                disabled={subscriptionLoading}
+                onClick={() => handleSubscriptionCheck('discount-sets')}
+                disabled={!!loadingButton}
               >
-                {subscriptionLoading ? 'Проверка...' : 'Меню со скидками'}
+                {loadingButton === 'discount-sets' ? 'Проверка...' : 'Сеты по подписке -20%'}
+              </button>
+              <button
+                className="subscription-btn discount-btn"
+                onClick={() => handleSubscriptionCheck('discount-hot')}
+                disabled={!!loadingButton}
+              >
+                {loadingButton === 'discount-hot' ? 'Проверка...' : '-30₽ на запечённый ролл'}
+              </button>
+              <button
+                className="subscription-btn discount-btn"
+                onClick={() => handleSubscriptionCheck('discount-cold')}
+                disabled={!!loadingButton}
+              >
+                {loadingButton === 'discount-cold' ? 'Проверка...' : '-30₽ на холодный ролл'}
               </button>
               <button
                 className="subscription-btn rolls-btn"
                 onClick={() => handleSubscriptionCheck('rolls')}
-                disabled={subscriptionLoading}
+                disabled={!!loadingButton}
               >
-                {subscriptionLoading ? 'Проверка...' : 'Роллы по подписке'}
+                {loadingButton === 'rolls' ? 'Проверка...' : 'Роллы по подписке'}
               </button>
               <button
                 className="subscription-btn sets-btn"
                 onClick={() => handleSubscriptionCheck('sets')}
-                disabled={subscriptionLoading}
+                disabled={!!loadingButton}
               >
-                {subscriptionLoading ? 'Проверка...' : 'Сеты по подписке'}
+                {loadingButton === 'sets' ? 'Проверка...' : 'Сеты по подписке'}
               </button>
               {subscriptionError && (
                 <div className="subscription-error">{subscriptionError}</div>
               )}
             </div>
-          )}
-
-          {page === "menu" && (
-            <>
-              {loading && <div>Загрузка меню...</div>}
-              {error && <div>Ошибка: {error}</div>}
-              {!loading && !error && (
-                <>
-                  {/* Вставляем компонент навигации по категориям */}
-                  {isCategoryNavVisible && (
-                    <>
-                      {/*
-                        Фильтруем категории, отображаем только нужные
-                        IDs: sets, cold-rolls, hot-rolls, special
-                      */}
-                      {(() => {
-                        const visibleCategoryIds = ['cold-rolls', 'hot-rolls'];
-                        const filteredCategories = categories.filter(cat => visibleCategoryIds.includes(cat.id));
-                        
-                        return (
-                          <CategoryNav
-                            categories={filteredCategories}
-                            activeCategory={activeCategory}
-                            onCategorySelect={setActiveCategory} // Передаем функцию для обновления активной категории
-                            productCounts={productCounts} // Передаем подсчитанные количества
-                          />
-                        );
-                      })()}
-                    </>
-                  )}
-                  <div className="products-grid">
-                    {filteredProducts.map((product) => (
-                      <ProductCard key={product.id} product={product} telegramId={telegramId} />
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
           )}
 
           {page === "about" && <About />}
