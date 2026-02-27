@@ -1,6 +1,18 @@
 /* shop.css — Стили магазина /shop (тёмная тема, стиль otnafani.ru) */
 /* Изолированы от App.css — все стили с префиксом .shop- */
 
+/* === Переопределение body для тёмной темы магазина === */
+body:has(.shop-page) {
+  background: #1a1a1a !important;
+  margin: 0;
+}
+
+/* Fallback для браузеров без :has() — JS добавит класс */
+body.shop-body {
+  background: #1a1a1a !important;
+  margin: 0;
+}
+
 /* === Базовые стили === */
 .shop-page {
   background: #1a1a1a;

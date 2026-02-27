@@ -1,6 +1,6 @@
 // src/ShopPage.js — Главная страница магазина /shop
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useMenu, useCart } from './hooks/useFrontpad';
 import ShopProductCard from './components/ShopProductCard';
 import CartPanel from './components/CartPanel';
@@ -15,6 +15,12 @@ const SHOP_CATEGORIES = [
 ];
 
 function ShopPage() {
+  // Тёмный фон на body (перекрывает App.css #f5f5f5)
+  useEffect(() => {
+    document.body.classList.add('shop-body');
+    return () => document.body.classList.remove('shop-body');
+  }, []);
+
   const { products, loading, error, refetch } = useMenu();
   const cart = useCart();
 
