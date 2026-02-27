@@ -75,7 +75,7 @@ module.exports = async (req, res) => {
 
   try {
     const body = parseJsonBody(req);
-    const { products, client, payment, comment, delivery_type, affiliate, telegram_id } = body;
+    const { products, client, payment, comment, delivery_type, affiliate, datetime, telegram_id } = body;
 
     // Валидация
     if (!products || !products.length) {
@@ -116,6 +116,7 @@ module.exports = async (req, res) => {
       },
       payment: payment || 'cash',
       affiliate: affiliate || '',
+      datetime: datetime || '',
       comment: [
         comment || '',
         delivery_type === 'pickup' ? '[Самовывоз]' : '[Доставка]',

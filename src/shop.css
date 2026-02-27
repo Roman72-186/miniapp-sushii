@@ -733,6 +733,46 @@ body.shop-body {
   margin-top: 2px;
 }
 
+/* Выбор времени */
+.shop-time-picker {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #3a3a3e;
+}
+
+.shop-time-picker__select {
+  width: 100%;
+  background: #1e1e22;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%233CC8A1' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+.shop-time-picker__select:focus {
+  border-color: #3CC8A1;
+}
+
+.shop-time-picker__select option {
+  background: #2a2a2e;
+  color: #fff;
+}
+
+.shop-time-picker__closed {
+  color: #e53935;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
 .shop-radio-label input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
