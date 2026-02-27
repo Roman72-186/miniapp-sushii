@@ -214,3 +214,64 @@ button:hover {
     opacity: 1;
   }
 }
+
+/* Кнопки подписки */
+.subscription-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.subscription-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  width: auto;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.subscription-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.discount-btn {
+  background: #e91e63;
+}
+
+.discount-btn:hover:not(:disabled) {
+  background: #c2185b;
+}
+
+.rolls-btn {
+  background: #ff6b35;
+}
+
+.rolls-btn:hover:not(:disabled) {
+  background: #e55a2b;
+}
+
+.sets-btn {
+  background: #7b2ff7;
+}
+
+.sets-btn:hover:not(:disabled) {
+  background: #6a1fe6;
+}
+
+.subscription-error {
+  width: 100%;
+  text-align: center;
+  color: #e53935;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px;
+  background: #ffeaea;
+  border-radius: 8px;
+}

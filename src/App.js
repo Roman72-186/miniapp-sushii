@@ -33,6 +33,8 @@ function normalizeProducts(list) {
 function App() {
   const [page, setPage] = useState("menu");
   const [isCategoryNavVisible, setCategoryNavVisible] = useState(false);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState(null);
 
   // читаем telegram_id из URL
   const urlTelegramId = useMemo(() => {
@@ -94,6 +96,53 @@ function App() {
     fetchMenuData();
   }, []); // Пустой массив зависимостей означает, что эффект выполнится только один раз
 
+  // Проверка подписки и переход на страницу
+  const handleSubscriptionCheck = async (requiredType) => {
+    if (!telegramId) {
+      setSubscriptionError("Telegram ID не найден");
+      return;
+    }
+
+    setSubscriptionLoading(true);
+    setSubscriptionError(null);
+
+    try {
+      const response = await fetch('/api/check-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: telegramId }),
+      });
+
+      const data = await response.json();
+
+      if (!data.hasSubscription) {
+        setSubscriptionError("Подписка не найдена");
+        return;
+      }
+
+      // Тариф 290 = скидки на меню, 490 = роллы, 1190 = сеты
+      if (requiredType === 'discount' && data.tarif === '290') {
+        // TODO: переход на страницу меню со скидками
+        setSubscriptionError("Раздел скоро появится");
+      } else if (requiredType === 'rolls' && (data.tarif === '490' || data.tarif === '1190')) {
+        window.location.href = '/rolls';
+      } else if (requiredType === 'sets' && data.tarif === '1190') {
+        window.location.href = '/sets';
+      } else if (requiredType === 'sets' && data.tarif === '490') {
+        setSubscriptionError("Ваша подписка не включает сеты");
+      } else if (requiredType !== 'discount' && data.tarif === '290') {
+        setSubscriptionError("Ваш тариф не включает этот раздел");
+      } else {
+        setSubscriptionError("Подписка не найдена");
+      }
+    } catch (err) {
+      console.error('Ошибка проверки подписки:', err);
+      setSubscriptionError("Ошибка проверки подписки");
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
   // Только роллы (холодные и горячие) — без имбиря, соусов, напитков и прочего
   const rollsOnly = useMemo(() => {
     return products.filter(product =>
@@ -154,6 +203,35 @@ function App() {
             <button onClick={() => setPage("about")}>О компании</button>
             <button onClick={() => setPage("delivery")}>Доставка и оплата</button>
           </nav>
+
+          {telegramId && (
+            <div className="subscription-buttons">
+              <button
+                className="subscription-btn discount-btn"
+                onClick={() => handleSubscriptionCheck('discount')}
+                disabled={subscriptionLoading}
+              >
+                {subscriptionLoading ? 'Проверка...' : 'Меню со скидками'}
+              </button>
+              <button
+                className="subscription-btn rolls-btn"
+                onClick={() => handleSubscriptionCheck('rolls')}
+                disabled={subscriptionLoading}
+              >
+                {subscriptionLoading ? 'Проверка...' : 'Роллы по подписке'}
+              </button>
+              <button
+                className="subscription-btn sets-btn"
+                onClick={() => handleSubscriptionCheck('sets')}
+                disabled={subscriptionLoading}
+              >
+                {subscriptionLoading ? 'Проверка...' : 'Сеты по подписке'}
+              </button>
+              {subscriptionError && (
+                <div className="subscription-error">{subscriptionError}</div>
+              )}
+            </div>
+          )}
 
           {page === "menu" && (
             <>
