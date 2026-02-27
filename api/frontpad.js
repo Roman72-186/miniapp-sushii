@@ -165,11 +165,12 @@ async function getClient(phone) {
  */
 async function createOrder(orderData) {
   const {
-    products, // [{ id, quantity, modifiers? }]
+    products, // [{ id, quantity, price?, modifiers? }]
     client,   // { name, phone, street?, home?, apart?, pod?, et? }
     payment,  // 'cash' | 'card' | 'online'
     comment,
     datetime, // Время предзаказа (опционально)
+    affiliate, // ID точки (stock_id)
   } = orderData;
 
   const params = {
@@ -183,10 +184,18 @@ async function createOrder(orderData) {
     descr: comment || '',
   };
 
+  // Точка/филиал
+  if (affiliate) {
+    params.affiliate = affiliate;
+  }
+
   // Добавляем товары
   products.forEach((product, index) => {
     params[`product[${index}]`] = product.id;
     params[`product_kol[${index}]`] = product.quantity || 1;
+    if (product.price) {
+      params[`product_price[${index}]`] = product.price;
+    }
     if (product.modifiers) {
       params[`product_mod[${index}]`] = product.modifiers;
     }

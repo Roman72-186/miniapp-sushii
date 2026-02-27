@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 
 const PICKUP_POINTS = [
-  { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–22:00' },
-  { id: '2', address: 'ул. Согласия, д. 46', hours: '10:00–22:00' },
-  { id: '3', address: 'ул. Автомобильная, д. 12Б', hours: '10:00–22:00' },
+  { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–22:00', affiliate: '184' },
+  { id: '2', address: 'ул. Согласия, д. 46', hours: '10:00–22:00', affiliate: '435' },
+  { id: '3', address: 'ул. Автомобильная, д. 12Б', hours: '10:00–22:00', affiliate: '457' },
+  { id: '4', address: 'Гурьевск', hours: '10:00–22:00', affiliate: '396' },
 ];
 
 function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
@@ -60,6 +61,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           },
           payment,
           delivery_type: deliveryType,
+          affiliate: deliveryType === 'pickup' ? selectedPickup?.affiliate || '' : '',
           comment: [
             comment.trim(),
             deliveryType === 'pickup' ? `Самовывоз: ${pickupAddress}` : '',

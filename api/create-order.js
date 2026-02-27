@@ -1,4 +1,4 @@
-// api/create-order.js — Endpoint для создания заказа (Frontpad + Telegram)
+// api/create-order.js — Endpoint для создания заказа (WATBOT phone lookup + Frontpad + Telegram)
 // Vercel Serverless Function (CommonJS)
 
 const { createOrder } = require('./frontpad');
@@ -18,6 +18,48 @@ function parseJsonBody(req) {
   }
 }
 
+/**
+ * Получает телефон пользователя из WATBOT CRM по Telegram ID
+ */
+async function getPhoneByTelegramId(telegramId) {
+  const apiToken = process.env.WATBOT_API_TOKEN;
+  if (!apiToken || !telegramId) return null;
+
+  try {
+    const response = await fetch(
+      `https://watbot.ru/api/v1/getListItems?api_token=${apiToken}`,
+      {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          schema_id: '69a16dc23dd8ee76a202a802',
+          filters: { id_tg: String(telegramId) },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error('WATBOT phone lookup error:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const items = data.data || [];
+
+    if (items.length === 0) return null;
+
+    // Поле telefon в записи пользователя
+    const item = items[0];
+    return item.telefon || item.phone || item.Telefon || null;
+  } catch (err) {
+    console.error('WATBOT phone lookup failed:', err.message);
+    return null;
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -33,25 +75,39 @@ module.exports = async (req, res) => {
 
   try {
     const body = parseJsonBody(req);
-    const { products, client, payment, comment, delivery_type, telegram_id } = body;
+    const { products, client, payment, comment, delivery_type, affiliate, telegram_id } = body;
 
     // Валидация
     if (!products || !products.length) {
       return res.status(400).json({ success: false, error: 'Корзина пуста' });
     }
-    if (!client || !client.phone) {
-      return res.status(400).json({ success: false, error: 'Укажите номер телефона' });
-    }
-    if (!client.name) {
+    if (!client || !client.name) {
       return res.status(400).json({ success: false, error: 'Укажите имя' });
     }
 
-    // 1. Создаём заказ в Frontpad
+    // 1. Получаем телефон из WATBOT по telegram_id (привязка заказа в Frontpad по телефону)
+    let orderPhone = client.phone || '';
+    if (telegram_id) {
+      const watbotPhone = await getPhoneByTelegramId(telegram_id);
+      if (watbotPhone) {
+        orderPhone = watbotPhone;
+      }
+    }
+
+    if (!orderPhone) {
+      return res.status(400).json({ success: false, error: 'Не удалось определить телефон' });
+    }
+
+    // 2. Создаём заказ в Frontpad
     const orderResult = await createOrder({
-      products: products.map(p => ({ id: p.id, quantity: p.quantity })),
+      products: products.map(p => ({
+        id: p.id,
+        quantity: p.quantity,
+        price: p.price,
+      })),
       client: {
         name: client.name,
-        phone: client.phone,
+        phone: orderPhone,
         street: client.street || '',
         home: client.home || '',
         apart: client.apart || '',
@@ -59,6 +115,7 @@ module.exports = async (req, res) => {
         et: client.et || '',
       },
       payment: payment || 'cash',
+      affiliate: affiliate || '',
       comment: [
         comment || '',
         delivery_type === 'pickup' ? '[Самовывоз]' : '[Доставка]',
@@ -66,7 +123,7 @@ module.exports = async (req, res) => {
       ].filter(Boolean).join(' | '),
     });
 
-    // 2. Отправляем уведомление в Telegram (не блокируем ответ при ошибке)
+    // 3. Отправляем уведомление в Telegram (не блокируем ответ при ошибке)
     const totalSum = products.reduce((sum, p) => sum + (p.price || 0) * (p.quantity || 1), 0);
     const itemsList = products.map(p => `${p.name} x${p.quantity}`).join(', ');
 
@@ -80,7 +137,7 @@ module.exports = async (req, res) => {
           price: totalSum,
           product_id: orderResult.success ? orderResult.data?.orderId : '',
           code: [
-            `Клиент: ${client.name}, ${client.phone}`,
+            `Клиент: ${client.name}, ${orderPhone}`,
             delivery_type === 'pickup' ? 'Самовывоз' : `Доставка: ${client.street || ''} ${client.home || ''} кв.${client.apart || ''}`,
             payment === 'card' ? 'Оплата картой' : 'Оплата наличными',
             comment ? `Комментарий: ${comment}` : '',
