@@ -822,6 +822,25 @@ body.shop-body {
   cursor: pointer;
 }
 
+/* === Секции категорий (режим "Все") === */
+.shop-section {
+  padding: 0 16px;
+}
+
+@media (min-width: 768px) {
+  .shop-section {
+    padding: 0 24px;
+  }
+}
+
+.shop-section__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 20px 0 12px;
+  padding: 0;
+}
+
 /* === Пустое состояние === */
 .shop-empty-category {
   grid-column: 1 / -1;

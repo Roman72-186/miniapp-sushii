@@ -24,7 +24,7 @@ function ShopPage() {
   const { products, loading, error, refetch } = useMenu();
   const cart = useCart();
 
-  const [activeCategory, setActiveCategory] = useState('cold-rolls');
+  const [activeCategory, setActiveCategory] = useState(null); // null = все
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderNumber, setOrderNumber] = useState(null);
@@ -110,11 +110,17 @@ function ShopPage() {
 
       {/* Навигация по категориям */}
       <div className="shop-categories">
+        <button
+          className={`shop-category-btn ${activeCategory === null ? 'shop-category-btn--active' : ''}`}
+          onClick={() => setActiveCategory(null)}
+        >
+          Все
+        </button>
         {SHOP_CATEGORIES.map(cat => (
           <button
             key={cat.id}
             className={`shop-category-btn ${activeCategory === cat.id ? 'shop-category-btn--active' : ''}`}
-            onClick={() => setActiveCategory(cat.id)}
+            onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
           >
             <span className="shop-category-icon">{cat.icon}</span>
             {cat.name}
@@ -133,7 +139,8 @@ function ShopPage() {
           <span className="shop-error__text">{error}</span>
           <button className="shop-error__retry" onClick={refetch}>Попробовать снова</button>
         </div>
-      ) : (
+      ) : activeCategory ? (
+        /* Одна категория */
         <div className="shop-grid">
           {filteredProducts.length === 0 ? (
             <div className="shop-empty-category">В этой категории пока нет товаров</div>
@@ -148,6 +155,30 @@ function ShopPage() {
               />
             ))
           )}
+        </div>
+      ) : (
+        /* Все категории с заголовками */
+        <div>
+          {SHOP_CATEGORIES.map(cat => {
+            const catProducts = shopProducts.filter(p => p.category === cat.id);
+            if (catProducts.length === 0) return null;
+            return (
+              <div key={cat.id} className="shop-section">
+                <h2 className="shop-section__title">{cat.icon} {cat.name}</h2>
+                <div className="shop-grid">
+                  {catProducts.map(product => (
+                    <ShopProductCard
+                      key={product.id}
+                      product={product}
+                      quantity={getQuantity(product.id)}
+                      onAdd={cart.addItem}
+                      onUpdateQuantity={cart.updateQuantity}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
