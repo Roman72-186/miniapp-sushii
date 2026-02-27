@@ -1,32 +1,29 @@
 // src/RollsPage.js — Страница подарочных роллов по подписке (без навигации)
 import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
-import { getProductImage } from "./config/imageMap";
+import { products as rawProducts } from "./data";
 import "./App.css";
 
-function normalizeProducts(list) {
-  return (list || []).map((p) => {
+function normalizeRolls(list) {
+  return list.map((p) => {
     const cleanName =
       typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
 
-    const img = getProductImage(cleanName);
-
-    const priceNum = typeof p.price === "number" ? p.price : Number(p.price);
+    let img = p.image || "";
+    if (img.startsWith("/public/")) img = img.replace(/^\/public/u, "");
+    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/") img = "/logo.jpg";
 
     return {
       ...p,
       name: cleanName,
       image: img,
-      price: Number.isFinite(priceNum) ? priceNum : 0,
+      price: 0,
     };
   });
 }
 
 function RollsPage() {
   const [telegramId, setTelegramId] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const urlTelegramId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -45,47 +42,7 @@ function RollsPage() {
     }
   }, [urlTelegramId]);
 
-  useEffect(() => {
-    const fetchMenuData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/menu');
-        if (!response.ok) {
-          throw new Error(`Ошибка загрузки меню: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data.success) {
-          const normalized = normalizeProducts(data.products);
-          // Только холодные и горячие роллы
-          const rolls = normalized.filter(p =>
-            p.category === 'cold-rolls' || p.category === 'hot-rolls'
-          );
-
-          // Убираем дубликаты по названию (оставляем первый)
-          const seen = new Set();
-          const unique = rolls.filter(p => {
-            const key = p.name.toLowerCase();
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-
-          // Это подарочная страница — цена 0 (подарок по подписке)
-          const giftRolls = unique.map(p => ({ ...p, price: 0 }));
-
-          setProducts(giftRolls);
-        } else {
-          throw new Error(data.error || 'Ошибка загрузки меню');
-        }
-      } catch (err) {
-        console.error('Ошибка при загрузке меню:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMenuData();
-  }, []);
+  const rolls = useMemo(() => normalizeRolls(rawProducts), []);
 
   return (
     <div className="app">
@@ -103,16 +60,11 @@ function RollsPage() {
         </p>
       </div>
 
-      {loading && <div style={{ textAlign: "center", padding: 20 }}>Загрузка...</div>}
-      {error && <div style={{ textAlign: "center", padding: 20, color: "red" }}>Ошибка: {error}</div>}
-
-      {!loading && !error && (
-        <div className="products-grid">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} telegramId={telegramId} />
-          ))}
-        </div>
-      )}
+      <div className="products-grid">
+        {rolls.map((product) => (
+          <ProductCard key={product.id} product={product} telegramId={telegramId} />
+        ))}
+      </div>
 
       <footer className="footer">
         <img src="/logo.jpg" alt="Sushi House" className="footer-logo" />
