@@ -113,7 +113,20 @@ function RollsPage() {
           const rolls = normalized.filter(p =>
             p.category === 'cold-rolls' || p.category === 'hot-rolls'
           );
-          setProducts(rolls);
+
+          // Убираем дубликаты по названию (оставляем первый)
+          const seen = new Set();
+          const unique = rolls.filter(p => {
+            const key = p.name.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+
+          // Это подарочная страница — цена 0 (подарок по подписке)
+          const giftRolls = unique.map(p => ({ ...p, price: 0 }));
+
+          setProducts(giftRolls);
         } else {
           throw new Error(data.error || 'Ошибка загрузки меню');
         }
