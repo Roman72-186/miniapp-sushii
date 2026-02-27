@@ -25,6 +25,7 @@ function ShopPage() {
   const cart = useCart();
 
   const [activeCategory, setActiveCategory] = useState(null); // null = все
+  const [showMenu, setShowMenu] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderNumber, setOrderNumber] = useState(null);
@@ -95,38 +96,52 @@ function ShopPage() {
     <div className="shop-page">
       {/* Хедер */}
       <header className="shop-header">
-        <div className="shop-header__left">
+        <button
+          className={`shop-header__burger ${showMenu ? 'shop-header__burger--open' : ''}`}
+          onClick={() => setShowMenu(!showMenu)}
+          aria-label="Меню"
+        >
+          <span /><span /><span />
+        </button>
+        <div className="shop-header__center">
           <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" />
           <span className="shop-header__title">Sushi House</span>
         </div>
-        {cart.count > 0 && (
+        {cart.count > 0 ? (
           <button className="shop-header__cart" onClick={() => setShowCart(true)}>
             <span className="shop-header__cart-icon">🛒</span>
-            <span>{cart.total}₽</span>
             <span className="shop-header__cart-badge">{cart.count}</span>
           </button>
+        ) : (
+          <div className="shop-header__spacer" />
         )}
       </header>
 
-      {/* Навигация по категориям */}
-      <div className="shop-categories">
-        <button
-          className={`shop-category-btn ${activeCategory === null ? 'shop-category-btn--active' : ''}`}
-          onClick={() => setActiveCategory(null)}
-        >
-          Все
-        </button>
-        {SHOP_CATEGORIES.map(cat => (
-          <button
-            key={cat.id}
-            className={`shop-category-btn ${activeCategory === cat.id ? 'shop-category-btn--active' : ''}`}
-            onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-          >
-            <span className="shop-category-icon">{cat.icon}</span>
-            {cat.name}
-          </button>
-        ))}
-      </div>
+      {/* Выпадающее меню навигации */}
+      {showMenu && (
+        <>
+          <div className="shop-menu-overlay" onClick={() => setShowMenu(false)} />
+          <nav className="shop-menu">
+            <button
+              className={`shop-menu__item ${activeCategory === null ? 'shop-menu__item--active' : ''}`}
+              onClick={() => { setActiveCategory(null); setShowMenu(false); }}
+            >
+              <span className="shop-menu__icon">📋</span>
+              <span>Всё меню</span>
+            </button>
+            {SHOP_CATEGORIES.map(cat => (
+              <button
+                key={cat.id}
+                className={`shop-menu__item ${activeCategory === cat.id ? 'shop-menu__item--active' : ''}`}
+                onClick={() => { setActiveCategory(cat.id); setShowMenu(false); }}
+              >
+                <span className="shop-menu__icon">{cat.icon}</span>
+                <span>{cat.name}</span>
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
 
       {/* Контент */}
       {loading ? (
