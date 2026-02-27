@@ -1,30 +1,68 @@
 // src/ShopPage.js — Главная страница магазина /shop
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useMenu, useCart } from './hooks/useFrontpad';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useCart } from './hooks/useFrontpad';
+import { getProductImage } from './config/imageMap';
 import ShopProductCard from './components/ShopProductCard';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import './shop.css';
 
-// Только 3 категории для магазина
+// 3 категории с путями к JSON
 const SHOP_CATEGORIES = [
-  { id: 'cold-rolls', name: 'Холодные роллы', icon: '🍣' },
-  { id: 'hot-rolls', name: 'Запеченные роллы', icon: '🔥' },
-  { id: 'sets', name: 'Сеты', icon: '🍱' },
+  { id: 'cold-rolls', name: 'Холодные роллы', icon: '🍣', jsonUrl: '/холодные роллы/rolls.json' },
+  { id: 'hot-rolls', name: 'Запеченные роллы', icon: '🔥', jsonUrl: '/запеченные роллы/zaproll.json' },
+  { id: 'sets', name: 'Сеты', icon: '🍱', jsonUrl: '/сеты/set.json' },
 ];
 
+function useLocalMenu() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const results = await Promise.all(
+        SHOP_CATEGORIES.map(async (cat) => {
+          const res = await fetch(cat.jsonUrl);
+          if (!res.ok) throw new Error(`Ошибка загрузки ${cat.name}`);
+          const data = await res.json();
+          return data.items.map((item, idx) => ({
+            id: item.sku || `${cat.id}-${idx}`,
+            name: item.name,
+            cleanName: item.name,
+            price: item.price,
+            category: cat.id,
+            image: getProductImage(item.name),
+          }));
+        })
+      );
+      setProducts(results.flat());
+    } catch (err) {
+      setError(err.message || 'Не удалось загрузить меню');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  return { products, loading, error, refetch: fetchAll };
+}
+
 function ShopPage() {
-  // Тёмный фон на body (перекрывает App.css #f5f5f5)
+  // Тёмный фон на body
   useEffect(() => {
     document.body.classList.add('shop-body');
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { products, loading, error, refetch } = useMenu();
+  const { products, loading, error, refetch } = useLocalMenu();
   const cart = useCart();
 
-  const [activeCategory, setActiveCategory] = useState(null); // null = все
+  const [activeCategory, setActiveCategory] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -39,17 +77,11 @@ function ShopPage() {
     return params.get('telegram_id') || null;
   }, []);
 
-  // Фильтруем только 3 нужных категории
-  const shopProducts = useMemo(() => {
-    const allowedCategories = ['cold-rolls', 'hot-rolls', 'sets'];
-    return products.filter(p => allowedCategories.includes(p.category));
-  }, [products]);
-
-  // Текущие товары по активной категории
+  // Товары по активной категории
   const filteredProducts = useMemo(() => {
-    if (!activeCategory) return shopProducts;
-    return shopProducts.filter(p => p.category === activeCategory);
-  }, [shopProducts, activeCategory]);
+    if (!activeCategory) return products;
+    return products.filter(p => p.category === activeCategory);
+  }, [products, activeCategory]);
 
   // Количество товара в корзине
   const getQuantity = (productId) => {
@@ -57,7 +89,6 @@ function ShopPage() {
     return item ? item.quantity : 0;
   };
 
-  // Обработчики
   const handleCheckout = () => {
     setShowCart(false);
     setShowCheckout(true);
@@ -67,10 +98,6 @@ function ShopPage() {
     setShowCheckout(false);
     setOrderNumber(num);
     cart.clear();
-  };
-
-  const handleBackToShop = () => {
-    setOrderNumber(null);
   };
 
   // Страница успеха
@@ -84,7 +111,7 @@ function ShopPage() {
           <p className="shop-success__text">
             Мы уже готовим ваш заказ. Ожидайте — мы свяжемся с вами для подтверждения.
           </p>
-          <button className="shop-success__btn" onClick={handleBackToShop}>
+          <button className="shop-success__btn" onClick={() => setOrderNumber(null)}>
             Вернуться в меню
           </button>
         </div>
@@ -155,7 +182,6 @@ function ShopPage() {
           <button className="shop-error__retry" onClick={refetch}>Попробовать снова</button>
         </div>
       ) : activeCategory ? (
-        /* Одна категория */
         <div className="shop-grid">
           {filteredProducts.length === 0 ? (
             <div className="shop-empty-category">В этой категории пока нет товаров</div>
@@ -172,10 +198,9 @@ function ShopPage() {
           )}
         </div>
       ) : (
-        /* Все категории с заголовками */
         <div>
           {SHOP_CATEGORIES.map(cat => {
-            const catProducts = shopProducts.filter(p => p.category === cat.id);
+            const catProducts = products.filter(p => p.category === cat.id);
             if (catProducts.length === 0) return null;
             return (
               <div key={cat.id} className="shop-section">

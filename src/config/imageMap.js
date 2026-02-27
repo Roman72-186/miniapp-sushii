@@ -33,6 +33,7 @@ const IMAGE_MAP = {
   'мидии терияки': '/img/midii_teriaki.PNG',
   'ролл мидори терияки': '/img/midii_teriaki.PNG',
   'запеченный мидуэй': '/img/miduei(1).PNG',
+  'запеченный мидзуи': '/img/miduei(1).PNG',
   'нежный поцелуй': '/img/nejni_kiss.PNG',
   'ниагара': '/img/niagara.PNG',
   'розовый': '/img/pink.PNG',
@@ -51,6 +52,7 @@ const IMAGE_MAP = {
   'суши-пицца курица': '/img/Суши пицца №3.jpg',
   'суши сендвич с лососем': '/img/Суши сендвич с лососем.jpg',
   'суши-сендвич с лососем': '/img/Суши сендвич с лососем.jpg',
+  'суши-сэндвич с лососем': '/img/Суши сендвич с лососем.jpg',
   'сяке кунсей маки': '/img/Сяке кунсей маки.jpg',
   'сяке маки': '/img/Сяке маки.jpg',
   'туна маки': '/img/Туна маки.jpg',
@@ -85,7 +87,10 @@ const IMAGE_MAP = {
 function normalizeName(name) {
   return name
     .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/э/g, 'е')
     .replace(/\s*\*+\s*$/g, '')
+    .replace(/-/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
