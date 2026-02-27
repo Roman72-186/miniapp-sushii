@@ -146,23 +146,30 @@ function App() {
     fetchMenuData();
   }, []); // Пустой массив зависимостей означает, что эффект выполнится только один раз
 
-  // Фильтруем продукты по активной категории
+  // Только роллы (холодные и горячие) — без имбиря, соусов, напитков и прочего
+  const rollsOnly = useMemo(() => {
+    return products.filter(product =>
+      product.category === 'cold-rolls' || product.category === 'hot-rolls'
+    );
+  }, [products]);
+
+  // Фильтруем по активной категории (внутри роллов)
   const filteredProducts = useMemo(() => {
     if (!activeCategory) {
-      return products; // Показываем все продукты, если категория не выбрана
+      return rollsOnly;
     }
-    return products.filter(product => product.category === activeCategory);
-  }, [products, activeCategory]);
+    return rollsOnly.filter(product => product.category === activeCategory);
+  }, [rollsOnly, activeCategory]);
 
-  // Подсчитываем количество товаров в каждой категории для отображения в CategoryNav
+  // Подсчитываем количество товаров в каждой категории (только роллы)
   const productCounts = useMemo(() => {
     const counts = {};
-    products.forEach(product => {
+    rollsOnly.forEach(product => {
       const catId = product.category;
       counts[catId] = (counts[catId] || 0) + 1;
     });
     return counts;
-  }, [products]);
+  }, [rollsOnly]);
 
 
   // без условных хуков — просто флаги страниц
@@ -210,7 +217,7 @@ function App() {
                         IDs: sets, cold-rolls, hot-rolls, special
                       */}
                       {(() => {
-                        const visibleCategoryIds = ['sets', 'cold-rolls', 'hot-rolls', 'special'];
+                        const visibleCategoryIds = ['cold-rolls', 'hot-rolls'];
                         const filteredCategories = categories.filter(cat => visibleCategoryIds.includes(cat.id));
                         
                         return (

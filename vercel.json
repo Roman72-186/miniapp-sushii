@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/sets", "destination": "/index.html" },
+    { "source": "/sets-received", "destination": "/index.html" },
+    { "source": "/success", "destination": "/index.html" },
+    { "source": "/((?!api|img|sets|logo|favicon|manifest|static).*)", "destination": "/index.html" }
+  ]
+}

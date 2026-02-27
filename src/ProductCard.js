@@ -82,9 +82,9 @@ function ProductCard({ product, telegramId }) {
       />
       <h3>{product.name}</h3>
       {product.description ? <p>{product.description}</p> : null}
-      <p><b>{formatPrice(product.price) || "Цена уточняется"}</b></p>
+      <p><b>{product.price === 0 ? "Подарок 🎁" : formatPrice(product.price) || "Цена уточняется"}</b></p>
 
-      <button onClick={handleOrder}>Заказать</button>
+      <button onClick={handleOrder}>{product.price === 0 ? "Выбрать" : "Заказать"}</button>
     </div>
   );
 }
