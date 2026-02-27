@@ -9,6 +9,7 @@ import "./App.css";
 import Success from "./Success"; // страница «Заказ принят»
 import SetsPage from "./SetsPage"; // страница сетов по подписке
 import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет уже получен»
+import RollsPage from "./RollsPage"; // страница подарочных роллов по подписке
 
 // code -> имя файла в /public/img
 const imageByCode = {
@@ -179,6 +180,8 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/sets";
   const isSetsReceivedPage =
     typeof window !== "undefined" && window.location.pathname === "/sets-received";
+  const isRollsPage =
+    typeof window !== "undefined" && window.location.pathname === "/rolls";
 
   return (
     <div className="app">
@@ -186,6 +189,8 @@ function App() {
         <SetsReceivedPage />
       ) : isSetsPage ? (
         <SetsPage />
+      ) : isRollsPage ? (
+        <RollsPage />
       ) : isSuccessPage ? (
         <Success />
       ) : (
