@@ -7,6 +7,7 @@ import Success from "./Success"; // страница «Заказ принят»
 import SetsPage from "./SetsPage"; // страница сетов по подписке
 import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет уже получен»
 import RollsPage from "./RollsPage"; // страница подарочных роллов по подписке
+import ShopPage from "./ShopPage"; // страница магазина
 
 function App() {
   const [page, setPage] = useState("home");
@@ -96,6 +97,12 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/sets-received";
   const isRollsPage =
     typeof window !== "undefined" && window.location.pathname === "/rolls";
+  const isShopPage =
+    typeof window !== "undefined" && window.location.pathname === "/shop";
+
+  if (isShopPage) {
+    return <ShopPage />;
+  }
 
   return (
     <div className="app">
