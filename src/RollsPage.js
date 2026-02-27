@@ -1,68 +1,15 @@
 // src/RollsPage.js — Страница подарочных роллов по подписке (без навигации)
 import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
+import { getProductImage } from "./config/imageMap";
 import "./App.css";
-
-// code -> имя файла в /public/img
-const imageByCode = {
-  1000: "avokado_maki.PNG",
-  1001: "age_gurme.PNG",
-  1003: "alaska_kunsei.PNG",
-  1004: "seegun.PNG",
-  1056: "bonito_midii.PNG",
-  1057: "bonito_tunec.PNG",
-  1051: "boul_s_krevetkami.PNG",
-  1033: "boul_s_lososem.PNG",
-  1047: "boul_s_tuncom.PNG",
-  1006: "bruklin.PNG",
-  1008: "don_juan.PNG",
-  1010: "detroit.PNG",
-  1058: "zapeccheni_lite.PNG",
-  1005: "losos_fair.PNG",
-  1012: "miduei(1).PNG",
-  1013: "Miduei.PNG",
-  1014: "roll_s_bekonom.PNG",
-  1059: "tori_roll.PNG",
-  1060: "iguana.PNG",
-  1015: "kalifornia.PNG",
-  1016: "kani_gril.PNG",
-  1017: "kappa_maki.PNG",
-  1018: "krab_duet.PNG",
-  1020: "mal_princ.PNG",
-  1021: "manheten.PNG",
-  1019: "midii_maki_gril.PNG",
-  1062: "midii_teriaki.PNG",
-  1023: "niagara.PNG",
-  1024: "picantnii_losos.jpg",
-  1025: "pink.PNG",
-  1026: "samurai.PNG",
-  1048: "Шёлковый путь.jpg",
-  1031: "Поке с креветками.jpg",
-  1052: "Поке с курицей.jpg",
-  1027: "Спайси эби маки.jpg",
-  1030: "Суши пицца №3.jpg",
-  1032: "Суши сендвич с лососем.jpg",
-  1034: "Сяке кунсей маки.jpg",
-  1035: "Сяке маки.jpg",
-  1037: "Туна маки.jpg",
-  1038: "Унаги маки.jpg",
-  1040: "Филадельфия лайт с огурцом.jpg",
-  1042: "Фреш ролл.jpg",
-  1066: "Чеддер скин ролл.jpg",
-  1067: "Чизи эби.jpg",
-  1044: "Чикен гриль.jpg",
-  1045: "Чикен лав.jpg",
-  1046: "Чука маки.jpg",
-};
 
 function normalizeProducts(list) {
   return (list || []).map((p) => {
     const cleanName =
       typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
 
-    let img = imageByCode[p.id] ? `/img/${imageByCode[p.id]}` : (p.image || "");
-    if (img.startsWith("/public/")) img = img.replace(/^\/public/u, "");
-    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/") img = "/logo.jpg";
+    const img = getProductImage(cleanName);
 
     const priceNum = typeof p.price === "number" ? p.price : Number(p.price);
 
