@@ -1,7 +1,7 @@
 // src/hooks/useFrontpad.js — React хуки для работы с Frontpad API
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { processProducts, groupByCategory, CATEGORIES } from '../utils/categories';
+import { groupByCategory, CATEGORIES } from '../utils/categories'; // eslint-disable-line no-unused-vars
 import { getCurrentSubscription, checkFreeAvailability, calculateDiscount } from '../utils/subscription';
 import { getProductImage } from '../config/imageMap';
 

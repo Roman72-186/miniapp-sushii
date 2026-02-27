@@ -50,15 +50,6 @@ function ShopPage() {
     return shopProducts.filter(p => p.category === activeCategory);
   }, [shopProducts, activeCategory]);
 
-  // Кол-во товаров по категориям (для бейджей)
-  const categoryCounts = useMemo(() => {
-    const counts = {};
-    SHOP_CATEGORIES.forEach(c => {
-      counts[c.id] = shopProducts.filter(p => p.category === c.id).length;
-    });
-    return counts;
-  }, [shopProducts]);
-
   // Количество товара в корзине
   const getQuantity = (productId) => {
     const item = cart.items.find(i => i.product.id === productId);
