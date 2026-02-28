@@ -60,8 +60,8 @@ function App() {
         return;
       }
 
-      // Все разделы ведут на /discount-shop (доступ контролируется внутри по тарифу)
-      window.location.href = '/discount-shop';
+      // Все разделы ведут на /discount-shop (передаём telegram_id для проверки тарифа)
+      window.location.href = `/discount-shop?telegram_id=${telegramId}`;
     } catch (err) {
       console.error('Ошибка проверки подписки:', err);
       setSubscriptionError("Ошибка проверки подписки");
