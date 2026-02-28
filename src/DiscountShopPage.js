@@ -133,19 +133,28 @@ function DiscountShopPage() {
 
   // Tariff check
   const [userTarif, setUserTarif] = useState(null);
+  const [tarifLoading, setTarifLoading] = useState(true);
   const [lockedPopup, setLockedPopup] = useState(null);
 
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
     const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-    if (tgId) return tgId;
+    console.log('[DiscountShop] TG SDK id:', tgId);
     const params = new URLSearchParams(window.location.search);
-    return params.get('telegram_id') || null;
+    const urlId = params.get('telegram_id');
+    console.log('[DiscountShop] URL telegram_id:', urlId);
+    return tgId || urlId || null;
   }, []);
 
   // Check tariff on mount
   useEffect(() => {
-    if (!telegramId) return;
+    if (!telegramId) {
+      console.log('[DiscountShop] No telegramId, skipping tariff check');
+      setTarifLoading(false);
+      return;
+    }
+    console.log('[DiscountShop] Checking tariff for:', telegramId);
+    setTarifLoading(true);
     fetch('/api/check-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -153,9 +162,13 @@ function DiscountShopPage() {
     })
       .then(r => r.json())
       .then(data => {
+        console.log('[DiscountShop] API response:', data);
         if (data.tarif) setUserTarif(data.tarif);
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('[DiscountShop] Tariff check failed:', err);
+      })
+      .finally(() => setTarifLoading(false));
   }, [telegramId]);
 
   useEffect(() => {
@@ -180,6 +193,7 @@ function DiscountShopPage() {
   }, [products]);
 
   const scrollToCategory = (categoryId) => {
+    if (tarifLoading) return;
     const cat = DISCOUNT_CATEGORIES.find(c => c.id === categoryId);
     if (cat && isCategoryLocked(cat, userTarif)) {
       const tarifLabel = cat.minTarif === '1190' ? '1190' : '490';
@@ -265,7 +279,7 @@ function DiscountShopPage() {
 
       <div className="shop-gift-row">
         {DISCOUNT_CATEGORIES.filter(c => c.gift).map(cat => {
-          const locked = isCategoryLocked(cat, userTarif);
+          const locked = tarifLoading ? true : isCategoryLocked(cat, userTarif);
           return (
             <button
               key={cat.id}
@@ -273,7 +287,9 @@ function DiscountShopPage() {
               onClick={() => scrollToCategory(cat.id)}
             >
               <span>{cat.icon} {cat.tab}</span>
-              {locked && <span className="shop-gift-btn__lock">🔒</span>}
+              {tarifLoading ? <span className="shop-gift-btn__lock">⏳</span>
+                : locked ? <span className="shop-gift-btn__lock">🔒</span>
+                : null}
             </button>
           );
         })}
@@ -305,7 +321,7 @@ function DiscountShopPage() {
       ) : (
         <div>
           {DISCOUNT_CATEGORIES.map(cat => {
-            const locked = isCategoryLocked(cat, userTarif);
+            const locked = tarifLoading ? !!cat.minTarif : isCategoryLocked(cat, userTarif);
             if (locked) return null;
             const catProducts = products.filter(p => p.category === cat.id);
             if (catProducts.length === 0) return null;
