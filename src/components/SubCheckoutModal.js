@@ -34,7 +34,7 @@ function normalizePhone(raw) {
   return raw;
 }
 
-function SubCheckoutModal({ product, telegramId, onClose }) {
+function SubCheckoutModal({ product, telegramId, onClose, onSuccess }) {
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -111,7 +111,7 @@ function SubCheckoutModal({ product, telegramId, onClose }) {
         throw new Error(data.error || 'Ошибка создания заказа');
       }
 
-      window.location.href = `/success?product=${encodeURIComponent(product.name)}`;
+      onSuccess(data.orderNumber || data.orderId || '');
     } catch (err) {
       setError(err.message || 'Не удалось отправить заказ');
       setSubmitting(false);

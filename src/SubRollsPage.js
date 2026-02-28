@@ -15,6 +15,7 @@ function SubRollsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [orderNumber, setOrderNumber] = useState(null);
 
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
@@ -54,6 +55,19 @@ function SubRollsPage() {
   const handleSelect = (product) => {
     setSelectedProduct(product);
   };
+
+  if (orderNumber) {
+    return (
+      <div className="shop-page">
+        <div className="shop-success">
+          <div className="shop-success__icon">✅</div>
+          <h2 className="shop-success__title">Заказ принят!</h2>
+          <p className="shop-success__order-num">Номер заказа: {orderNumber}</p>
+          <p className="shop-success__text">Мы уже готовим ваш заказ. Ожидайте!</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="shop-page">
@@ -95,6 +109,7 @@ function SubRollsPage() {
           product={selectedProduct}
           telegramId={telegramId}
           onClose={() => setSelectedProduct(null)}
+          onSuccess={(num) => setOrderNumber(num)}
         />
       )}
     </div>
