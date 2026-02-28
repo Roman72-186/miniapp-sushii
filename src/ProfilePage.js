@@ -50,6 +50,18 @@ function ProfilePage() {
     }
   };
 
+  const formatPhone = (raw) => {
+    if (!raw) return '—';
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 11) {
+      return `+${digits[0]} (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9)}`;
+    }
+    if (digits.length === 10) {
+      return `+7 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
+    }
+    return `+${digits}`;
+  };
+
   return (
     <div className="shop-page">
       <header className="shop-header">
@@ -72,18 +84,76 @@ function ProfilePage() {
           <span className="shop-loading__text" style={{ color: '#e53935' }}>{error}</span>
         </div>
       ) : (
-        <div className="shop-profile-cards">
-          <div className="shop-profile-card">
-            <div className="shop-profile-label">Статус списания</div>
-            <div className="shop-profile-value">{profile?.статусСписания || '—'}</div>
-          </div>
-          <div className="shop-profile-card">
-            <div className="shop-profile-label">Баланс</div>
-            <div className="shop-profile-value">{profile?.balance_shc || '—'}</div>
-          </div>
-          <div className="shop-profile-card">
-            <div className="shop-profile-label">Дата окончания</div>
-            <div className="shop-profile-value">{profile?.датаОКОНЧАНИЯ || '—'}</div>
+        <div className="shop-profile">
+          <div className="shop-profile__block">
+            {/* Заголовок кабинета */}
+            <div className="shop-profile__header">
+              🍣 КАБИНЕТ СУШИ-ХАУС 39
+            </div>
+
+            {/* Профиль */}
+            <div className="shop-profile__section">
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">👤 Профиль:</span>
+                <span className="shop-profile__value">{profile?.name || '—'}</span>
+              </div>
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">📱 Контакт:</span>
+                <span className="shop-profile__value">{formatPhone(profile?.phone)}</span>
+              </div>
+            </div>
+
+            {/* Подписка */}
+            <div className="shop-profile__section">
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">📋 Статус подписки:</span>
+                <span className="shop-profile__value">{profile?.статусСписания || '—'}</span>
+              </div>
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">🔒 Действует до:</span>
+                <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
+              </div>
+            </div>
+
+            {/* Баланс */}
+            <div className="shop-profile__section">
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">Мой баланс:</span>
+                <span className="shop-profile__value">{profile?.balance_shc ? `${profile.balance_shc} SHC` : '—'}</span>
+              </div>
+              <div className="shop-profile__hint">
+                (баланс за приглашённых в бота друзей)
+              </div>
+            </div>
+
+            {/* Автопродление */}
+            <div className="shop-profile__section">
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">♻️ Автопродление:</span>
+                <span className="shop-profile__value">{profile?.статусСписания || '—'}</span>
+              </div>
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">💳 Способ оплаты:</span>
+                <span className="shop-profile__value">Юкасса</span>
+              </div>
+            </div>
+
+            {/* Часы работы */}
+            <div className="shop-profile__section">
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">⏰ Принимаем заказы</span>
+              </div>
+              <div className="shop-profile__row">
+                <span className="shop-profile__value">с 10:00 до 21:50</span>
+              </div>
+            </div>
+
+            {/* Поддержка */}
+            <div className="shop-profile__section">
+              <div className="shop-profile__note">
+                💬 Если возникают сложности — смело пишите в поддержку бота. Мы всегда на связи и поможем разобраться!
+              </div>
+            </div>
           </div>
         </div>
       )}

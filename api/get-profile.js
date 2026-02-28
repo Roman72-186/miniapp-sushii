@@ -71,11 +71,16 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Контакт не найден' });
     }
 
-    // 3. Извлекаем нужные переменные из contact.variables
+    // 3. Извлекаем имя и телефон из контакта
+    const contactName = contact.name || null;
+
+    // 4. Извлекаем нужные переменные из contact.variables
     const variables = contact.variables || [];
     let статусСписания = null;
     let balance_shc = null;
     let датаОКОНЧАНИЯ = null;
+    let phone = null;
+    let телефон = null;
 
     for (const v of variables) {
       const name = v.name || '';
@@ -83,9 +88,13 @@ module.exports = async (req, res) => {
       if (name === 'статусСписания') статусСписания = value;
       if (name === 'balance_shc') balance_shc = value;
       if (name === 'датаОКОНЧАНИЯ') датаОКОНЧАНИЯ = value;
+      if (name === 'phone') phone = value;
+      if (name === 'телефон') телефон = value;
     }
 
     return res.status(200).json({
+      name: contactName,
+      phone: phone || телефон || null,
       статусСписания,
       balance_shc,
       датаОКОНЧАНИЯ,

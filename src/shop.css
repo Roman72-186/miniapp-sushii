@@ -1103,28 +1103,62 @@ body.shop-body {
   opacity: 1;
 }
 
-/* === Профиль — карточки переменных === */
-.shop-profile-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* === Профиль — кабинет === */
+.shop-profile {
   padding: 16px;
 }
 
-.shop-profile-card {
+.shop-profile__block {
   background: #2a2a2e;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.shop-profile-label {
-  font-size: 13px;
-  color: #999;
+.shop-profile__header {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  padding: 16px;
+  text-align: center;
+}
+
+.shop-profile__section {
+  border-top: 1px solid #3a3a3e;
+  padding: 14px 16px;
+}
+
+.shop-profile__row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   margin-bottom: 4px;
 }
 
-.shop-profile-value {
-  font-size: 18px;
+.shop-profile__row:last-child {
+  margin-bottom: 0;
+}
+
+.shop-profile__label {
+  font-size: 14px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.shop-profile__value {
+  font-size: 14px;
   font-weight: 700;
   color: #fff;
+}
+
+.shop-profile__hint {
+  font-size: 12px;
+  color: #777;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.shop-profile__note {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.5;
 }
