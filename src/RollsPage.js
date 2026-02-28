@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
 import { products as rawProducts } from "./data";
+import { getProductImage } from "./config/imageMap";
 import "./App.css";
 
 function normalizeRolls(list) {
@@ -9,14 +10,10 @@ function normalizeRolls(list) {
     const cleanName =
       typeof p.name === "string" ? p.name.replace(/\s*\*\*\s*$/u, "").trim() : p.name;
 
-    let img = p.image || "";
-    if (img.startsWith("/public/")) img = img.replace(/^\/public/u, "");
-    if (!img || img === "/img/.png" || img === "/img/" || img === "/public/img/") img = "/logo.jpg";
-
     return {
       ...p,
       name: cleanName,
-      image: img,
+      image: getProductImage(cleanName),
       price: 0,
     };
   });

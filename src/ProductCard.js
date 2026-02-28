@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 
-// 'alert_close' — показать alert и закрыть мини-апп в колбэке
-// 'redirect'    — перейти на страницу /success
-// const CLOSE_BEHAVIOR = "alert_close"; // поменяй на "redirect", если нужен переход
 const CLOSE_BEHAVIOR = "redirect";
-
 
 function formatPrice(price) {
   if (typeof price !== "number" || Number.isNaN(price)) return "";
@@ -39,16 +35,13 @@ function ProductCard({ product, telegramId }) {
       code: product.code || "",
     };
 
-    // отправляем заказ без ожидания ответа
     fireAndForgetOrder(payload);
 
     const tg = window.Telegram?.WebApp;
 
     if (CLOSE_BEHAVIOR === "redirect") {
-      // Перейдём на страницу "Заказ принят"
       const url = `/success?product=${encodeURIComponent(product.name)}`;
       if (tg?.openLink) {
-        // безопасный способ внутри Telegram WebApp
         tg.openLink(window.location.origin + url);
       } else {
         window.location.href = url;
@@ -56,16 +49,14 @@ function ProductCard({ product, telegramId }) {
       return;
     }
 
-    // По умолчанию: alert -> закрыть мини-апп
     try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
     if (tg?.showAlert) {
-      tg.showAlert(`✅ Заказ отправлен: ${product.name}`, () => {
+      tg.showAlert(`Заказ отправлен: ${product.name}`, () => {
         setTimeout(() => { try { tg.close(); } catch {} }, 50);
       });
-      // дубль через таймер (иногда колбэк не триггерится)
       setTimeout(() => { try { tg.close(); } catch {} }, 800);
     } else {
-      alert(`✅ Заказ отправлен: ${product.name}`);
+      alert(`Заказ отправлен: ${product.name}`);
       try { window.close(); } catch {}
     }
   };
@@ -80,11 +71,16 @@ function ProductCard({ product, telegramId }) {
         className="product-img"
         onError={() => setImgError(true)}
       />
-      <h3>{product.name}</h3>
-      {product.description ? <p>{product.description}</p> : null}
-      <p><b>{product.price === 0 ? "Подарок 🎁" : formatPrice(product.price) || "Цена уточняется"}</b></p>
-
-      <button onClick={handleOrder}>{product.price === 0 ? "Выбрать" : "Заказать"}</button>
+      <div className="product-info">
+        <h3>{product.name}</h3>
+        {product.description ? <p className="product-desc">{product.description}</p> : null}
+        <div className="product-bottom">
+          <span className="product-price">
+            {product.price === 0 ? "Подарок" : formatPrice(product.price) || "Цена уточняется"}
+          </span>
+          <button onClick={handleOrder}>{product.price === 0 ? "Выбрать" : "Заказать"}</button>
+        </div>
+      </div>
     </div>
   );
 }

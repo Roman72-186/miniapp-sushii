@@ -28,50 +28,100 @@ body {
   border-radius: 50%;
 }
 
+/* === Сетка товаров === */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-/* Стили для выпадающего меню категорий */
-.category-nav.grid-layout {
-  display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px; /* Расстояние между кнопками */
-  padding: 10px;
-  background-color: #f0f0f0; /* Фоновый цвет для выпадающего меню */
-  border-radius: 8px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
+/* === Карточка товара (стиль otnafani) === */
 .product-card {
-  background: white;
-  border-radius: 15px;
+  background: #fff;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
 .product-img {
   width: 100%;
-  height: 180px;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
+  display: block;
+}
+
+.product-info {
+  padding: 10px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .product-card h3 {
-  margin: 10px;
-  font-size: 18px;
-  color: #333;
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.25;
 }
 
-.product-card p {
-  margin: 0 10px 10px;
-  color: #555;
+.product-desc {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #777;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-price {
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+}
+
+.product-card button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #14c829;
+  color: #fff;
   font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+}
+
+.product-card button:hover {
+  background: #11a822;
+}
+
+.product-card button:active {
+  background: #0e8e1c;
+}
+
+/* === Стили для выпадающего меню категорий === */
+.category-nav.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
 .price {
@@ -80,23 +130,6 @@ body {
   font-weight: bold;
   color: #000;
 }
-
-button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  background: #14c829;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 0 0 15px 15px;
-  transition: background 0.2s;
-}
-
-button:hover {
-  background: #015f0c;
-}
-
 
 .footer {
   margin-top: 30px;
@@ -142,9 +175,8 @@ button:hover {
   padding: 15px;
   background: white;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-
 
 .map-block {
   margin: 15px 0;
@@ -170,52 +202,8 @@ button:hover {
   border-radius: 8px;
   font-size: 14px;
 }
-/* Плавная анимация появления карточек */
-.product-card {
-  background: white;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transform: translateY(20px);
-  opacity: 0;
-  animation: fadeInUp 0.6s ease forwards;
-}
 
-/* При наведении — мягкое увеличение */
-.product-card:hover {
-  transform: scale(1.03);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-}
-
-/* Эффект для картинки */
-.product-img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.product-card:hover .product-img {
-  transform: scale(1.05);
-}
-
-/* Анимация появления (снизу вверх) */
-@keyframes fadeInUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Кнопки подписки */
+/* === Кнопки подписки === */
 .subscription-buttons {
   display: flex;
   flex-direction: column;
