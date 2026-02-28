@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { getProductImage } from './config/imageMap';
+import SubCheckoutModal from './components/SubCheckoutModal';
 import './shop.css';
 
 function SubFullPage() {
@@ -13,6 +14,7 @@ function SubFullPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
@@ -50,28 +52,7 @@ function SubFullPage() {
   useEffect(() => { fetchSets(); }, [fetchSets]);
 
   const handleSelect = (product) => {
-    const payload = {
-      telegram_id: telegramId,
-      product_id: product.id,
-      product_name: product.name,
-      price: 0,
-      code: product.sku,
-    };
-    try {
-      if (navigator.sendBeacon) {
-        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-        navigator.sendBeacon('/api/order', blob);
-      } else {
-        fetch('/api/order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          keepalive: true,
-        }).catch(() => {});
-      }
-    } catch {}
-
-    window.location.href = `/success?product=${encodeURIComponent(product.name)}`;
+    setSelectedProduct(product);
   };
 
   return (
@@ -107,6 +88,14 @@ function SubFullPage() {
             <SubCard key={product.id} product={product} onSelect={handleSelect} />
           ))}
         </div>
+      )}
+
+      {selectedProduct && (
+        <SubCheckoutModal
+          product={selectedProduct}
+          telegramId={telegramId}
+          onClose={() => setSelectedProduct(null)}
+        />
       )}
     </div>
   );
