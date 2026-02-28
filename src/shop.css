@@ -99,6 +99,43 @@ body.shop-body {
   flex-shrink: 0;
 }
 
+/* === Подарочные кнопки (под хедером) === */
+.shop-gift-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #222;
+}
+
+.shop-gift-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #f5923a;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.shop-gift-btn:hover {
+  opacity: 0.85;
+}
+
+.shop-gift-btn--locked {
+  opacity: 0.4;
+}
+
+.shop-gift-btn__lock {
+  font-size: 12px;
+}
+
 /* === Sticky-табы категорий === */
 .shop-tabs {
   display: flex;

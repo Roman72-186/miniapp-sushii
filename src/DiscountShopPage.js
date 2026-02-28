@@ -14,8 +14,8 @@ const DISCOUNT_CATEGORIES = [
     jsonUrl: '/подписка роллы/rolls-sub.json', discount: 0.30 },
   { id: 'sub-hot', name: 'Запечённые роллы', tab: 'Запечённые', icon: '🔥',
     jsonUrl: '/подписка запеченные/zaproll-sub.json', discount: 0.30 },
-  { id: 'sub-sets', name: 'Сеты', tab: 'Сеты -20%', icon: '🍱',
-    jsonUrl: '/подписка сеты/sets-sub.json', discount: 0.20 },
+  { id: 'sub-sets', name: 'Сеты', tab: 'Сеты', icon: '🍱',
+    jsonUrl: '/подписка сеты/sets-sub.json', discount: 0.20, discountLabel: '-20%' },
   { id: 'gift-rolls', name: 'Роллы в подарок', tab: 'Роллы', icon: '🎁',
     jsonUrl: '/подписка 490/rolls-490.json', discount: 0, gift: true, minTarif: '490' },
   { id: 'gift-sets', name: 'Сеты в подарок', tab: 'Сеты', icon: '🎁',
@@ -263,21 +263,33 @@ function DiscountShopPage() {
         )}
       </header>
 
-      <nav className="shop-tabs">
-        {DISCOUNT_CATEGORIES.map(cat => {
+      <div className="shop-gift-row">
+        {DISCOUNT_CATEGORIES.filter(c => c.gift).map(cat => {
           const locked = isCategoryLocked(cat, userTarif);
           return (
             <button
               key={cat.id}
-              className={`shop-tabs__item ${visibleCategory === cat.id ? 'shop-tabs__item--active' : ''} ${locked ? 'shop-tabs__item--locked' : ''}`}
+              className={`shop-gift-btn ${locked ? 'shop-gift-btn--locked' : ''}`}
               onClick={() => scrollToCategory(cat.id)}
             >
-              <span className="shop-tabs__icon">{cat.icon}</span>
-              <span className="shop-tabs__name">{cat.tab}</span>
-              {locked && <span className="shop-tabs__lock">🔒</span>}
+              <span>{cat.icon} {cat.tab}</span>
+              {locked && <span className="shop-gift-btn__lock">🔒</span>}
             </button>
           );
         })}
+      </div>
+
+      <nav className="shop-tabs">
+        {DISCOUNT_CATEGORIES.filter(c => !c.gift).map(cat => (
+          <button
+            key={cat.id}
+            className={`shop-tabs__item ${visibleCategory === cat.id ? 'shop-tabs__item--active' : ''}`}
+            onClick={() => scrollToCategory(cat.id)}
+          >
+            <span className="shop-tabs__icon">{cat.icon}</span>
+            <span className="shop-tabs__name">{cat.tab}</span>
+          </button>
+        ))}
       </nav>
 
       {loading ? (
