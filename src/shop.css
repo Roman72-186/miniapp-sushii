@@ -231,11 +231,32 @@ body.shop-body {
 
 .shop-card__bottom {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   margin-top: auto;
   gap: 4px;
   flex-wrap: wrap;
+}
+
+.shop-card__prices {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.shop-card__old-price {
+  font-size: 12px;
+  color: #777;
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+
+.shop-card__savings {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3CC8A1;
+  white-space: nowrap;
 }
 
 .shop-card__price {

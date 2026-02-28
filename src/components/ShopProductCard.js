@@ -22,7 +22,17 @@ function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity }) {
           <p className="shop-card__weight">{product.weight}</p>
         )}
         <div className="shop-card__bottom">
-          <span className="shop-card__price">{product.price}₽</span>
+          <div className="shop-card__prices">
+            {product.oldPrice ? (
+              <>
+                <span className="shop-card__old-price">{product.oldPrice}₽</span>
+                <span className="shop-card__savings">Выгода {product.savings}₽</span>
+                <span className="shop-card__price">{product.price}₽</span>
+              </>
+            ) : (
+              <span className="shop-card__price">{product.price}₽</span>
+            )}
+          </div>
           {quantity > 0 ? (
             <div className="shop-card__counter">
               <button

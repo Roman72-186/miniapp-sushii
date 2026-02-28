@@ -8,6 +8,7 @@ import SetsPage from "./SetsPage"; // страница сетов по подп�
 import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет уже получен»
 import RollsPage from "./RollsPage"; // страница подарочных роллов по подписке
 import ShopPage from "./ShopPage"; // страница магазина
+import DiscountShopPage from "./DiscountShopPage"; // магазин по подписке со скидками
 
 function App() {
   const [page, setPage] = useState("home");
@@ -59,16 +60,9 @@ function App() {
         return;
       }
 
-      // Тариф 290 = скидки на меню, 490 = роллы, 1190 = сеты
-      if (requiredType === 'discount-sets' && data.tarif === '290') {
-        // TODO: переход на страницу сетов со скидкой -20%
-        setSubscriptionError("Раздел скоро появится");
-      } else if (requiredType === 'discount-hot' && data.tarif === '290') {
-        // TODO: переход на страницу запечённых роллов со скидкой -30₽
-        setSubscriptionError("Раздел скоро появится");
-      } else if (requiredType === 'discount-cold' && data.tarif === '290') {
-        // TODO: переход на страницу холодных роллов со скидкой -30₽
-        setSubscriptionError("Раздел скоро появится");
+      // Тариф 290/490/1190 = скидки на меню, 490 = роллы, 1190 = сеты
+      if (requiredType === 'discount-sets' || requiredType === 'discount-hot' || requiredType === 'discount-cold') {
+        window.location.href = '/discount-shop';
       } else if (requiredType === 'rolls' && (data.tarif === '490' || data.tarif === '1190')) {
         window.location.href = '/rolls';
       } else if (requiredType === 'sets' && data.tarif === '1190') {
@@ -99,6 +93,12 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/rolls";
   const isShopPage =
     typeof window !== "undefined" && window.location.pathname === "/shop";
+  const isDiscountShopPage =
+    typeof window !== "undefined" && window.location.pathname === "/discount-shop";
+
+  if (isDiscountShopPage) {
+    return <DiscountShopPage />;
+  }
 
   if (isShopPage) {
     return <ShopPage />;
