@@ -327,14 +327,23 @@ function DiscountShopPage() {
           <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" />
           <span className="shop-header__title">Sushi House</span>
         </div>
-        {cart.count > 0 ? (
-          <button className="shop-header__cart" onClick={() => setShowCart(true)}>
-            <span className="shop-header__cart-icon">🛒</span>
-            <span className="shop-header__cart-badge">{cart.count}</span>
+        <div className="shop-header__actions">
+          <button
+            className="shop-header__profile"
+            onClick={() => {
+              const tid = telegramId ? `?telegram_id=${telegramId}` : '';
+              window.location.href = `/profile${tid}`;
+            }}
+          >
+            👤
           </button>
-        ) : (
-          <div className="shop-header__spacer" />
-        )}
+          {cart.count > 0 && (
+            <button className="shop-header__cart" onClick={() => setShowCart(true)}>
+              <span className="shop-header__cart-icon">🛒</span>
+              <span className="shop-header__cart-badge">{cart.count}</span>
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="shop-gift-row">

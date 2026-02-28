@@ -1079,3 +1079,52 @@ body.shop-body {
   color: #666;
   font-size: 15px;
 }
+
+/* === Кнопки хедера (профиль + корзина) === */
+.shop-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.shop-header__profile {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.shop-header__profile:hover {
+  opacity: 1;
+}
+
+/* === Профиль — карточки переменных === */
+.shop-profile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.shop-profile-card {
+  background: #2a2a2e;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.shop-profile-label {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.shop-profile-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}

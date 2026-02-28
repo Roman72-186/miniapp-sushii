@@ -9,6 +9,7 @@ import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет 
 import RollsPage from "./RollsPage"; // страница подарочных роллов по подписке
 import ShopPage from "./ShopPage"; // страница магазина
 import DiscountShopPage from "./DiscountShopPage"; // магазин по подписке со скидками
+import ProfilePage from "./ProfilePage"; // личный кабинет
 
 function App() {
   const [page, setPage] = useState("home");
@@ -83,6 +84,12 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/shop";
   const isDiscountShopPage =
     typeof window !== "undefined" && window.location.pathname === "/discount-shop";
+  const isProfilePage =
+    typeof window !== "undefined" && window.location.pathname === "/profile";
+
+  if (isProfilePage) {
+    return <ProfilePage />;
+  }
 
   if (isDiscountShopPage) {
     return <DiscountShopPage />;
