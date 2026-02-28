@@ -94,6 +94,16 @@ body.shop-body {
   text-align: center;
 }
 
+.shop-header__back {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+
 .shop-header__spacer {
   width: 36px;
   flex-shrink: 0;

@@ -1,4 +1,5 @@
-// src/DiscountShopPage.js — Магазин по подписке со скидками /discount-shop (5 табов)
+// src/DiscountShopPage.js — Магазин по подписке /discount-shop
+// Основное меню (скидки) + отдельные экраны подарков
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useCart } from './hooks/useFrontpad';
@@ -15,15 +16,17 @@ const DISCOUNT_CATEGORIES = [
   { id: 'sub-hot', name: 'Запечённые роллы', tab: 'Запечённые', icon: '🔥',
     jsonUrl: '/подписка запеченные/zaproll-sub.json', discount: 0.30 },
   { id: 'sub-sets', name: 'Сеты', tab: 'Сеты', icon: '🍱',
-    jsonUrl: '/подписка сеты/sets-sub.json', discount: 0.20, discountLabel: '-20%' },
-  { id: 'gift-rolls', name: 'Роллы в подарок', tab: 'Роллы', icon: '🎁',
-    jsonUrl: '/подписка 490/rolls-490.json', discount: 0, gift: true, minTarif: '490' },
-  { id: 'gift-sets', name: 'Сеты в подарок', tab: 'Сеты', icon: '🎁',
-    jsonUrl: '/подписка 490/sets-490.json', discount: 0, gift: true, minTarif: '1190' },
+    jsonUrl: '/подписка сеты/sets-sub.json', discount: 0.20 },
 ];
 
-function isCategoryLocked(cat, userTarif) {
-  if (!cat.minTarif) return false;
+const GIFT_CATEGORIES = [
+  { id: 'gift-rolls', name: 'Роллы в подарок', tab: 'Роллы', icon: '🎁',
+    jsonUrl: '/подписка 490/rolls-490.json', minTarif: '490' },
+  { id: 'gift-sets', name: 'Сеты в подарок', tab: 'Сеты', icon: '🎁',
+    jsonUrl: '/подписка 490/sets-490.json', minTarif: '1190' },
+];
+
+function isGiftLocked(cat, userTarif) {
   if (!userTarif) return true;
   if (cat.minTarif === '490') return userTarif !== '490' && userTarif !== '1190';
   if (cat.minTarif === '1190') return userTarif !== '1190';
@@ -39,13 +42,15 @@ function useDiscountMenu() {
     setLoading(true);
     setError(null);
     try {
+      const allCats = [...DISCOUNT_CATEGORIES, ...GIFT_CATEGORIES];
       const results = await Promise.all(
-        DISCOUNT_CATEGORIES.map(async (cat) => {
+        allCats.map(async (cat) => {
           const res = await fetch(cat.jsonUrl);
           if (!res.ok) throw new Error(`Ошибка загрузки ${cat.name}`);
           const data = await res.json();
+          const isGift = GIFT_CATEGORIES.some(g => g.id === cat.id);
           return data.items.map((item, idx) => {
-            if (cat.gift) {
+            if (isGift) {
               return {
                 id: item.sku || `${cat.id}-${idx}`,
                 name: item.name,
@@ -82,7 +87,6 @@ function useDiscountMenu() {
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
-
   return { products, loading, error, refetch: fetchAll };
 }
 
@@ -127,11 +131,12 @@ function DiscountShopPage() {
   const sectionRefs = useRef({});
   const isScrollingByClick = useRef(false);
 
-  // Gift flow
+  // Gift view: null = основное меню, 'gift-rolls' | 'gift-sets' = подарочный экран
+  const [giftView, setGiftView] = useState(null);
   const [selectedGiftProduct, setSelectedGiftProduct] = useState(null);
   const [giftOrderNumber, setGiftOrderNumber] = useState(null);
 
-  // Tariff check
+  // Tariff
   const [userTarif, setUserTarif] = useState(null);
   const [tarifLoading, setTarifLoading] = useState(true);
   const [lockedPopup, setLockedPopup] = useState(null);
@@ -139,21 +144,16 @@ function DiscountShopPage() {
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
     const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-    console.log('[DiscountShop] TG SDK id:', tgId);
     const params = new URLSearchParams(window.location.search);
     const urlId = params.get('telegram_id');
-    console.log('[DiscountShop] URL telegram_id:', urlId);
     return tgId || urlId || null;
   }, []);
 
-  // Check tariff on mount
   useEffect(() => {
     if (!telegramId) {
-      console.log('[DiscountShop] No telegramId, skipping tariff check');
       setTarifLoading(false);
       return;
     }
-    console.log('[DiscountShop] Checking tariff for:', telegramId);
     setTarifLoading(true);
     fetch('/api/check-subscription', {
       method: 'POST',
@@ -162,16 +162,15 @@ function DiscountShopPage() {
     })
       .then(r => r.json())
       .then(data => {
-        console.log('[DiscountShop] API response:', data);
         if (data.tarif) setUserTarif(data.tarif);
       })
-      .catch((err) => {
-        console.error('[DiscountShop] Tariff check failed:', err);
-      })
+      .catch(() => {})
       .finally(() => setTarifLoading(false));
   }, [telegramId]);
 
+  // IntersectionObserver для скидочных табов
   useEffect(() => {
+    if (giftView) return;
     const sections = Object.values(sectionRefs.current).filter(Boolean);
     if (sections.length === 0) return;
 
@@ -190,22 +189,28 @@ function DiscountShopPage() {
 
     sections.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [products]);
+  }, [products, giftView]);
 
   const scrollToCategory = (categoryId) => {
-    if (tarifLoading) return;
-    const cat = DISCOUNT_CATEGORIES.find(c => c.id === categoryId);
-    if (cat && isCategoryLocked(cat, userTarif)) {
-      const tarifLabel = cat.minTarif === '1190' ? '1190' : '490';
-      setLockedPopup(`Этот раздел доступен подписчикам тарифа от ${tarifLabel}₽`);
-      return;
-    }
     const el = sectionRefs.current[categoryId];
     if (!el) return;
     setVisibleCategory(categoryId);
     isScrollingByClick.current = true;
     el.scrollIntoView({ behavior: 'smooth' });
     setTimeout(() => { isScrollingByClick.current = false; }, 800);
+  };
+
+  const handleGiftClick = (catId) => {
+    if (tarifLoading) return;
+    const cat = GIFT_CATEGORIES.find(c => c.id === catId);
+    if (!cat) return;
+    if (isGiftLocked(cat, userTarif)) {
+      const tarifLabel = cat.minTarif === '1190' ? '1190' : '490';
+      setLockedPopup(`Этот раздел доступен подписчикам тарифа от ${tarifLabel}₽`);
+      return;
+    }
+    setGiftView(catId);
+    window.scrollTo(0, 0);
   };
 
   const getQuantity = (productId) => {
@@ -224,7 +229,7 @@ function DiscountShopPage() {
     cart.clear();
   };
 
-  // Discount order success screen
+  // Success screens
   if (orderNumber) {
     return (
       <div className="shop-page">
@@ -243,7 +248,6 @@ function DiscountShopPage() {
     );
   }
 
-  // Gift order success screen
   if (giftOrderNumber) {
     return (
       <div className="shop-page">
@@ -252,7 +256,7 @@ function DiscountShopPage() {
           <h2 className="shop-success__title">Заказ принят!</h2>
           <p className="shop-success__order-num">Номер заказа: {giftOrderNumber}</p>
           <p className="shop-success__text">Мы уже готовим ваш заказ. Ожидайте!</p>
-          <button className="shop-success__btn" onClick={() => setGiftOrderNumber(null)}>
+          <button className="shop-success__btn" onClick={() => { setGiftOrderNumber(null); setGiftView(null); }}>
             Вернуться в меню
           </button>
         </div>
@@ -260,6 +264,62 @@ function DiscountShopPage() {
     );
   }
 
+  // === GIFT VIEW — отдельный экран подарков ===
+  if (giftView) {
+    const giftCat = GIFT_CATEGORIES.find(c => c.id === giftView);
+    const giftProducts = products.filter(p => p.category === giftView);
+
+    return (
+      <div className="shop-page">
+        <header className="shop-header">
+          <button className="shop-header__back" onClick={() => setGiftView(null)}>
+            ←
+          </button>
+          <div className="shop-header__center">
+            <span className="shop-header__title">{giftCat?.icon} {giftCat?.name}</span>
+          </div>
+          <div className="shop-header__spacer" />
+        </header>
+
+        <div className="shop-section">
+          <p style={{ color: '#999', fontSize: 13, margin: '8px 16px 0', padding: 0 }}>
+            Выберите один — входит в вашу подписку
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="shop-loading">
+            <div className="shop-loading__spinner" />
+            <span className="shop-loading__text">Загрузка...</span>
+          </div>
+        ) : (
+          <div className="shop-grid">
+            {giftProducts.map(product => (
+              <SubCard
+                key={product.id}
+                product={product}
+                onSelect={setSelectedGiftProduct}
+              />
+            ))}
+          </div>
+        )}
+
+        {selectedGiftProduct && (
+          <SubCheckoutModal
+            product={selectedGiftProduct}
+            telegramId={telegramId}
+            onClose={() => setSelectedGiftProduct(null)}
+            onSuccess={(num) => {
+              setSelectedGiftProduct(null);
+              setGiftOrderNumber(num);
+            }}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // === MAIN VIEW — скидочное меню + кнопки подарков ===
   return (
     <div className="shop-page">
       <header className="shop-header">
@@ -278,13 +338,13 @@ function DiscountShopPage() {
       </header>
 
       <div className="shop-gift-row">
-        {DISCOUNT_CATEGORIES.filter(c => c.gift).map(cat => {
-          const locked = tarifLoading ? true : isCategoryLocked(cat, userTarif);
+        {GIFT_CATEGORIES.map(cat => {
+          const locked = tarifLoading ? true : isGiftLocked(cat, userTarif);
           return (
             <button
               key={cat.id}
               className={`shop-gift-btn ${locked ? 'shop-gift-btn--locked' : ''}`}
-              onClick={() => scrollToCategory(cat.id)}
+              onClick={() => handleGiftClick(cat.id)}
             >
               <span>{cat.icon} {cat.tab}</span>
               {tarifLoading ? <span className="shop-gift-btn__lock">⏳</span>
@@ -296,7 +356,7 @@ function DiscountShopPage() {
       </div>
 
       <nav className="shop-tabs">
-        {DISCOUNT_CATEGORIES.filter(c => !c.gift).map(cat => (
+        {DISCOUNT_CATEGORIES.map(cat => (
           <button
             key={cat.id}
             className={`shop-tabs__item ${visibleCategory === cat.id ? 'shop-tabs__item--active' : ''}`}
@@ -321,8 +381,6 @@ function DiscountShopPage() {
       ) : (
         <div>
           {DISCOUNT_CATEGORIES.map(cat => {
-            const locked = tarifLoading ? !!cat.minTarif : isCategoryLocked(cat, userTarif);
-            if (locked) return null;
             const catProducts = products.filter(p => p.category === cat.id);
             if (catProducts.length === 0) return null;
             return (
@@ -333,29 +391,16 @@ function DiscountShopPage() {
                 ref={el => { sectionRefs.current[cat.id] = el; }}
               >
                 <h2 className="shop-section__title">{cat.icon} {cat.name}</h2>
-                {cat.gift && (
-                  <p style={{ color: '#999', fontSize: 13, margin: '4px 16px 0', padding: 0 }}>
-                    Выберите один — входит в вашу подписку
-                  </p>
-                )}
                 <div className="shop-grid">
-                  {catProducts.map(product =>
-                    cat.gift ? (
-                      <SubCard
-                        key={product.id}
-                        product={product}
-                        onSelect={setSelectedGiftProduct}
-                      />
-                    ) : (
-                      <ShopProductCard
-                        key={product.id}
-                        product={product}
-                        quantity={getQuantity(product.id)}
-                        onAdd={cart.addItem}
-                        onUpdateQuantity={cart.updateQuantity}
-                      />
-                    )
-                  )}
+                  {catProducts.map(product => (
+                    <ShopProductCard
+                      key={product.id}
+                      product={product}
+                      quantity={getQuantity(product.id)}
+                      onAdd={cart.addItem}
+                      onUpdateQuantity={cart.updateQuantity}
+                    />
+                  ))}
                 </div>
               </div>
             );
@@ -382,18 +427,6 @@ function DiscountShopPage() {
           telegramId={telegramId}
           onBack={() => setShowCheckout(false)}
           onSuccess={handleOrderSuccess}
-        />
-      )}
-
-      {selectedGiftProduct && (
-        <SubCheckoutModal
-          product={selectedGiftProduct}
-          telegramId={telegramId}
-          onClose={() => setSelectedGiftProduct(null)}
-          onSuccess={(num) => {
-            setSelectedGiftProduct(null);
-            setGiftOrderNumber(num);
-          }}
         />
       )}
 
