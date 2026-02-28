@@ -1,13 +1,8 @@
-// src/SubFullPage.js — Страница подписки тариф 1190 (роллы + сеты)
+// src/SubFullPage.js — Страница подписки тариф 1190 (только сеты)
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { getProductImage } from './config/imageMap';
 import './shop.css';
-
-const TABS = [
-  { id: 'rolls', name: 'Роллы', icon: '\uD83C\uDF63', jsonUrl: '/подписка 490/rolls-490.json' },
-  { id: 'sets', name: 'Сеты', icon: '\uD83C\uDF71', jsonUrl: '/подписка 490/sets-490.json' },
-];
 
 function SubFullPage() {
   useEffect(() => {
@@ -18,7 +13,6 @@ function SubFullPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('rolls');
 
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
@@ -32,26 +26,20 @@ function SubFullPage() {
     return params.get('telegram_id') || null;
   }, []);
 
-  const fetchAll = useCallback(async () => {
+  const fetchSets = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const results = await Promise.all(
-        TABS.map(async (tab) => {
-          const res = await fetch(tab.jsonUrl);
-          if (!res.ok) throw new Error(`Ошибка загрузки ${tab.name}`);
-          const data = await res.json();
-          return data.items.map(item => ({
-            id: item.sku,
-            name: item.name,
-            price: 0,
-            sku: item.sku,
-            category: tab.id,
-            image: getProductImage(item.name),
-          }));
-        })
-      );
-      setProducts(results.flat());
+      const res = await fetch('/подписка 490/sets-490.json');
+      if (!res.ok) throw new Error('Ошибка загрузки меню');
+      const data = await res.json();
+      setProducts(data.items.map(item => ({
+        id: item.sku,
+        name: item.name,
+        price: 0,
+        sku: item.sku,
+        image: getProductImage(item.name),
+      })));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -59,9 +47,7 @@ function SubFullPage() {
     }
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
-
-  const filteredProducts = products.filter(p => p.category === activeTab);
+  useEffect(() => { fetchSets(); }, [fetchSets]);
 
   const handleSelect = (product) => {
     const payload = {
@@ -98,22 +84,10 @@ function SubFullPage() {
         <div className="shop-header__spacer" />
       </header>
 
-      <nav className="shop-tabs">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            className={`shop-tabs__item ${activeTab === tab.id ? 'shop-tabs__item--active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            <span className="shop-tabs__icon">{tab.icon}</span>
-            <span className="shop-tabs__name">{tab.name}</span>
-          </button>
-        ))}
-      </nav>
-
       <div className="shop-section">
-        <p style={{ color: '#999', fontSize: 13, margin: '8px 16px', padding: 0 }}>
-          Выберите один товар — он входит в вашу подписку
+        <h2 className="shop-section__title">Сеты по подписке</h2>
+        <p style={{ color: '#999', fontSize: 13, margin: '4px 16px 0', padding: 0 }}>
+          Выберите один сет — он входит в вашу подписку
         </p>
       </div>
 
@@ -125,11 +99,11 @@ function SubFullPage() {
       ) : error ? (
         <div className="shop-error">
           <span className="shop-error__text">{error}</span>
-          <button className="shop-error__retry" onClick={fetchAll}>Попробовать снова</button>
+          <button className="shop-error__retry" onClick={fetchSets}>Попробовать снова</button>
         </div>
       ) : (
         <div className="shop-grid">
-          {filteredProducts.map(product => (
+          {products.map(product => (
             <SubCard key={product.id} product={product} onSelect={handleSelect} />
           ))}
         </div>
