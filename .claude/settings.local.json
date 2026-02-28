@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(node:*)",
+      "Bash(npx react-scripts:*)",
+      "Bash(git:*)",
+      "Bash(npx vercel:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:miniapp-sushii.vercel.app)",
+      "WebFetch(domain:otnafani.ru)",
+      "Bash(npm run:*)",
+      "Bash(CI=true npm run:*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(pip install:*)",
+      "Bash(start:*)",
+      "Bash(python3:*)",
+      "Bash(PYTHONIOENCODING=utf-8 python:*)",
+      "WebFetch(domain:docs.watbot.ru)",
+      "Bash(bash:*)"
+    ]
+  }
+}
