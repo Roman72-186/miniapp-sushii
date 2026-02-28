@@ -9,6 +9,8 @@ import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет 
 import RollsPage from "./RollsPage"; // страница подарочных роллов по подписке
 import ShopPage from "./ShopPage"; // страница магазина
 import DiscountShopPage from "./DiscountShopPage"; // магазин по подписке со скидками
+import SubRollsPage from "./SubRollsPage"; // подписка 490 — выбор ролла
+import SubFullPage from "./SubFullPage"; // подписка 1190 — роллы + сеты
 
 function App() {
   const [page, setPage] = useState("home");
@@ -64,9 +66,9 @@ function App() {
       if (requiredType === 'discount-sets' || requiredType === 'discount-hot' || requiredType === 'discount-cold') {
         window.location.href = '/discount-shop';
       } else if (requiredType === 'rolls' && (data.tarif === '490' || data.tarif === '1190')) {
-        window.location.href = '/rolls';
+        window.location.href = '/sub-rolls';
       } else if (requiredType === 'sets' && data.tarif === '1190') {
-        window.location.href = '/sets';
+        window.location.href = '/sub-full';
       } else if (requiredType === 'sets' && data.tarif === '490') {
         setSubscriptionError("Ваша подписка не включает сеты");
       } else if (data.tarif === '290' && !requiredType.startsWith('discount')) {
@@ -95,6 +97,18 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/shop";
   const isDiscountShopPage =
     typeof window !== "undefined" && window.location.pathname === "/discount-shop";
+  const isSubRollsPage =
+    typeof window !== "undefined" && window.location.pathname === "/sub-rolls";
+  const isSubFullPage =
+    typeof window !== "undefined" && window.location.pathname === "/sub-full";
+
+  if (isSubRollsPage) {
+    return <SubRollsPage />;
+  }
+
+  if (isSubFullPage) {
+    return <SubFullPage />;
+  }
 
   if (isDiscountShopPage) {
     return <DiscountShopPage />;
