@@ -3,9 +3,6 @@
 
 const { createOrder } = require('./frontpad');
 
-const TELEGRAM_WEBHOOK_URL =
-  "https://api.watbot.ru/hook/3679113:lNF976LZ8w7ok2w4LHOuxt1X9YqVNGKxbBFbi8uGlUCTyLV3";
-
 function parseJsonBody(req) {
   try {
     if (!req.body) return {};
@@ -123,31 +120,6 @@ module.exports = async (req, res) => {
         payment === 'card' ? '[Оплата картой]' : '[Оплата наличными]',
       ].filter(Boolean).join(' | '),
     });
-
-    // 3. Отправляем уведомление в Telegram (не блокируем ответ при ошибке)
-    const totalSum = products.reduce((sum, p) => sum + (p.price || 0) * (p.quantity || 1), 0);
-    const itemsList = products.map(p => `${p.name} x${p.quantity}`).join(', ');
-
-    try {
-      await fetch(TELEGRAM_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          telegram_id: telegram_id || '',
-          product_name: `Заказ из магазина: ${itemsList}`,
-          price: totalSum,
-          product_id: orderResult.success ? orderResult.data?.orderId : '',
-          code: [
-            `Клиент: ${client.name}, ${orderPhone}`,
-            delivery_type === 'pickup' ? 'Самовывоз' : `Доставка: ${client.street || ''} ${client.home || ''} кв.${client.apart || ''}`,
-            payment === 'card' ? 'Оплата картой' : 'Оплата наличными',
-            comment ? `Комментарий: ${comment}` : '',
-          ].filter(Boolean).join('\n'),
-        }),
-      });
-    } catch (tgErr) {
-      console.error('Telegram notification error:', tgErr);
-    }
 
     if (!orderResult.success) {
       return res.status(500).json({

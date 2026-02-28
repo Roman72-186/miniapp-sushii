@@ -1,6 +1,6 @@
 // src/components/CheckoutForm.js — Форма оформления заказа (тёмная тема)
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 const PICKUP_POINTS = [
   { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–22:00', affiliate: '184' },
@@ -91,6 +91,22 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  // Автозаполнение имени и телефона из WATBOT CRM
+  useEffect(() => {
+    if (!telegramId) return;
+    fetch('/api/get-contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegram_id: telegramId }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.name) setName(data.name);
+        if (data.phone) setPhone(data.phone);
+      })
+      .catch(() => {});
+  }, [telegramId]);
 
   // Доступные слоты времени
   const timeSlots = useMemo(() => getTimeSlots(), []);
