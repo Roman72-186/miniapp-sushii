@@ -1,6 +1,6 @@
 // src/ShopPage.js — Главная страница магазина /shop
 
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useCart } from './hooks/useFrontpad';
 import { getProductImage } from './config/imageMap';
 import ShopProductCard from './components/ShopProductCard';
@@ -62,11 +62,12 @@ function ShopPage() {
   const { products, loading, error, refetch } = useLocalMenu();
   const cart = useCart();
 
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [showMenu, setShowMenu] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderNumber, setOrderNumber] = useState(null);
+  const [visibleCategory, setVisibleCategory] = useState(SHOP_CATEGORIES[0]?.id);
+  const sectionRefs = useRef({});
+  const isScrollingByClick = useRef(false);
 
   // Telegram ID
   const telegramId = useMemo(() => {
@@ -77,11 +78,36 @@ function ShopPage() {
     return params.get('telegram_id') || null;
   }, []);
 
-  // Товары по активной категории
-  const filteredProducts = useMemo(() => {
-    if (!activeCategory) return products;
-    return products.filter(p => p.category === activeCategory);
-  }, [products, activeCategory]);
+  // IntersectionObserver — подсветка активного таба при скролле
+  useEffect(() => {
+    const sections = Object.values(sectionRefs.current).filter(Boolean);
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isScrollingByClick.current) return;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setVisibleCategory(entry.target.dataset.categoryId);
+            break;
+          }
+        }
+      },
+      { rootMargin: '-120px 0px -60% 0px', threshold: 0 }
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [products]);
+
+  const scrollToCategory = (categoryId) => {
+    const el = sectionRefs.current[categoryId];
+    if (!el) return;
+    setVisibleCategory(categoryId);
+    isScrollingByClick.current = true;
+    el.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => { isScrollingByClick.current = false; }, 800);
+  };
 
   // Количество товара в корзине
   const getQuantity = (productId) => {
@@ -123,13 +149,6 @@ function ShopPage() {
     <div className="shop-page">
       {/* Хедер */}
       <header className="shop-header">
-        <button
-          className={`shop-header__burger ${showMenu ? 'shop-header__burger--open' : ''}`}
-          onClick={() => setShowMenu(!showMenu)}
-          aria-label="Меню"
-        >
-          <span /><span /><span />
-        </button>
         <div className="shop-header__center">
           <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" />
           <span className="shop-header__title">Sushi House</span>
@@ -144,31 +163,19 @@ function ShopPage() {
         )}
       </header>
 
-      {/* Выпадающее меню навигации */}
-      {showMenu && (
-        <>
-          <div className="shop-menu-overlay" onClick={() => setShowMenu(false)} />
-          <nav className="shop-menu">
-            <button
-              className={`shop-menu__item ${activeCategory === null ? 'shop-menu__item--active' : ''}`}
-              onClick={() => { setActiveCategory(null); setShowMenu(false); }}
-            >
-              <span className="shop-menu__icon">📋</span>
-              <span>Всё меню</span>
-            </button>
-            {SHOP_CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                className={`shop-menu__item ${activeCategory === cat.id ? 'shop-menu__item--active' : ''}`}
-                onClick={() => { setActiveCategory(cat.id); setShowMenu(false); }}
-              >
-                <span className="shop-menu__icon">{cat.icon}</span>
-                <span>{cat.name}</span>
-              </button>
-            ))}
-          </nav>
-        </>
-      )}
+      {/* Sticky-табы категорий */}
+      <nav className="shop-tabs">
+        {SHOP_CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            className={`shop-tabs__item ${visibleCategory === cat.id ? 'shop-tabs__item--active' : ''}`}
+            onClick={() => scrollToCategory(cat.id)}
+          >
+            <span className="shop-tabs__icon">{cat.icon}</span>
+            <span className="shop-tabs__name">{cat.name}</span>
+          </button>
+        ))}
+      </nav>
 
       {/* Контент */}
       {loading ? (
@@ -181,29 +188,18 @@ function ShopPage() {
           <span className="shop-error__text">{error}</span>
           <button className="shop-error__retry" onClick={refetch}>Попробовать снова</button>
         </div>
-      ) : activeCategory ? (
-        <div className="shop-grid">
-          {filteredProducts.length === 0 ? (
-            <div className="shop-empty-category">В этой категории пока нет товаров</div>
-          ) : (
-            filteredProducts.map(product => (
-              <ShopProductCard
-                key={product.id}
-                product={product}
-                quantity={getQuantity(product.id)}
-                onAdd={cart.addItem}
-                onUpdateQuantity={cart.updateQuantity}
-              />
-            ))
-          )}
-        </div>
       ) : (
         <div>
           {SHOP_CATEGORIES.map(cat => {
             const catProducts = products.filter(p => p.category === cat.id);
             if (catProducts.length === 0) return null;
             return (
-              <div key={cat.id} className="shop-section">
+              <div
+                key={cat.id}
+                className="shop-section"
+                data-category-id={cat.id}
+                ref={el => { sectionRefs.current[cat.id] = el; }}
+              >
                 <h2 className="shop-section__title">{cat.icon} {cat.name}</h2>
                 <div className="shop-grid">
                   {catProducts.map(product => (

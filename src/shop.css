@@ -40,43 +40,6 @@ body.shop-body {
   z-index: 100;
 }
 
-/* Гамбургер */
-.shop-header__burger {
-  width: 36px;
-  height: 36px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  padding: 6px;
-  flex-shrink: 0;
-}
-
-.shop-header__burger span {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: #fff;
-  border-radius: 2px;
-  transition: all 0.3s;
-}
-
-.shop-header__burger--open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.shop-header__burger--open span:nth-child(2) {
-  opacity: 0;
-}
-
-.shop-header__burger--open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
 /* Центр хедера */
 .shop-header__center {
   display: flex;
@@ -138,61 +101,52 @@ body.shop-body {
   flex-shrink: 0;
 }
 
-/* === Выпадающее меню === */
-.shop-menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 98;
-  animation: shop-fade-in 0.15s;
-}
-
-.shop-menu {
-  position: fixed;
-  top: 56px;
-  left: 0;
-  right: 0;
-  background: #222;
+/* === Sticky-табы категорий === */
+.shop-tabs {
+  display: flex;
+  position: sticky;
+  top: 52px;
   z-index: 99;
-  padding: 8px 0;
+  background: #222;
   border-bottom: 1px solid #333;
-  animation: shop-menu-slide 0.2s ease-out;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-@keyframes shop-menu-slide {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.shop-tabs::-webkit-scrollbar {
+  display: none;
 }
 
-.shop-menu__item {
+.shop-tabs__item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px 20px;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 12px;
   background: none;
   border: none;
-  color: #ccc;
-  font-size: 16px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s;
-}
-
-.shop-menu__item:hover {
-  background: #2a2a2e;
-}
-
-.shop-menu__item--active {
-  color: #3CC8A1;
+  border-bottom: 2px solid transparent;
+  color: #999;
+  font-size: 13px;
   font-weight: 600;
-  background: rgba(60, 200, 161, 0.08);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
 }
 
-.shop-menu__icon {
-  font-size: 20px;
-  width: 28px;
-  text-align: center;
+.shop-tabs__item--active {
+  color: #3CC8A1;
+  border-bottom-color: #3CC8A1;
+}
+
+.shop-tabs__icon {
+  font-size: 16px;
+}
+
+.shop-tabs__name {
+  font-size: 13px;
 }
 
 /* === Сетка товаров === */
@@ -977,9 +931,10 @@ body.shop-body {
   cursor: pointer;
 }
 
-/* === Секции категорий (режим "Все") === */
+/* === Секции категорий === */
 .shop-section {
   padding: 0;
+  scroll-margin-top: 96px;
 }
 
 .shop-section__title {
