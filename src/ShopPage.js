@@ -10,9 +10,9 @@ import './shop.css';
 
 // 3 категории с путями к JSON
 const SHOP_CATEGORIES = [
-  { id: 'cold-rolls', name: 'Холодные роллы', icon: '🍣', jsonUrl: '/холодные роллы/rolls.json' },
-  { id: 'hot-rolls', name: 'Запеченные роллы', icon: '🔥', jsonUrl: '/запеченные роллы/zaproll.json' },
-  { id: 'sets', name: 'Сеты', icon: '🍱', jsonUrl: '/сеты/set.json' },
+  { id: 'cold-rolls', name: 'Холодные роллы', tab: 'Холодные', icon: '🍣', jsonUrl: '/холодные роллы/rolls.json' },
+  { id: 'hot-rolls', name: 'Запеченные роллы', tab: 'Запечённые', icon: '🔥', jsonUrl: '/запеченные роллы/zaproll.json' },
+  { id: 'sets', name: 'Сеты', tab: 'Сеты', icon: '🍱', jsonUrl: '/сеты/set.json' },
 ];
 
 function useLocalMenu() {
@@ -172,7 +172,7 @@ function ShopPage() {
             onClick={() => scrollToCategory(cat.id)}
           >
             <span className="shop-tabs__icon">{cat.icon}</span>
-            <span className="shop-tabs__name">{cat.name}</span>
+            <span className="shop-tabs__name">{cat.tab}</span>
           </button>
         ))}
       </nav>
