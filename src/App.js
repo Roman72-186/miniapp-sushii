@@ -118,6 +118,20 @@ function App() {
           {page === "home" && (
             <div className="subscription-buttons">
               <button
+                className="subscription-btn gift-btn"
+                onClick={() => handleSubscriptionCheck('rolls')}
+                disabled={!!loadingButton}
+              >
+                {loadingButton === 'rolls' ? 'Проверка...' : '🎁 Роллы в подарок'}
+              </button>
+              <button
+                className="subscription-btn gift-btn"
+                onClick={() => handleSubscriptionCheck('sets')}
+                disabled={!!loadingButton}
+              >
+                {loadingButton === 'sets' ? 'Проверка...' : '🎁 Сеты в подарок'}
+              </button>
+              <button
                 className="subscription-btn discount-btn"
                 onClick={() => handleSubscriptionCheck('discount-sets')}
                 disabled={!!loadingButton}
@@ -137,20 +151,6 @@ function App() {
                 disabled={!!loadingButton}
               >
                 {loadingButton === 'discount-cold' ? 'Проверка...' : '-30₽ на холодный ролл'}
-              </button>
-              <button
-                className="subscription-btn rolls-btn"
-                onClick={() => handleSubscriptionCheck('rolls')}
-                disabled={!!loadingButton}
-              >
-                {loadingButton === 'rolls' ? 'Проверка...' : 'Роллы по подписке'}
-              </button>
-              <button
-                className="subscription-btn sets-btn"
-                onClick={() => handleSubscriptionCheck('sets')}
-                disabled={!!loadingButton}
-              >
-                {loadingButton === 'sets' ? 'Проверка...' : 'Сеты по подписке'}
               </button>
               {subscriptionError && (
                 <div className="subscription-error">{subscriptionError}</div>

@@ -240,20 +240,12 @@ body {
   background: #c2185b;
 }
 
-.rolls-btn {
-  background: #ff6b35;
+.gift-btn {
+  background: #f5923a;
 }
 
-.rolls-btn:hover:not(:disabled) {
-  background: #e55a2b;
-}
-
-.sets-btn {
-  background: #7b2ff7;
-}
-
-.sets-btn:hover:not(:disabled) {
-  background: #6a1fe6;
+.gift-btn:hover:not(:disabled) {
+  background: #e07e2a;
 }
 
 .subscription-error {
