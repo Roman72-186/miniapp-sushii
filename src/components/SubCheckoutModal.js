@@ -9,6 +9,31 @@ const PICKUP_POINTS = [
   { id: '4', address: 'Гурьевск', hours: '10:00–22:00', affiliate: '396' },
 ];
 
+/**
+ * Нормализует телефон к формату +7XXXXXXXXXX
+ */
+function normalizePhone(raw) {
+  // Убираем всё кроме цифр и +
+  const digits = raw.replace(/[^\d+]/g, '');
+  // Только цифры
+  const nums = digits.replace(/\D/g, '');
+
+  if (nums.length === 11 && nums.startsWith('8')) {
+    return '+7' + nums.slice(1);
+  }
+  if (nums.length === 11 && nums.startsWith('7')) {
+    return '+7' + nums.slice(1);
+  }
+  if (nums.length === 10) {
+    return '+7' + nums;
+  }
+  // Если уже +7...
+  if (digits.startsWith('+7') && nums.length === 11) {
+    return '+7' + nums.slice(1);
+  }
+  return raw;
+}
+
 function SubCheckoutModal({ product, telegramId, onClose }) {
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [name, setName] = useState('');
@@ -29,7 +54,7 @@ function SubCheckoutModal({ product, telegramId, onClose }) {
       .then(r => r.json())
       .then(data => {
         if (data.name) setName(data.name);
-        if (data.phone) setPhone(data.phone);
+        if (data.phone) setPhone(normalizePhone(data.phone));
       })
       .catch(() => {})
       .finally(() => setLoadingContact(false));
@@ -42,6 +67,12 @@ function SubCheckoutModal({ product, telegramId, onClose }) {
 
     if (!name.trim()) { setError('Укажите имя'); return; }
     if (!phone.trim()) { setError('Укажите телефон'); return; }
+
+    const finalPhone = normalizePhone(phone.trim());
+    if (!/^\+7\d{10}$/.test(finalPhone)) {
+      setError('Телефон должен быть в формате +7XXXXXXXXXX');
+      return;
+    }
 
     setSubmitting(true);
 
@@ -58,7 +89,7 @@ function SubCheckoutModal({ product, telegramId, onClose }) {
           }],
           client: {
             name: name.trim(),
-            phone: phone.trim(),
+            phone: finalPhone,
             street: selectedPickup.address,
             home: '',
             apart: '',
@@ -162,9 +193,10 @@ function SubCheckoutModal({ product, telegramId, onClose }) {
                     <input
                       className="shop-form-field__input"
                       type="tel"
-                      placeholder="+7 (___) ___-__-__"
+                      placeholder="+7XXXXXXXXXX"
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
+                      onBlur={() => { if (phone.trim()) setPhone(normalizePhone(phone.trim())); }}
                     />
                   </div>
                 </div>
