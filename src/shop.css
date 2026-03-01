@@ -1202,6 +1202,28 @@ body.shop-body {
   background: #3a3a3e;
 }
 
+.shop-profile__vip-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #f5923a, #e67e22);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.shop-profile__vip-btn:hover {
+  opacity: 0.85;
+}
+
+.shop-profile__vip-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .shop-profile__invite-btn {
   width: 100%;
   margin-top: 10px;

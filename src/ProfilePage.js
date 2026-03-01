@@ -14,6 +14,7 @@ function ProfilePage() {
   const [error, setError] = useState(null);
   const [referrals, setReferrals] = useState(null); // null = ещё грузится
   const [copied, setCopied] = useState(false);
+  const [vipLoading, setVipLoading] = useState(false);
 
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
@@ -218,6 +219,42 @@ function ProfilePage() {
               <div className="shop-profile__row">
                 <span className="shop-profile__value">с 10:00 до 21:50</span>
               </div>
+            </div>
+
+            {/* VIP-клуб */}
+            <div className="shop-profile__section">
+              <button
+                className="shop-profile__vip-btn"
+                disabled={vipLoading}
+                onClick={() => {
+                  if (!telegramId) return;
+                  setVipLoading(true);
+                  fetch('/api/check-vip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegram_id: telegramId }),
+                  })
+                    .then(r => r.json())
+                    .then(data => {
+                      if (data.is_member) {
+                        alert('Вы уже состоите в VIP-клубе!');
+                      } else if (data.invite_link) {
+                        const tg = window.Telegram?.WebApp;
+                        if (tg?.openTelegramLink) {
+                          tg.openTelegramLink(data.invite_link);
+                        } else {
+                          window.open(data.invite_link, '_blank');
+                        }
+                      } else {
+                        alert(data.error || 'Не удалось получить ссылку');
+                      }
+                    })
+                    .catch(() => alert('Ошибка проверки подписки'))
+                    .finally(() => setVipLoading(false));
+                }}
+              >
+                {vipLoading ? '⏳ Проверяем...' : '🔗 VIP-клуб Суши-Хаус'}
+              </button>
             </div>
 
             {/* Поддержка */}
