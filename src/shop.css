@@ -1170,3 +1170,21 @@ body.shop-body {
   text-decoration-style: dotted;
   text-underline-offset: 3px;
 }
+
+.shop-profile__invite-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  background: #3CC8A1;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.shop-profile__invite-btn:hover {
+  opacity: 0.85;
+}
