@@ -81,6 +81,7 @@ module.exports = async (req, res) => {
     let датаОКОНЧАНИЯ = null;
     let phone = null;
     let телефон = null;
+    let ref_url = null;
 
     for (const v of variables) {
       const name = v.name || '';
@@ -90,6 +91,7 @@ module.exports = async (req, res) => {
       if (name === 'датаОКОНЧАНИЯ') датаОКОНЧАНИЯ = value;
       if (name === 'phone') phone = value;
       if (name === 'телефон') телефон = value;
+      if (name === 'ref_url') ref_url = value;
     }
 
     return res.status(200).json({
@@ -99,6 +101,7 @@ module.exports = async (req, res) => {
       balance_shc,
       датаОКОНЧАНИЯ,
       contact_id: contact.id || null,
+      ref_url,
     });
   } catch (error) {
     console.error('Ошибка получения профиля:', error);

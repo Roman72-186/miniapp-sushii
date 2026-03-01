@@ -158,22 +158,23 @@ function ProfilePage() {
                   </span>
                 )}
               </div>
-              <button
-                className="shop-profile__invite-btn"
-                onClick={() => {
-                  const refLink = `https://t.me/sushihouse39_bot?start=ref_${telegramId}`;
-                  const text = 'Привет! Присоединяйся к Суши-Хаус 39 — вкусные роллы со скидкой по подписке 🍣';
-                  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(text)}`;
-                  const tg = window.Telegram?.WebApp;
-                  if (tg?.openTelegramLink) {
-                    tg.openTelegramLink(shareUrl);
-                  } else {
-                    window.open(shareUrl, '_blank');
-                  }
-                }}
-              >
-                🔗 Пригласить друга
-              </button>
+              {profile?.ref_url && (
+                <button
+                  className="shop-profile__invite-btn"
+                  onClick={() => {
+                    const text = 'Привет! Присоединяйся к Суши-Хаус 39 — вкусные роллы со скидкой по подписке 🍣';
+                    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(profile.ref_url)}&text=${encodeURIComponent(text)}`;
+                    const tg = window.Telegram?.WebApp;
+                    if (tg?.openTelegramLink) {
+                      tg.openTelegramLink(shareUrl);
+                    } else {
+                      window.open(shareUrl, '_blank');
+                    }
+                  }}
+                >
+                  🔗 Пригласить друга
+                </button>
+              )}
             </div>
 
             {/* Баланс */}
