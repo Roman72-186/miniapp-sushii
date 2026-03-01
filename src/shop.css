@@ -1171,6 +1171,37 @@ body.shop-body {
   text-underline-offset: 3px;
 }
 
+.shop-profile__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.shop-profile__link-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: #3a3a3e;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.shop-profile__link-btn:hover {
+  opacity: 0.85;
+}
+
+.shop-profile__link-btn--admin {
+  background: #3a3a3e;
+}
+
 .shop-profile__invite-btn {
   width: 100%;
   margin-top: 10px;

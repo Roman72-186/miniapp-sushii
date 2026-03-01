@@ -225,6 +225,14 @@ function ProfilePage() {
               <div className="shop-profile__note">
                 💬 Если возникают сложности — смело пишите в поддержку бота. Мы всегда на связи и поможем разобраться!
               </div>
+              <div className="shop-profile__buttons">
+                <a className="shop-profile__link-btn" href="https://t.me/roman_chatbots" target="_blank" rel="noopener noreferrer">
+                  🛠 Техническая поддержка
+                </a>
+                <a className="shop-profile__link-btn shop-profile__link-btn--admin" href="https://t.me/romansonel" target="_blank" rel="noopener noreferrer">
+                  👨‍💼 Администратор
+                </a>
+              </div>
             </div>
           </div>
         </div>
