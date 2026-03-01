@@ -226,8 +226,13 @@ function ProfilePage() {
                   })
                     .then(r => r.json())
                     .then(data => {
-                      if (data.is_member) {
-                        alert('Вы уже состоите в VIP-клубе!');
+                      if (data.is_member && data.chat_link) {
+                        const tg = window.Telegram?.WebApp;
+                        if (tg?.openTelegramLink) {
+                          tg.openTelegramLink(data.chat_link);
+                        } else {
+                          window.open(data.chat_link, '_blank');
+                        }
                       } else if (data.invite_link) {
                         const tg = window.Telegram?.WebApp;
                         if (tg?.openTelegramLink) {

@@ -30,7 +30,16 @@ module.exports = async (req, res) => {
       const status = memberData.result?.status;
       // member, administrator, creator — уже в группе
       if (['member', 'administrator', 'creator'].includes(status)) {
-        return res.status(200).json({ is_member: true });
+        // Получаем ссылку на группу для перехода
+        let chatLink = null;
+        try {
+          const chatRes = await fetch(`${tgApi}/getChat?chat_id=${VIP_CHAT_ID}`);
+          const chatData = await chatRes.json();
+          if (chatData.ok && chatData.result.invite_link) {
+            chatLink = chatData.result.invite_link;
+          }
+        } catch (e) {}
+        return res.status(200).json({ is_member: true, chat_link: chatLink });
       }
     }
 
