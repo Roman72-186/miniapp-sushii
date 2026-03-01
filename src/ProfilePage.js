@@ -164,7 +164,12 @@ function ProfilePage() {
                   const refLink = `https://t.me/sushihouse39_bot?start=ref_${telegramId}`;
                   const text = 'Привет! Присоединяйся к Суши-Хаус 39 — вкусные роллы со скидкой по подписке 🍣';
                   const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent(text)}`;
-                  window.open(shareUrl, '_blank');
+                  const tg = window.Telegram?.WebApp;
+                  if (tg?.openTelegramLink) {
+                    tg.openTelegramLink(shareUrl);
+                  } else {
+                    window.open(shareUrl, '_blank');
+                  }
                 }}
               >
                 🔗 Пригласить друга
