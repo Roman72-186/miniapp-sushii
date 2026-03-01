@@ -266,6 +266,19 @@ function ProfilePage() {
                 </a>
               </div>
             </div>
+
+            {/* Настройки */}
+            <div className="shop-profile__section">
+              <button
+                className="shop-profile__link-btn"
+                onClick={() => {
+                  const url = telegramId ? `/settings?telegram_id=${telegramId}` : '/settings';
+                  window.location.href = url;
+                }}
+              >
+                ⚙️ Настройки и опции
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1241,3 +1241,110 @@ body.shop-body {
 .shop-profile__invite-btn:hover {
   opacity: 0.85;
 }
+
+/* === Страница настроек === */
+.shop-settings {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shop-settings__btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: #2a2a2e;
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.shop-settings__btn:first-child {
+  border-radius: 14px 14px 0 0;
+}
+
+.shop-settings__btn:last-child {
+  border-radius: 0 0 14px 14px;
+}
+
+.shop-settings__btn:hover {
+  background: #333;
+}
+
+.shop-settings__btn--danger {
+  color: #e53935;
+}
+
+.shop-settings__arrow {
+  color: #666;
+  font-size: 16px;
+}
+
+.shop-settings__content {
+  background: #222;
+  padding: 14px 16px;
+  color: #ccc;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.shop-settings__content p {
+  margin: 0 0 10px;
+}
+
+.shop-settings__content p:last-child {
+  margin-bottom: 0;
+}
+
+.shop-settings__content ul {
+  margin: 4px 0 10px;
+  padding-left: 20px;
+}
+
+.shop-settings__content li {
+  margin-bottom: 4px;
+}
+
+.shop-settings__cancel-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.shop-settings__cancel-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.shop-settings__cancel-btn:hover {
+  opacity: 0.85;
+}
+
+.shop-settings__cancel-btn--stay {
+  background: #3CC8A1;
+  color: #fff;
+}
+
+.shop-settings__cancel-btn--leave {
+  background: #444;
+  color: #e53935;
+}
+
+.shop-settings__cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
