@@ -1162,3 +1162,11 @@ body.shop-body {
   color: #999;
   line-height: 1.5;
 }
+
+.shop-profile__referrals-count {
+  color: #3CC8A1;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}

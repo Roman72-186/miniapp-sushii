@@ -115,6 +115,31 @@ function ProfilePage() {
               </div>
             </div>
 
+            {/* Рефералы */}
+            <div className="shop-profile__section">
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">👥 Приглашённые друзья:</span>
+                <span
+                  className="shop-profile__value shop-profile__referrals-count"
+                  onClick={() => {
+                    const list = profile?.referrals_top10 || [];
+                    if (list.length === 0) {
+                      alert('У вас пока нет приглашённых друзей');
+                      return;
+                    }
+                    const names = list.map((r, i) => `${i + 1}. ${r.name}`).join('\n');
+                    const total = profile?.referrals_count || 0;
+                    const header = total > 10
+                      ? `Первые 10 из ${total} приглашённых:`
+                      : `Ваши приглашённые (${total}):`;
+                    alert(`${header}\n\n${names}`);
+                  }}
+                >
+                  {profile?.referrals_count ?? 0}
+                </span>
+              </div>
+            </div>
+
             {/* Баланс */}
             <div className="shop-profile__section">
               <div className="shop-profile__row">
