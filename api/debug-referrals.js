@@ -22,7 +22,16 @@ module.exports = async (req, res) => {
     // Проверяем рефералов для первых 20 контактов (чтобы не перегружать)
     const results = [];
 
-    for (const c of contacts.slice(0, 30)) {
+    // Также загружаем страницы 2-3 для большего покрытия
+    for (let p = 2; p <= 3; p++) {
+      try {
+        const pageRes = await fetch(`${base}&page=${p}`, { headers: { 'Accept': 'application/json' } });
+        const pageData = await pageRes.json();
+        if (pageData.data) contacts.push(...pageData.data);
+      } catch (e) {}
+    }
+
+    for (const c of contacts.slice(0, 100)) {
       try {
         const refRes = await fetch(
           `https://watbot.ru/api/v1/getReferrals?api_token=${apiToken}&bot_id=72975&contact_id=${c.id}`,
@@ -46,7 +55,7 @@ module.exports = async (req, res) => {
     }
 
     return res.status(200).json({
-      checked: Math.min(contacts.length, 30),
+      checked: Math.min(contacts.length, 100),
       total_contacts: firstData.meta?.total || contacts.length,
       users_with_referrals: results,
     });
