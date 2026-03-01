@@ -13,7 +13,6 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [referrals, setReferrals] = useState(null); // null = ещё грузится
-  const [copied, setCopied] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
 
   const telegramId = useMemo(() => {
@@ -164,26 +163,17 @@ function ProfilePage() {
                 <button
                   className="shop-profile__invite-btn"
                   onClick={() => {
-                    navigator.clipboard.writeText(profile.ref_url)
-                      .then(() => {
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      })
-                      .catch(() => {
-                        const ta = document.createElement('textarea');
-                        ta.value = profile.ref_url;
-                        ta.style.position = 'fixed';
-                        ta.style.opacity = '0';
-                        document.body.appendChild(ta);
-                        ta.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(ta);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      });
+                    const text = 'Привет! Присоединяйся к Суши-Хаус 39 — вкусные роллы со скидкой по подписке 🍣';
+                    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(profile.ref_url)}&text=${encodeURIComponent(text)}`;
+                    const tg = window.Telegram?.WebApp;
+                    if (tg?.openTelegramLink) {
+                      tg.openTelegramLink(shareUrl);
+                    } else {
+                      window.open(shareUrl, '_blank');
+                    }
                   }}
                 >
-                  {copied ? '✅ Ссылка скопирована!' : '🔗 Скопировать ссылку'}
+                  🔗 Поделиться
                 </button>
               )}
             </div>
