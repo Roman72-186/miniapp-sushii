@@ -92,39 +92,13 @@ module.exports = async (req, res) => {
       if (name === 'телефон') телефон = value;
     }
 
-    // 5. Получаем рефералов по WATBOT contact.id
-    let referrals = [];
-    const contactId = contact.id;
-    if (contactId) {
-      try {
-        const refRes = await fetch(
-          `https://watbot.ru/api/v1/getReferrals?api_token=${apiToken}&bot_id=72975&contact_id=${contactId}`,
-          { headers: { 'Accept': 'application/json' } }
-        );
-        if (refRes.ok) {
-          const refData = await refRes.json();
-          // refData.data — массив рефералов
-          const refList = refData.data || refData || [];
-          if (Array.isArray(refList)) {
-            referrals = refList.map(r => ({
-              name: r.name || 'Без имени',
-              telegram_id: r.telegram_id || null,
-            }));
-          }
-        }
-      } catch (refErr) {
-        console.error('Ошибка получения рефералов:', refErr);
-      }
-    }
-
     return res.status(200).json({
       name: contactName,
       phone: phone || телефон || null,
       статусСписания,
       balance_shc,
       датаОКОНЧАНИЯ,
-      referrals_count: referrals.length,
-      referrals_top10: referrals.slice(0, 10),
+      contact_id: contact.id || null,
     });
   } catch (error) {
     console.error('Ошибка получения профиля:', error);

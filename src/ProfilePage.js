@@ -12,6 +12,7 @@ function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [referrals, setReferrals] = useState(null); // null = ещё грузится
 
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
@@ -37,7 +38,22 @@ function ProfilePage() {
         if (!r.ok) throw new Error('Ошибка загрузки профиля');
         return r.json();
       })
-      .then(data => setProfile(data))
+      .then(data => {
+        setProfile(data);
+        // Загружаем рефералов отдельно (не блокируя UI)
+        if (data.contact_id) {
+          fetch('/api/get-referrals', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contact_id: data.contact_id }),
+          })
+            .then(r => r.ok ? r.json() : null)
+            .then(refData => setReferrals(refData || { referrals_count: 0, referrals_top10: [] }))
+            .catch(() => setReferrals({ referrals_count: 0, referrals_top10: [] }));
+        } else {
+          setReferrals({ referrals_count: 0, referrals_top10: [] });
+        }
+      })
       .catch(err => setError(err.message || 'Ошибка загрузки'))
       .finally(() => setLoading(false));
   }, [telegramId]);
@@ -119,24 +135,28 @@ function ProfilePage() {
             <div className="shop-profile__section">
               <div className="shop-profile__row">
                 <span className="shop-profile__label">👥 Приглашённые друзья:</span>
-                <span
-                  className="shop-profile__value shop-profile__referrals-count"
-                  onClick={() => {
-                    const list = profile?.referrals_top10 || [];
-                    if (list.length === 0) {
-                      alert('У вас пока нет приглашённых друзей');
-                      return;
-                    }
-                    const names = list.map((r, i) => `${i + 1}. ${r.name}`).join('\n');
-                    const total = profile?.referrals_count || 0;
-                    const header = total > 10
-                      ? `Первые 10 из ${total} приглашённых:`
-                      : `Ваши приглашённые (${total}):`;
-                    alert(`${header}\n\n${names}`);
-                  }}
-                >
-                  {profile?.referrals_count ?? 0}
-                </span>
+                {referrals === null ? (
+                  <span className="shop-profile__value" style={{ color: '#666' }}>...</span>
+                ) : (
+                  <span
+                    className="shop-profile__value shop-profile__referrals-count"
+                    onClick={() => {
+                      const list = referrals?.referrals_top10 || [];
+                      if (list.length === 0) {
+                        alert('У вас пока нет приглашённых друзей');
+                        return;
+                      }
+                      const names = list.map((r, i) => `${i + 1}. ${r.name}`).join('\n');
+                      const total = referrals?.referrals_count || 0;
+                      const header = total > 10
+                        ? `Первые 10 из ${total} приглашённых:`
+                        : `Ваши приглашённые (${total}):`;
+                      alert(`${header}\n\n${names}`);
+                    }}
+                  >
+                    {referrals?.referrals_count ?? 0}
+                  </span>
+                )}
               </div>
             </div>
 
