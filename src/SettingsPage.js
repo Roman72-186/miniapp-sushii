@@ -74,6 +74,11 @@ function SettingsPage() {
       .then(data => {
         if (data.success) {
           setCancelStep('done');
+          // Сбрасываем кэш, чтобы профиль загрузился заново
+          sessionStorage.removeItem(`profile_${telegramId}`);
+          sessionStorage.removeItem(`referrals_${telegramId}`);
+          // Обновляем локальный стейт
+          setProfile(prev => prev ? { ...prev, статусСписания: 'неактивно', has_payment_id: false } : prev);
         } else {
           alert(data.error || 'Ошибка отмены');
         }
