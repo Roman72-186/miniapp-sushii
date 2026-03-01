@@ -161,8 +161,8 @@ function SettingsPage() {
           </button>
           {expandedSection === 'cancel' && (
             <div className="shop-settings__content">
-              {!profile?.has_payment_id ? (
-                <p>У вас нет активного автосписания.</p>
+              {profile?.статусСписания !== 'активно' ? (
+                <p>Автосписание уже было отменено ранее.</p>
               ) : cancelStep === 'done' ? (
                 <div className="shop-settings__cancel-done">
                   <p>✅ Автосписание отменено. Подписка деактивирована.</p>
@@ -190,7 +190,7 @@ function SettingsPage() {
                 </div>
               ) : (
                 <div>
-                  <p>Вы уверены, что хотите отменить автосписание?</p>
+                  <p>Вы действительно хотите отменить автосписание?</p>
                   <button
                     className="shop-settings__cancel-btn shop-settings__cancel-btn--leave"
                     onClick={() => setCancelStep('confirm')}
