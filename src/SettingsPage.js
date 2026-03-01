@@ -25,13 +25,26 @@ function SettingsPage() {
 
   useEffect(() => {
     if (!telegramId) { setLoading(false); return; }
+
+    // Мгновенно из кэша
+    const cached = sessionStorage.getItem(`profile_${telegramId}`);
+    if (cached) {
+      try { setProfile(JSON.parse(cached)); setLoading(false); } catch (e) {}
+    }
+
+    // Обновляем в фоне
     fetch('/api/get-profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ telegram_id: telegramId }),
     })
       .then(r => r.ok ? r.json() : null)
-      .then(data => setProfile(data))
+      .then(data => {
+        if (data) {
+          setProfile(data);
+          sessionStorage.setItem(`profile_${telegramId}`, JSON.stringify(data));
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [telegramId]);

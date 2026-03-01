@@ -30,6 +30,21 @@ function ProfilePage() {
       return;
     }
 
+    // Мгновенно показываем кэш, если есть
+    const cacheKey = `profile_${telegramId}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const data = JSON.parse(cached);
+        setProfile(data);
+        setLoading(false);
+        // Рефералы тоже из кэша
+        const refCache = sessionStorage.getItem(`referrals_${telegramId}`);
+        if (refCache) setReferrals(JSON.parse(refCache));
+      } catch (e) {}
+    }
+
+    // Обновляем в фоне (всегда)
     fetch('/api/get-profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -41,7 +56,8 @@ function ProfilePage() {
       })
       .then(data => {
         setProfile(data);
-        // Загружаем рефералов отдельно (не блокируя UI)
+        sessionStorage.setItem(cacheKey, JSON.stringify(data));
+        // Рефералы отдельно
         if (data.contact_id) {
           fetch('/api/get-referrals', {
             method: 'POST',
@@ -49,13 +65,17 @@ function ProfilePage() {
             body: JSON.stringify({ contact_id: data.contact_id }),
           })
             .then(r => r.ok ? r.json() : null)
-            .then(refData => setReferrals(refData || { referrals_count: 0, referrals_top10: [] }))
+            .then(refData => {
+              const refs = refData || { referrals_count: 0, referrals_top10: [] };
+              setReferrals(refs);
+              sessionStorage.setItem(`referrals_${telegramId}`, JSON.stringify(refs));
+            })
             .catch(() => setReferrals({ referrals_count: 0, referrals_top10: [] }));
         } else {
           setReferrals({ referrals_count: 0, referrals_top10: [] });
         }
       })
-      .catch(err => setError(err.message || 'Ошибка загрузки'))
+      .catch(err => { if (!cached) setError(err.message || 'Ошибка загрузки'); })
       .finally(() => setLoading(false));
   }, [telegramId]);
 
