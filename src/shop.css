@@ -1171,19 +1171,15 @@ body.shop-body {
   text-underline-offset: 3px;
 }
 
-.shop-profile__invite-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
 .shop-profile__invite-btn {
-  flex: 1;
+  width: 100%;
+  margin-top: 10px;
   padding: 10px;
+  background: #3CC8A1;
   color: #fff;
   border: none;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -1191,12 +1187,4 @@ body.shop-body {
 
 .shop-profile__invite-btn:hover {
   opacity: 0.85;
-}
-
-.shop-profile__invite-btn--copy {
-  background: #444;
-}
-
-.shop-profile__invite-btn--share {
-  background: #3CC8A1;
 }
