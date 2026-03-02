@@ -85,8 +85,9 @@ module.exports = async (req, res) => {
     const tags = tagsData.data || tagsData || [];
 
     // Ищем тег "подписка30"
+    // API возвращает массив строк: ["ознакомлен", "подписка30", ...]
     const hasTag = Array.isArray(tags)
-      ? tags.some(t => (t.name || t.tag || '') === 'подписка30')
+      ? tags.some(t => typeof t === 'string' ? t === 'подписка30' : (t.name || t.tag || '') === 'подписка30')
       : false;
 
     return res.status(200).json({ hasTag });
