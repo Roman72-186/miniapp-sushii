@@ -24,13 +24,24 @@ module.exports = async (req, res) => {
     const listResult = await list({ prefix: 'gifts/' + telegram_id + '.json' });
     const stored = await readGiftWindows(telegram_id);
     if (!stored || !stored.windows || stored.windows.length === 0) {
+      const b = listResult.blobs?.[0];
+      // Try manual fetch with token
+      let manualResult = null;
+      if (b) {
+        try {
+          const r = await fetch(b.url, {
+            headers: { 'Authorization': 'Bearer ' + process.env.BLOB_READ_WRITE_TOKEN }
+          });
+          manualResult = { status: r.status, ok: r.ok };
+          if (r.ok) manualResult.body = await r.json();
+        } catch (e) { manualResult = { error: e.message }; }
+      }
       return res.status(400).json({
         error: 'Данные подарочных окон не найдены',
         debug: {
-          stored,
-          blobCount: listResult.blobs?.length,
-          blobPaths: listResult.blobs?.map(b => b.pathname),
-          hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+          blobUrl: b?.url,
+          blobDownloadUrl: b?.downloadUrl,
+          manualResult,
         },
       });
     }
