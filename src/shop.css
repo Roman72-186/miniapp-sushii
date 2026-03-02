@@ -1650,3 +1650,23 @@ body.shop-body {
   text-align: center;
   margin-bottom: 12px;
 }
+
+.shop-payment__discount {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.shop-payment__old-price {
+  font-size: 16px;
+  color: #777;
+  text-decoration: line-through;
+}
+
+.shop-payment__new-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: #3CC8A1;
+}

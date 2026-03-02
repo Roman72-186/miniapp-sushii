@@ -4,6 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 import './shop.css';
 
+// Фиксированные цены со скидкой за мультимесячные подписки
+const PRICE_TABLE = {
+  '290':  { 1: 290,  3: 750,  5: 1200 },
+  '490':  { 1: 490,  3: 1200, 5: 2150 },
+  '1190': { 1: 1190, 3: 3300, 5: 5650 },
+  '9990': { 1: 9990 },
+};
+
 const TARIFF_DATA = {
   '290': {
     price: 290,
@@ -13,7 +21,6 @@ const TARIFF_DATA = {
       'Скидка -30% на все роллы',
       'Скидка -20% на сеты',
     ],
-    // TODO: описание, ссылка оплаты — будет предоставлено
   },
   '490': {
     price: 490,
@@ -24,7 +31,6 @@ const TARIFF_DATA = {
       'Скидка -20% на сеты',
       'Бесплатный ролл каждые 15 дней',
     ],
-    // TODO: описание, ссылка оплаты — будет предоставлено
   },
   '1190': {
     price: 1190,
@@ -139,22 +145,33 @@ function PaymentPage() {
           </ul>
         </div>
 
-        {!tariff.oneTime && (
-          <div className="shop-payment__months">
-            <div className="shop-payment__months-label">Срок подписки</div>
-            <div className="shop-payment__months-options">
-              {[1, 3, 5].map(m => (
-                <button
-                  key={m}
-                  className={'shop-payment__month-btn' + (months === m ? ' shop-payment__month-btn--active' : '')}
-                  onClick={() => setMonths(m)}
-                >
-                  {m} {m === 1 ? 'месяц' : m < 5 ? 'месяца' : 'месяцев'}
-                </button>
-              ))}
+        {!tariff.oneTime && (() => {
+          const totalDiscount = PRICE_TABLE[tarifKey][months];
+          const totalFull = tariff.price * months;
+          const hasDiscount = totalDiscount < totalFull;
+          return (
+            <div className="shop-payment__months">
+              <div className="shop-payment__months-label">Срок подписки</div>
+              <div className="shop-payment__months-options">
+                {[1, 3, 5].map(m => (
+                  <button
+                    key={m}
+                    className={'shop-payment__month-btn' + (months === m ? ' shop-payment__month-btn--active' : '')}
+                    onClick={() => setMonths(m)}
+                  >
+                    {m} {m === 1 ? 'месяц' : m < 5 ? 'месяца' : 'месяцев'}
+                  </button>
+                ))}
+              </div>
+              {hasDiscount && (
+                <div className="shop-payment__discount">
+                  <span className="shop-payment__old-price">{totalFull} ₽</span>
+                  <span className="shop-payment__new-price">{totalDiscount} ₽</span>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {error && (
           <div className="shop-payment__error">{error}</div>
@@ -165,7 +182,7 @@ function PaymentPage() {
           disabled={submitting || !telegramId}
           onClick={handlePay}
         >
-          {submitting ? 'Переход к оплате...' : `Оплатить ${tariff.oneTime ? tariff.price : tariff.price * months} ₽`}
+          {submitting ? 'Переход к оплате...' : `Оплатить ${tariff.oneTime ? tariff.price : PRICE_TABLE[tarifKey][months]} ₽`}
         </button>
       </div>
     </div>
