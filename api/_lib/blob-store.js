@@ -1,6 +1,6 @@
 // api/lib/blob-store.js — Обёртка над Vercel Blob для хранения подарочных окон (CommonJS)
 
-const { put, list } = require('@vercel/blob');
+const { put, list, getDownloadUrl } = require('@vercel/blob');
 
 const PREFIX = 'gifts/';
 
@@ -14,7 +14,8 @@ async function readGiftWindows(telegramId) {
     const { blobs } = await list({ prefix: `${PREFIX}${telegramId}.json` });
     if (!blobs || blobs.length === 0) return null;
 
-    const res = await fetch(blobs[0].url);
+    const downloadUrl = blobs[0].downloadUrl || blobs[0].url;
+    const res = await fetch(downloadUrl);
     if (!res.ok) return null;
     return await res.json();
   } catch (err) {
@@ -32,7 +33,7 @@ async function writeGiftWindows(telegramId, data) {
   const body = JSON.stringify(data);
   await put(`${PREFIX}${telegramId}.json`, body, {
     contentType: 'application/json',
-    access: 'public',
+    access: 'private',
     addRandomSuffix: false,
   });
 }
