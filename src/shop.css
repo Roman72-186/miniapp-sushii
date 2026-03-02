@@ -1511,3 +1511,142 @@ body.shop-body {
   color: #999;
   line-height: 1.4;
 }
+
+/* === Payment Page === */
+
+.shop-payment {
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.shop-payment__card {
+  background: #1e1e1e;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin-bottom: 24px;
+}
+
+.shop-payment__price {
+  font-size: 28px;
+  font-weight: 800;
+  color: #3CC8A1;
+  margin-bottom: 8px;
+}
+
+.shop-payment__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 20px;
+}
+
+.shop-payment__features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.shop-payment__feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #ccc;
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 6px 0;
+}
+
+.shop-payment__check {
+  color: #3CC8A1;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.shop-payment__btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  background: #3CC8A1;
+  color: #000;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.shop-payment__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.shop-payment__months {
+  margin-bottom: 16px;
+}
+
+.shop-payment__months-label {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+.shop-payment__months-options {
+  display: flex;
+  gap: 8px;
+}
+
+.shop-payment__month-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border: 2px solid #333;
+  border-radius: 12px;
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.shop-payment__month-btn--active {
+  border-color: #3CC8A1;
+  background: rgba(60, 200, 161, 0.12);
+  color: #3CC8A1;
+}
+
+.shop-toast {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  z-index: 1000;
+  animation: shop-toast-in 0.3s ease;
+}
+
+.shop-toast--success {
+  background: rgba(60, 200, 161, 0.2);
+  color: #3CC8A1;
+  border: 1px solid rgba(60, 200, 161, 0.3);
+}
+
+@keyframes shop-toast-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shop-payment__error {
+  background: rgba(229, 57, 53, 0.15);
+  color: #e53935;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 12px;
+}

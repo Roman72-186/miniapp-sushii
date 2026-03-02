@@ -10,6 +10,7 @@ import DiscountShopPage from "./DiscountShopPage"; // магазин по под
 import ProfilePage from "./ProfilePage"; // личный кабинет
 import SettingsPage from "./SettingsPage"; // настройки и опции
 import LandingPage from "./LandingPage"; // посадочная страница с тарифами
+import PaymentPage from "./PaymentPage"; // страница оплаты подписки
 
 function App() {
   // без условных хуков — просто флаги страниц
@@ -29,6 +30,8 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/profile";
   const isSettingsPage =
     typeof window !== "undefined" && window.location.pathname === "/settings";
+  const isPaymentPage =
+    typeof window !== "undefined" && window.location.pathname.startsWith("/pay/");
   const isLandingPage =
     typeof window !== "undefined" &&
     (window.location.pathname === "/" || window.location.pathname === "");
@@ -47,6 +50,10 @@ function App() {
 
   if (isShopPage) {
     return <ShopPage />;
+  }
+
+  if (isPaymentPage) {
+    return <PaymentPage />;
   }
 
   if (isLandingPage) {

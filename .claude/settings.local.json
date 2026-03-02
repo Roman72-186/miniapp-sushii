@@ -19,7 +19,8 @@
       "Bash(python3:*)",
       "Bash(PYTHONIOENCODING=utf-8 python:*)",
       "WebFetch(domain:docs.watbot.ru)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "WebFetch(domain:yookassa.ru)"
     ]
   }
 }
