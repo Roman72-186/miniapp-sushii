@@ -182,6 +182,6 @@ module.exports = async (req, res) => {
     });
   } catch (error) {
     console.error('get-gift-windows error:', error.message);
-    return res.status(500).json({ error: 'Внутренняя ошибка сервера', debug: error.message });
+    return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
   }
 };

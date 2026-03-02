@@ -35,6 +35,7 @@ async function writeGiftWindows(telegramId, data) {
     contentType: 'application/json',
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 }
 
