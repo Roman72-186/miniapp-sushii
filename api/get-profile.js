@@ -79,6 +79,8 @@ module.exports = async (req, res) => {
     let статусСписания = null;
     let balance_shc = null;
     let датаОКОНЧАНИЯ = null;
+    let датаНачала = null;
+    let датаПодарка = null;
     let phone = null;
     let телефон = null;
     let ref_url = null;
@@ -90,6 +92,8 @@ module.exports = async (req, res) => {
       if (name === 'статусСписания') статусСписания = value;
       if (name === 'balance_shc') balance_shc = value;
       if (name === 'датаОКОНЧАНИЯ') датаОКОНЧАНИЯ = value;
+      if (name === 'датаНачала') датаНачала = value;
+      if (name === 'датаПодарка') датаПодарка = value;
       if (name === 'phone') phone = value;
       if (name === 'телефон') телефон = value;
       if (name === 'ref_url') ref_url = value;
@@ -102,6 +106,8 @@ module.exports = async (req, res) => {
       статусСписания,
       balance_shc,
       датаОКОНЧАНИЯ,
+      датаНачала,
+      датаПодарка,
       contact_id: contact.id || null,
       ref_url,
       has_payment_id: !!paymentId,

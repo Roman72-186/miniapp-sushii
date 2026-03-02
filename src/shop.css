@@ -140,6 +140,19 @@ body.shop-body {
 
 .shop-gift-btn--locked {
   opacity: 0.4;
+  cursor: default;
+}
+
+.shop-gift-btn--claimed {
+  background: #555;
+  opacity: 0.7;
+  cursor: default;
+}
+
+.shop-gift-btn--waiting {
+  background: #f5923a;
+  opacity: 0.45;
+  cursor: default;
 }
 
 .shop-gift-btn__lock {

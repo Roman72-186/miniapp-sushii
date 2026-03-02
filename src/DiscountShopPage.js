@@ -142,6 +142,10 @@ function DiscountShopPage() {
   const [tarifLoading, setTarifLoading] = useState(true);
   const [lockedPopup, setLockedPopup] = useState(null);
 
+  // Gift windows
+  const [giftStatus, setGiftStatus] = useState(null); // { status, daysLeft, windowNum, totalWindows }
+  const [contactId, setContactId] = useState(null);
+
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
     const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
@@ -168,6 +172,31 @@ function DiscountShopPage() {
       .catch(() => {})
       .finally(() => setTarifLoading(false));
   }, [telegramId]);
+
+  // Gift window status from server (Vercel Blob)
+  const fetchGiftStatus = useCallback(() => {
+    if (!telegramId) return;
+    fetch('/api/get-gift-windows', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegram_id: telegramId }),
+    })
+      .then(r => r.json())
+      .then(resp => {
+        if (!resp.success || !resp.data) return;
+        const d = resp.data;
+        if (d.contact_id) setContactId(d.contact_id);
+        setGiftStatus({
+          status: d.currentStatus,
+          daysLeft: d.daysLeft,
+          windowNum: d.currentWindow,
+          totalWindows: d.totalWindows,
+        });
+      })
+      .catch(() => {});
+  }, [telegramId]);
+
+  useEffect(() => { fetchGiftStatus(); }, [fetchGiftStatus]);
 
   // IntersectionObserver для скидочных табов
   useEffect(() => {
@@ -210,6 +239,9 @@ function DiscountShopPage() {
       setLockedPopup(`Этот раздел доступен подписчикам тарифа от ${tarifLabel}₽`);
       return;
     }
+    // Block if gift already claimed or waiting
+    if (giftStatus && giftStatus.status === 'claimed') return;
+    if (giftStatus && giftStatus.status === 'waiting') return;
     setGiftView(catId);
     window.scrollTo(0, 0);
   };
@@ -306,10 +338,12 @@ function DiscountShopPage() {
           <SubCheckoutModal
             product={selectedGiftProduct}
             telegramId={telegramId}
+            contactId={contactId}
             onClose={() => setSelectedGiftProduct(null)}
             onSuccess={(num) => {
               setSelectedGiftProduct(null);
               setGiftOrderNumber(num);
+              fetchGiftStatus();
             }}
           />
         )}
@@ -347,16 +381,38 @@ function DiscountShopPage() {
       <div className="shop-gift-row">
         {GIFT_CATEGORIES.map(cat => {
           const locked = tarifLoading ? true : isGiftLocked(cat, userTarif);
+          // Hide gift button if subscription expired
+          if (!locked && giftStatus && giftStatus.status === 'expired') return null;
+
+          const isClaimed = !locked && giftStatus && giftStatus.status === 'claimed';
+          const isWaiting = !locked && giftStatus && giftStatus.status === 'waiting';
+          const isDisabled = locked || isClaimed || isWaiting;
+
+          let label = `${cat.icon} ${cat.tab}`;
+          let extraClass = '';
+          let badge = null;
+
+          if (tarifLoading) {
+            badge = <span className="shop-gift-btn__lock">...</span>;
+          } else if (locked) {
+            badge = <span className="shop-gift-btn__lock">🔒</span>;
+          } else if (isClaimed) {
+            label = `✓ Получен`;
+            extraClass = 'shop-gift-btn--claimed';
+          } else if (isWaiting) {
+            label = `${cat.icon} Через ${giftStatus.daysLeft} дн.`;
+            extraClass = 'shop-gift-btn--waiting';
+          }
+
           return (
             <button
               key={cat.id}
-              className={`shop-gift-btn ${locked ? 'shop-gift-btn--locked' : ''}`}
+              className={`shop-gift-btn ${isDisabled ? 'shop-gift-btn--locked' : ''} ${extraClass}`}
               onClick={() => handleGiftClick(cat.id)}
+              disabled={isDisabled}
             >
-              <span>{cat.icon} {cat.tab}</span>
-              {tarifLoading ? <span className="shop-gift-btn__lock">⏳</span>
-                : locked ? <span className="shop-gift-btn__lock">🔒</span>
-                : null}
+              <span>{label}</span>
+              {badge}
             </button>
           );
         })}

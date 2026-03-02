@@ -34,7 +34,7 @@ function normalizePhone(raw) {
   return raw;
 }
 
-function SubCheckoutModal({ product, telegramId, onClose, onSuccess }) {
+function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }) {
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -109,6 +109,18 @@ function SubCheckoutModal({ product, telegramId, onClose, onSuccess }) {
 
       if (!data.success) {
         throw new Error(data.error || 'Ошибка создания заказа');
+      }
+
+      // Mark gift window as claimed (Vercel Blob + WATBOT)
+      if (telegramId) {
+        try {
+          await fetch('/api/claim-gift', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId }),
+          });
+        } catch (_) { /* не блокируем успех заказа */ }
+        sessionStorage.removeItem('profile_' + telegramId);
       }
 
       onSuccess(data.orderNumber || data.orderId || '');
