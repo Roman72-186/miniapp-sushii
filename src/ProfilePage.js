@@ -11,7 +11,7 @@ function ProfilePage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, profile, contactId } = useUser();
+  const { telegramId, loading: userLoading, profile, contactId, hasTag } = useUser();
   const [referrals, setReferrals] = useState(null);
   const [vipLoading, setVipLoading] = useState(false);
 
@@ -103,6 +103,25 @@ function ProfilePage() {
                 <span className="shop-profile__label">🔒 Действует до:</span>
                 <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
               </div>
+            </div>
+
+            {/* Амбассадор */}
+            <div className="shop-profile__section">
+              {hasTag('Амба') ? (
+                <div className="shop-profile__ambassador-badge">
+                  АМБАССАДОР
+                </div>
+              ) : (
+                <button
+                  className="shop-profile__ambassador-btn"
+                  onClick={() => {
+                    const tid = telegramId ? `?telegram_id=${telegramId}` : '';
+                    window.location.href = `/pay/9990${tid}`;
+                  }}
+                >
+                  Стать амбассадором
+                </button>
+              )}
             </div>
 
             {/* Рефералы */}

@@ -167,27 +167,26 @@ module.exports = async (req, res) => {
     const endDate = new Date(now);
     endDate.setDate(endDate.getDate() + 30 * months);
 
-    // 2. Установить переменные в WATBOT (параллельно)
-    const variablePromises = [
-      setVariable(apiToken, contactId, 'статусСписания', 'активно'),
-      setVariable(apiToken, contactId, 'датаНачала', formatDate(now)),
-      setVariable(apiToken, contactId, 'датаОКОНЧАНИЯ', formatDate(endDate)),
-    ];
-    // Сохраняем PaymentID только для подписок (не для разовых)
-    if (paymentMethodId && !isOneTime) {
-      variablePromises.push(setVariable(apiToken, contactId, 'PaymentID', paymentMethodId));
-    }
-    await Promise.all(variablePromises);
-
-    // 3. Добавить теги (параллельно)
-    const tagPromises = [
-      addTag(apiToken, contactId, String(tarif)),
-      addTag(apiToken, contactId, 'подписка30'),
-    ];
+    // 2. Установить переменные + теги в WATBOT
     if (isOneTime) {
-      tagPromises.push(addTag(apiToken, contactId, 'амбассадор'));
+      // Амбассадор: только тег «Амба», без переменных подписки
+      await addTag(apiToken, contactId, 'Амба');
+    } else {
+      // Подписка: переменные + теги
+      const variablePromises = [
+        setVariable(apiToken, contactId, 'статусСписания', 'активно'),
+        setVariable(apiToken, contactId, 'датаНачала', formatDate(now)),
+        setVariable(apiToken, contactId, 'датаОКОНЧАНИЯ', formatDate(endDate)),
+      ];
+      if (paymentMethodId) {
+        variablePromises.push(setVariable(apiToken, contactId, 'PaymentID', paymentMethodId));
+      }
+      await Promise.all(variablePromises);
+      await Promise.all([
+        addTag(apiToken, contactId, String(tarif)),
+        addTag(apiToken, contactId, 'подписка30'),
+      ]);
     }
-    await Promise.all(tagPromises);
 
     // 4. Читаем кэш (используется для Frontpad + инвалидации)
     let cached = null;
@@ -250,22 +249,27 @@ module.exports = async (req, res) => {
     // 6. Инвалидировать кэш — обновить данные
     try {
       const updatedTags = cached?.tags ? [...cached.tags] : [];
-      if (!updatedTags.includes(String(tarif))) updatedTags.push(String(tarif));
-      if (!updatedTags.includes('подписка30')) updatedTags.push('подписка30');
-      if (isOneTime && !updatedTags.includes('амбассадор')) updatedTags.push('амбассадор');
+      if (isOneTime) {
+        if (!updatedTags.includes('Амба')) updatedTags.push('Амба');
+      } else {
+        if (!updatedTags.includes(String(tarif))) updatedTags.push(String(tarif));
+        if (!updatedTags.includes('подписка30')) updatedTags.push('подписка30');
+      }
 
-      // Определяем тариф из тегов (приоритет: 9990 > 1190 > 490 > 290)
+      // Определяем тариф из тегов (Амба = 9990, далее 1190 > 490 > 290)
       let resolvedTarif = null;
-      if (updatedTags.includes('9990')) resolvedTarif = '9990';
+      if (updatedTags.includes('Амба')) resolvedTarif = '9990';
       else if (updatedTags.includes('1190')) resolvedTarif = '1190';
       else if (updatedTags.includes('490')) resolvedTarif = '490';
       else if (updatedTags.includes('290')) resolvedTarif = '290';
 
       const updatedVariables = { ...(cached?.variables || {}) };
-      if (paymentMethodId && !isOneTime) updatedVariables['PaymentID'] = paymentMethodId;
-      updatedVariables['статусСписания'] = 'активно';
-      updatedVariables['датаНачала'] = formatDate(now);
-      updatedVariables['датаОКОНЧАНИЯ'] = formatDate(endDate);
+      if (!isOneTime) {
+        if (paymentMethodId) updatedVariables['PaymentID'] = paymentMethodId;
+        updatedVariables['статусСписания'] = 'активно';
+        updatedVariables['датаНачала'] = formatDate(now);
+        updatedVariables['датаОКОНЧАНИЯ'] = formatDate(endDate);
+      }
 
       await writeUserCache(telegramId, {
         ...(cached || {}),

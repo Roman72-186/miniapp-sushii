@@ -128,9 +128,9 @@ module.exports = async (req, res) => {
       telefon: listItem.telefon || listItem.phone || listItem.Telefon || null,
     } : null;
 
-    // 6. Определяем тариф из тегов контакта (приоритет: 9990 > 1190 > 490 > 290)
+    // 6. Определяем тариф из тегов контакта (Амба = 9990, далее 1190 > 490 > 290)
     let tarif = null;
-    if (tags.includes('9990')) tarif = '9990';
+    if (tags.includes('Амба')) tarif = '9990';
     else if (tags.includes('1190')) tarif = '1190';
     else if (tags.includes('490')) tarif = '490';
     else if (tags.includes('290')) tarif = '290';

@@ -1512,6 +1512,79 @@ body.shop-body {
   line-height: 1.4;
 }
 
+/* === Кнопка Амбассадор на лендинге === */
+.shop-landing__ambassador {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  padding: 22px 20px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #d4a843, #b8860b, #d4a843);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(212, 168, 67, 0.3);
+}
+
+.shop-landing__ambassador:hover {
+  box-shadow: 0 6px 28px rgba(212, 168, 67, 0.45);
+}
+
+.shop-landing__ambassador:active {
+  transform: scale(0.98);
+}
+
+.shop-landing__ambassador-label {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 2px;
+}
+
+.shop-landing__ambassador-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 4px;
+}
+
+.shop-landing__ambassador-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 6px;
+}
+
+/* === Амбассадор в профиле === */
+.shop-profile__ambassador-badge {
+  text-align: center;
+  padding: 12px;
+  background: linear-gradient(135deg, #d4a843, #b8860b);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 2px;
+}
+
+.shop-profile__ambassador-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #d4a843, #b8860b);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.shop-profile__ambassador-btn:hover {
+  opacity: 0.85;
+}
+
 /* === Payment Page === */
 
 .shop-payment {

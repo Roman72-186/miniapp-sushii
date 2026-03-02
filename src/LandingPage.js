@@ -21,11 +21,6 @@ const TARIFFS = [
     label: '1190 \u20BD / \u043C\u0435\u0441\u044F\u0446',
     desc: '\u0421\u043A\u0438\u0434\u043A\u0438 + \u0440\u043E\u043B\u043B\u044B + \u0441\u0435\u0442\u044B + VIP-\u0434\u043E\u0441\u0442\u0443\u043F',
   },
-  {
-    price: '9990',
-    label: '9 990 \u20BD',
-    desc: '\u0410\u043C\u0431\u0430\u0441\u0441\u0430\u0434\u043E\u0440',
-  },
 ];
 
 function LandingPage() {
@@ -99,6 +94,15 @@ function LandingPage() {
             </button>
           ))}
         </div>
+
+        <button
+          className="shop-landing__ambassador"
+          onClick={() => handleTariffClick('9990')}
+        >
+          <span className="shop-landing__ambassador-label">АМБАССАДОР</span>
+          <span className="shop-landing__ambassador-price">9 990 ₽</span>
+          <span className="shop-landing__ambassador-desc">Реферальная программа + все привилегии</span>
+        </button>
       </div>
     </div>
   );
