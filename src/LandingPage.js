@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import './shop.css';
+import BrandLoader from './components/BrandLoader';
 
 const TARIFFS = [
   {
@@ -74,10 +75,7 @@ function LandingPage() {
   if (loading) {
     return (
       <div className="shop-page">
-        <div className="shop-loading">
-          <div className="shop-loading__spinner" />
-          <div className="shop-loading__text">{'\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430...'}</div>
-        </div>
+        <BrandLoader text="Проверяем подписку" />
       </div>
     );
   }

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useCart } from './hooks/useFrontpad';
+import BrandLoader from './components/BrandLoader';
 import { getProductImage } from './config/imageMap';
 import ShopProductCard from './components/ShopProductCard';
 import CartPanel from './components/CartPanel';
@@ -179,10 +180,7 @@ function ShopPage() {
 
       {/* Контент */}
       {loading ? (
-        <div className="shop-loading">
-          <div className="shop-loading__spinner" />
-          <span className="shop-loading__text">Загрузка меню...</span>
-        </div>
+        <BrandLoader text="Загружаем меню" />
       ) : error ? (
         <div className="shop-error">
           <span className="shop-error__text">{error}</span>

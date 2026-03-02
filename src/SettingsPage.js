@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import './shop.css';
+import BrandLoader from './components/BrandLoader';
 
 function SettingsPage() {
   useEffect(() => {
@@ -100,10 +101,7 @@ function SettingsPage() {
       </header>
 
       {loading ? (
-        <div className="shop-loading">
-          <div className="shop-loading__spinner" />
-          <span className="shop-loading__text">Загрузка...</span>
-        </div>
+        <BrandLoader text="Загружаем настройки" />
       ) : (
         <div className="shop-settings">
           {/* Ваши заказы */}

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import './shop.css';
+import BrandLoader from './components/BrandLoader';
 
 function ProfilePage() {
   useEffect(() => {
@@ -112,10 +113,7 @@ function ProfilePage() {
       </header>
 
       {loading ? (
-        <div className="shop-loading">
-          <div className="shop-loading__spinner" />
-          <span className="shop-loading__text">Загрузка...</span>
-        </div>
+        <BrandLoader text="Загружаем профиль" />
       ) : error ? (
         <div className="shop-loading">
           <span className="shop-loading__text" style={{ color: '#e53935' }}>{error}</span>

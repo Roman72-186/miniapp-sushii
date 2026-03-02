@@ -3,6 +3,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useCart } from './hooks/useFrontpad';
+import BrandLoader from './components/BrandLoader';
 import { getProductImage } from './config/imageMap';
 import ShopProductCard from './components/ShopProductCard';
 import CartPanel from './components/CartPanel';
@@ -288,10 +289,7 @@ function DiscountShopPage() {
         </div>
 
         {loading ? (
-          <div className="shop-loading">
-            <div className="shop-loading__spinner" />
-            <span className="shop-loading__text">Загрузка...</span>
-          </div>
+          <BrandLoader text="Загружаем подарки" />
         ) : (
           <div className="shop-grid">
             {giftProducts.map(product => (
@@ -378,10 +376,7 @@ function DiscountShopPage() {
       </nav>
 
       {loading ? (
-        <div className="shop-loading">
-          <div className="shop-loading__spinner" />
-          <span className="shop-loading__text">Загрузка меню...</span>
-        </div>
+        <BrandLoader text="Загружаем меню" />
       ) : error ? (
         <div className="shop-error">
           <span className="shop-error__text">{error}</span>
