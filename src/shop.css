@@ -1348,3 +1348,79 @@ body.shop-body {
   opacity: 0.5;
   cursor: wait;
 }
+
+/* === Посадочная страница (лендинг) === */
+.shop-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px 60px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.shop-landing__logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 16px;
+}
+
+.shop-landing__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.shop-landing__subtitle {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 32px;
+  text-align: center;
+}
+
+.shop-landing__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.shop-landing__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #2a2a2e;
+  border: none;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  width: 100%;
+  text-align: left;
+}
+
+.shop-landing__card:hover {
+  background: #333;
+}
+
+.shop-landing__card:active {
+  transform: scale(0.98);
+}
+
+.shop-landing__card-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.shop-landing__card-desc {
+  font-size: 14px;
+  color: #999;
+  line-height: 1.4;
+}

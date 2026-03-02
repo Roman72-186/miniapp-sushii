@@ -1,7 +1,5 @@
 // src/App.js
-import React, { useEffect, useMemo, useState } from "react";
-import About from "./About";
-import Delivery from "./Delivery";
+import React from "react";
 import "./App.css";
 import Success from "./Success"; // страница «Заказ принят»
 import SetsPage from "./SetsPage"; // страница сетов по подписке
@@ -11,67 +9,9 @@ import ShopPage from "./ShopPage"; // страница магазина
 import DiscountShopPage from "./DiscountShopPage"; // магазин по подписке со скидками
 import ProfilePage from "./ProfilePage"; // личный кабинет
 import SettingsPage from "./SettingsPage"; // настройки и опции
+import LandingPage from "./LandingPage"; // посадочная страница с тарифами
 
 function App() {
-  const [page, setPage] = useState("home");
-  const [loadingButton, setLoadingButton] = useState(null); // какая кнопка сейчас грузится
-  const [subscriptionError, setSubscriptionError] = useState(null);
-
-  // читаем telegram_id из URL
-  const urlTelegramId = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("telegram_id");
-  }, []);
-
-  // сюда положим итоговый telegramId
-  const [telegramId, setTelegramId] = useState(null);
-
-  useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      try { tg.ready(); } catch {}
-      try { tg.expand?.(); } catch {}
-      const tgId = tg.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-      setTelegramId(tgId || urlTelegramId || null);
-    } else {
-      setTelegramId(urlTelegramId || null);
-    }
-  }, [urlTelegramId]);
-
-  // Проверка подписки и переход на страницу
-  const handleSubscriptionCheck = async (requiredType) => {
-    if (!telegramId) {
-      setSubscriptionError("Telegram ID не найден");
-      return;
-    }
-
-    setLoadingButton(requiredType);
-    setSubscriptionError(null);
-
-    try {
-      const response = await fetch('/api/check-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_id: telegramId }),
-      });
-
-      const data = await response.json();
-
-      if (!data.hasSubscription) {
-        setSubscriptionError("Подписка не найдена");
-        return;
-      }
-
-      // Все разделы ведут на /discount-shop (передаём telegram_id для проверки тарифа)
-      window.location.href = `/discount-shop?telegram_id=${telegramId}`;
-    } catch (err) {
-      console.error('Ошибка проверки подписки:', err);
-      setSubscriptionError("Ошибка проверки подписки");
-    } finally {
-      setLoadingButton(null);
-    }
-  };
-
   // без условных хуков — просто флаги страниц
   const isSuccessPage =
     typeof window !== "undefined" && window.location.pathname === "/success";
@@ -89,6 +29,9 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/profile";
   const isSettingsPage =
     typeof window !== "undefined" && window.location.pathname === "/settings";
+  const isLandingPage =
+    typeof window !== "undefined" &&
+    (window.location.pathname === "/" || window.location.pathname === "");
 
   if (isSettingsPage) {
     return <SettingsPage />;
@@ -106,6 +49,10 @@ function App() {
     return <ShopPage />;
   }
 
+  if (isLandingPage) {
+    return <LandingPage />;
+  }
+
   return (
     <div className="app">
       {isSetsReceivedPage ? (
@@ -116,75 +63,7 @@ function App() {
         <RollsPage />
       ) : isSuccessPage ? (
         <Success />
-      ) : (
-        <>
-          <div className="header">
-            <img src="/logo.jpg" alt="Sushi House Logo" className="logo" />
-            <span>Sushi House</span>
-          </div>
-
-          <nav className="nav">
-            <button onClick={() => setPage("home")}>Главная</button>
-            <button onClick={() => setPage("about")}>О компании</button>
-            <button onClick={() => setPage("delivery")}>Доставка и оплата</button>
-          </nav>
-
-          {page === "home" && (
-            <div className="subscription-buttons">
-              <button
-                className="subscription-btn gift-btn"
-                onClick={() => handleSubscriptionCheck('rolls')}
-                disabled={!!loadingButton}
-              >
-                {loadingButton === 'rolls' ? 'Проверка...' : '🎁 Роллы в подарок'}
-              </button>
-              <button
-                className="subscription-btn gift-btn"
-                onClick={() => handleSubscriptionCheck('sets')}
-                disabled={!!loadingButton}
-              >
-                {loadingButton === 'sets' ? 'Проверка...' : '🎁 Сеты в подарок'}
-              </button>
-              <button
-                className="subscription-btn discount-btn"
-                onClick={() => handleSubscriptionCheck('discount-sets')}
-                disabled={!!loadingButton}
-              >
-                {loadingButton === 'discount-sets' ? 'Проверка...' : 'Сеты по подписке -20%'}
-              </button>
-              <button
-                className="subscription-btn discount-btn"
-                onClick={() => handleSubscriptionCheck('discount-hot')}
-                disabled={!!loadingButton}
-              >
-                {loadingButton === 'discount-hot' ? 'Проверка...' : '-30₽ на запечённый ролл'}
-              </button>
-              <button
-                className="subscription-btn discount-btn"
-                onClick={() => handleSubscriptionCheck('discount-cold')}
-                disabled={!!loadingButton}
-              >
-                {loadingButton === 'discount-cold' ? 'Проверка...' : '-30₽ на холодный ролл'}
-              </button>
-              {subscriptionError && (
-                <div className="subscription-error">{subscriptionError}</div>
-              )}
-            </div>
-          )}
-
-          {page === "about" && <About />}
-          {page === "delivery" && <Delivery />}
-
-          <footer className="footer">
-            <img src="/logo.jpg" alt="Sushi House" className="footer-logo" />
-            <div className="footer-info">
-              <p><b>📞 Телефон:</b> +7 (401) 290-27-90</p>
-              <p><b>⏰ Время работы:</b> 10:00 – 22:00</p>
-              <p><b>📍 Адрес:</b> г. Калининград, ул. Ю.Гагарина, д. 16Б</p>
-            </div>
-          </footer>
-        </>
-      )}
+      ) : null}
     </div>
   );
 }
