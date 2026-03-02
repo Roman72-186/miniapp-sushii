@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
     // 1. Прочитать JSON из Blob
     const stored = await readGiftWindows(telegram_id);
     if (!stored || !stored.windows || stored.windows.length === 0) {
-      return res.status(400).json({ error: 'Данные подарочных окон не найдены' });
+      return res.status(400).json({ error: 'Данные подарочных окон не найдены', debug_stored: stored });
     }
 
     // 2. Найти текущее окно
