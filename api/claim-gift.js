@@ -1,8 +1,8 @@
 // api/claim-gift.js — Отметить подарочное окно как полученное (Vercel Blob + WATBOT)
 // Vercel Serverless Function (CommonJS)
 
-const { getCurrentWindow, formatDDMMYYYY, todayUTC, parseDDMMYYYY } = require('./lib/gift-windows');
-const { readGiftWindows, writeGiftWindows } = require('./lib/blob-store');
+const { getCurrentWindow, formatDDMMYYYY, todayUTC, parseDDMMYYYY } = require('./_lib/gift-windows');
+const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

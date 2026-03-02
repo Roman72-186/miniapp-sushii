@@ -1,8 +1,8 @@
 // api/get-gift-windows.js — Получение статуса подарочных окон (Vercel Blob + WATBOT)
 // Vercel Serverless Function (CommonJS)
 
-const { buildWindows, computeStatus, parseDDMMYYYY, formatDDMMYYYY } = require('./lib/gift-windows');
-const { readGiftWindows, writeGiftWindows } = require('./lib/blob-store');
+const { buildWindows, computeStatus, parseDDMMYYYY, formatDDMMYYYY } = require('./_lib/gift-windows');
+const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
 
 /**
  * Находит контакт по telegram_id в WATBOT (аналог get-profile)
