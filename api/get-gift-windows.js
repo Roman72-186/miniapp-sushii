@@ -1,11 +1,12 @@
-// api/get-gift-windows.js — Получение статуса подарочных окон (Vercel Blob + WATBOT)
+// api/get-gift-windows.js — Получение статуса подарочных окон (Vercel Blob + WATBOT, с кэшем)
 // Vercel Serverless Function (CommonJS)
 
-const { buildWindows, computeStatus, parseDDMMYYYY, formatDDMMYYYY } = require('./_lib/gift-windows');
+const { buildWindows, computeStatus } = require('./_lib/gift-windows');
 const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
+const { readUserCache } = require('./_lib/user-cache');
 
 /**
- * Находит контакт по telegram_id в WATBOT (аналог get-profile)
+ * Находит контакт по telegram_id в WATBOT (fallback)
  */
 async function findContact(apiToken, telegramId) {
   const tgId = String(telegramId);
@@ -55,7 +56,7 @@ function extractVariables(contact) {
 }
 
 /**
- * Определяет тариф через check-subscription логику (getListItems)
+ * Определяет тариф через getListItems (fallback)
  */
 async function getTarif(apiToken, telegramId) {
   const res = await fetch('https://watbot.ru/api/v1/getListItems?api_token=' + apiToken, {
@@ -107,40 +108,55 @@ module.exports = async (req, res) => {
   if (!apiToken) return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
 
   try {
-    // 1. Параллельно получаем контакт и тариф
-    const [contact, tarif] = await Promise.all([
-      findContact(apiToken, telegram_id),
-      getTarif(apiToken, telegram_id),
-    ]);
+    // 1. Попытка из кэша пользователя
+    const cache = await readUserCache(telegram_id);
+    let contactId, tarif, vars;
 
-    if (!contact) {
-      return res.status(404).json({ error: 'Контакт не найден' });
+    if (cache && cache.contact && cache.tarif !== undefined) {
+      contactId = cache.contact.id || null;
+      tarif = cache.tarif || '';
+      vars = {
+        датаНачала: (cache.variables || {})['датаНачала'] || '',
+        датаОКОНЧАНИЯ: (cache.variables || {})['датаОКОНЧАНИЯ'] || '',
+      };
+    } else {
+      // 2. Fallback: WATBOT API
+      const [contact, tarifResult] = await Promise.all([
+        findContact(apiToken, telegram_id),
+        getTarif(apiToken, telegram_id),
+      ]);
+
+      if (!contact) {
+        return res.status(404).json({ error: 'Контакт не найден' });
+      }
+
+      contactId = contact.id || null;
+      tarif = tarifResult || '';
+      vars = extractVariables(contact);
     }
 
     if (!tarif || (tarif !== '490' && tarif !== '1190')) {
       return res.status(200).json({
         success: true,
-        data: { tarif: tarif || null, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], contact_id: contact.id || null },
+        data: { tarif: tarif || null, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], contact_id: contactId },
       });
     }
 
-    const vars = extractVariables(contact);
     const { датаНачала, датаОКОНЧАНИЯ } = vars;
 
     if (!датаНачала || !датаОКОНЧАНИЯ) {
       return res.status(200).json({
         success: true,
-        data: { tarif, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], contact_id: contact.id || null },
+        data: { tarif, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], contact_id: contactId },
       });
     }
 
     const windowDays = tarif === '1190' ? 30 : 15;
-    const contactId = contact.id || null;
 
-    // 2. Попробовать прочитать из Blob
+    // 3. Попробовать прочитать из Blob (подарочные окна)
     let stored = await readGiftWindows(telegram_id);
 
-    // 3. Проверить, нужно ли пересоздать (нет данных или даты изменились)
+    // 4. Проверить, нужно ли пересоздать
     const needRebuild = !stored ||
       stored.startDate !== датаНачала ||
       stored.endDate !== датаОКОНЧАНИЯ ||
@@ -165,7 +181,7 @@ module.exports = async (req, res) => {
       await writeGiftWindows(telegram_id, stored);
     }
 
-    // 4. Вычислить статус
+    // 5. Вычислить статус
     const status = computeStatus(stored.windows);
 
     return res.status(200).json({

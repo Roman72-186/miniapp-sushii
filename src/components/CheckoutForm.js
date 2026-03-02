@@ -1,6 +1,7 @@
 // src/components/CheckoutForm.js — Форма оформления заказа (тёмная тема)
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useUser } from '../UserContext';
 
 const PICKUP_POINTS = [
   { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–22:00', affiliate: '184' },
@@ -77,6 +78,7 @@ function buildDatetime(timeStr) {
 }
 
 function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
+  const { listItemName, phone: userPhone } = useUser();
   const [deliveryType, setDeliveryType] = useState('delivery');
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [timeType, setTimeType] = useState('asap');
@@ -92,21 +94,11 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Автозаполнение имени и телефона из WATBOT CRM
+  // Автозаполнение имени и телефона из контекста пользователя
   useEffect(() => {
-    if (!telegramId) return;
-    fetch('/api/get-contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.name) setName(data.name);
-        if (data.phone) setPhone(data.phone);
-      })
-      .catch(() => {});
-  }, [telegramId]);
+    if (listItemName && !name) setName(listItemName);
+    if (userPhone && !phone) setPhone(userPhone);
+  }, [listItemName, userPhone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Доступные слоты времени
   const timeSlots = useMemo(() => getTimeSlots(), []);

@@ -1,6 +1,7 @@
 // src/LandingPage.js — Посадочная страница с тарифами
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useUser } from './UserContext';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 
@@ -28,39 +29,16 @@ function LandingPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const [loading, setLoading] = useState(true);
-
-  const telegramId = useMemo(() => {
-    const tg = window.Telegram?.WebApp;
-    const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-    const params = new URLSearchParams(window.location.search);
-    const urlId = params.get('telegram_id');
-    return tgId || urlId || null;
-  }, []);
+  const { telegramId, loading: userLoading, hasTag } = useUser();
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!telegramId) {
-      setLoading(false);
-      return;
+    if (userLoading || !telegramId) return;
+    if (hasTag('подписка30')) {
+      setRedirecting(true);
+      window.location.href = `/discount-shop?telegram_id=${telegramId}`;
     }
-
-    fetch('/api/check-tag', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.hasTag) {
-          window.location.href = `/discount-shop?telegram_id=${telegramId}`;
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, [telegramId]);
+  }, [userLoading, telegramId, hasTag]);
 
   const handleTariffClick = () => {
     const tg = window.Telegram?.WebApp;
@@ -72,7 +50,7 @@ function LandingPage() {
     }
   };
 
-  if (loading) {
+  if (userLoading || redirecting) {
     return (
       <div className="shop-page">
         <BrandLoader text="Проверяем подписку" />

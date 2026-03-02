@@ -1,7 +1,8 @@
 // api/create-order.js — Endpoint для создания заказа (WATBOT phone lookup + Frontpad + Telegram)
 // Vercel Serverless Function (CommonJS)
 
-const { createOrder } = require('./frontpad');
+const { createOrder } = require('./_lib/frontpad');
+const { readUserCache } = require('./_lib/user-cache');
 
 function parseJsonBody(req) {
   try {
@@ -82,12 +83,18 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Укажите имя' });
     }
 
-    // 1. Получаем телефон из WATBOT по telegram_id (привязка заказа в Frontpad по телефону)
+    // 1. Получаем телефон: сначала из кэша, потом из WATBOT
     let orderPhone = client.phone || '';
     if (telegram_id) {
-      const watbotPhone = await getPhoneByTelegramId(telegram_id);
-      if (watbotPhone) {
-        orderPhone = watbotPhone;
+      const cache = await readUserCache(telegram_id);
+      const cachedPhone = cache?.listItem?.telefon;
+      if (cachedPhone) {
+        orderPhone = cachedPhone;
+      } else {
+        const watbotPhone = await getPhoneByTelegramId(telegram_id);
+        if (watbotPhone) {
+          orderPhone = watbotPhone;
+        }
       }
     }
 

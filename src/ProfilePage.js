@@ -1,6 +1,7 @@
 // src/ProfilePage.js — Личный кабинет /profile
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useUser } from './UserContext';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 
@@ -10,75 +11,27 @@ function ProfilePage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [referrals, setReferrals] = useState(null); // null = ещё грузится
+  const { telegramId, loading: userLoading, profile, contactId } = useUser();
+  const [referrals, setReferrals] = useState(null);
   const [vipLoading, setVipLoading] = useState(false);
 
-  const telegramId = useMemo(() => {
-    const tg = window.Telegram?.WebApp;
-    const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-    const params = new URLSearchParams(window.location.search);
-    const urlId = params.get('telegram_id');
-    return tgId || urlId || null;
-  }, []);
-
+  // Загружаем рефералов отдельно (зависит от contactId)
   useEffect(() => {
-    if (!telegramId) {
-      setError('Telegram ID не найден');
-      setLoading(false);
+    if (!contactId) {
+      if (!userLoading) setReferrals({ referrals_count: 0, referrals_top10: [] });
       return;
     }
-
-    // Мгновенно показываем кэш, если есть
-    const cacheKey = `profile_${telegramId}`;
-    const cached = sessionStorage.getItem(cacheKey);
-    if (cached) {
-      try {
-        const data = JSON.parse(cached);
-        setProfile(data);
-        setLoading(false);
-        // Рефералы тоже из кэша
-        const refCache = sessionStorage.getItem(`referrals_${telegramId}`);
-        if (refCache) setReferrals(JSON.parse(refCache));
-      } catch (e) {}
-    }
-
-    // Обновляем в фоне (всегда)
-    fetch('/api/get-profile', {
+    fetch('/api/get-referrals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId }),
+      body: JSON.stringify({ contact_id: contactId }),
     })
-      .then(r => {
-        if (!r.ok) throw new Error('Ошибка загрузки профиля');
-        return r.json();
+      .then(r => r.ok ? r.json() : null)
+      .then(refData => {
+        setReferrals(refData || { referrals_count: 0, referrals_top10: [] });
       })
-      .then(data => {
-        setProfile(data);
-        sessionStorage.setItem(cacheKey, JSON.stringify(data));
-        // Рефералы отдельно
-        if (data.contact_id) {
-          fetch('/api/get-referrals', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contact_id: data.contact_id }),
-          })
-            .then(r => r.ok ? r.json() : null)
-            .then(refData => {
-              const refs = refData || { referrals_count: 0, referrals_top10: [] };
-              setReferrals(refs);
-              sessionStorage.setItem(`referrals_${telegramId}`, JSON.stringify(refs));
-            })
-            .catch(() => setReferrals({ referrals_count: 0, referrals_top10: [] }));
-        } else {
-          setReferrals({ referrals_count: 0, referrals_top10: [] });
-        }
-      })
-      .catch(err => { if (!cached) setError(err.message || 'Ошибка загрузки'); })
-      .finally(() => setLoading(false));
-  }, [telegramId]);
+      .catch(() => setReferrals({ referrals_count: 0, referrals_top10: [] }));
+  }, [contactId, userLoading]);
 
   const handleBack = () => {
     if (telegramId) {
@@ -100,6 +53,8 @@ function ProfilePage() {
     return `+${digits}`;
   };
 
+  const error = !userLoading && !telegramId ? 'Telegram ID не найден' : null;
+
   return (
     <div className="shop-page">
       <header className="shop-header">
@@ -112,7 +67,7 @@ function ProfilePage() {
         <div className="shop-header__spacer" />
       </header>
 
-      {loading ? (
+      {userLoading ? (
         <BrandLoader text="Загружаем профиль" />
       ) : error ? (
         <div className="shop-loading">

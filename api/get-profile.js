@@ -1,9 +1,7 @@
-// api/get-profile.js — Получение профиля подписчика через WATBOT API
+// api/get-profile.js — Получение профиля подписчика через WATBOT API (с кэшем)
 // Vercel Serverless Function (CommonJS)
-//
-// WATBOT getContacts не поддерживает фильтр по telegram_id,
-// поэтому запрашиваем все контакты (count=500, параллельно по страницам)
-// и ищем нужный на клиенте. Переменные приходят inline в контакте.
+
+const { readUserCache } = require('./_lib/user-cache');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,33 +22,47 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'telegram_id обязателен' });
   }
 
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken) {
-    console.error('WATBOT_API_TOKEN не настроен');
-    return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
-  }
-
-  const tgId = String(telegram_id);
-  const base = `https://watbot.ru/api/v1/getContacts?api_token=${apiToken}&bot_id=72975&count=500`;
-
   try {
-    // 1. Первая страница — узнаём общее кол-во страниц
+    // 1. Попытка из кэша
+    const cache = await readUserCache(telegram_id);
+    if (cache && cache.contact) {
+      const v = cache.variables || {};
+      return res.status(200).json({
+        name: cache.contact.name || null,
+        phone: v['phone'] || v['телефон'] || (cache.listItem && cache.listItem.telefon) || null,
+        статусСписания: v['статусСписания'] || null,
+        balance_shc: v['balance_shc'] || null,
+        датаОКОНЧАНИЯ: v['датаОКОНЧАНИЯ'] || null,
+        датаНачала: v['датаНачала'] || null,
+        датаПодарка: v['датаПодарка'] || null,
+        contact_id: cache.contact.id || null,
+        ref_url: v['ref_url'] || null,
+        has_payment_id: !!v['PaymentID'],
+      });
+    }
+
+    // 2. Fallback: WATBOT API
+    const apiToken = process.env.WATBOT_API_TOKEN;
+    if (!apiToken) {
+      return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
+    }
+
+    const tgId = String(telegram_id);
+    const base = `https://watbot.ru/api/v1/getContacts?api_token=${apiToken}&bot_id=72975&count=500`;
+
     const firstRes = await fetch(`${base}&page=1`, {
       headers: { 'Accept': 'application/json' },
     });
 
     if (!firstRes.ok) {
-      console.error('WATBOT getContacts error:', firstRes.status);
       return res.status(502).json({ error: 'Ошибка запроса к WATBOT API' });
     }
 
     const firstData = await firstRes.json();
     const lastPage = firstData.meta?.last_page || 1;
 
-    // Ищем в первой странице
     let contact = (firstData.data || []).find(c => c.telegram_id === tgId);
 
-    // 2. Если не найден — запрашиваем оставшиеся страницы параллельно
     if (!contact && lastPage > 1) {
       const pageNums = [];
       for (let p = 2; p <= lastPage; p++) pageNums.push(p);
@@ -71,10 +83,7 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Контакт не найден' });
     }
 
-    // 3. Извлекаем имя и телефон из контакта
     const contactName = contact.name || null;
-
-    // 4. Извлекаем нужные переменные из contact.variables
     const variables = contact.variables || [];
     let статусСписания = null;
     let balance_shc = null;

@@ -1,6 +1,7 @@
 // src/components/SubCheckoutModal.js — Модалка оформления заказа по подписке (только самовывоз)
 
 import React, { useState, useEffect } from 'react';
+import { useUser } from '../UserContext';
 
 const PICKUP_POINTS = [
   { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–22:00', affiliate: '184' },
@@ -35,30 +36,18 @@ function normalizePhone(raw) {
 }
 
 function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }) {
+  const { listItemName, phone: userPhone, sync } = useUser();
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [loadingContact, setLoadingContact] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Автозаполнение из WATBOT
+  // Автозаполнение из контекста пользователя
   useEffect(() => {
-    if (!telegramId) return;
-    setLoadingContact(true);
-    fetch('/api/get-contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.name) setName(data.name);
-        if (data.phone) setPhone(normalizePhone(data.phone));
-      })
-      .catch(() => {})
-      .finally(() => setLoadingContact(false));
-  }, [telegramId]);
+    if (listItemName && !name) setName(listItemName);
+    if (userPhone && !phone) setPhone(normalizePhone(userPhone));
+  }, [listItemName, userPhone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedPickup = PICKUP_POINTS.find(p => p.id === pickupPoint);
 
@@ -120,7 +109,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
             body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId }),
           });
         } catch (_) { /* не блокируем успех заказа */ }
-        sessionStorage.removeItem('profile_' + telegramId);
+        sync(true);
       }
 
       onSuccess(data.orderNumber || data.orderId || '');
@@ -186,33 +175,29 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
           <div className="shop-form-section">
             <h3 className="shop-form-section__title">Контактные данные</h3>
             <div className="shop-form-section__block">
-              {loadingContact ? (
-                <div style={{ color: '#999', fontSize: 13, padding: '8px 0' }}>Загрузка данных...</div>
-              ) : (
-                <div className="shop-form-row">
-                  <div className="shop-form-field">
-                    <label className="shop-form-field__label">Имя</label>
-                    <input
-                      className="shop-form-field__input"
-                      type="text"
-                      placeholder="Имя"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                    />
-                  </div>
-                  <div className="shop-form-field">
-                    <label className="shop-form-field__label">Телефон</label>
-                    <input
-                      className="shop-form-field__input"
-                      type="tel"
-                      placeholder="+7XXXXXXXXXX"
-                      value={phone}
-                      onChange={e => setPhone(e.target.value)}
-                      onBlur={() => { if (phone.trim()) setPhone(normalizePhone(phone.trim())); }}
-                    />
-                  </div>
+              <div className="shop-form-row">
+                <div className="shop-form-field">
+                  <label className="shop-form-field__label">Имя</label>
+                  <input
+                    className="shop-form-field__input"
+                    type="text"
+                    placeholder="Имя"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                  />
                 </div>
-              )}
+                <div className="shop-form-field">
+                  <label className="shop-form-field__label">Телефон</label>
+                  <input
+                    className="shop-form-field__input"
+                    type="tel"
+                    placeholder="+7XXXXXXXXXX"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    onBlur={() => { if (phone.trim()) setPhone(normalizePhone(phone.trim())); }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -231,7 +216,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
             </div>
             <button
               className="shop-checkout__submit"
-              disabled={submitting || loadingContact}
+              disabled={submitting}
               onClick={handleSubmit}
             >
               {submitting ? 'Отправка...' : 'ПОДТВЕРДИТЬ'}

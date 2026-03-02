@@ -1,5 +1,7 @@
-// api/check-subscription.js — Проверка подписки через WATBOT API
+// api/check-subscription.js — Проверка подписки через WATBOT API (с кэшем)
 // Vercel Serverless Function (CommonJS)
+
+const { readUserCache } = require('./_lib/user-cache');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,13 +22,27 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'telegram_id обязателен' });
   }
 
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken) {
-    console.error('WATBOT_API_TOKEN не настроен');
-    return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
-  }
-
   try {
+    // 1. Попытка из кэша (тариф из тегов контакта)
+    const cache = await readUserCache(telegram_id);
+    if (cache && cache.tarif !== undefined) {
+      const tarifStr = cache.tarif || '';
+      if (!tarifStr) {
+        return res.status(200).json({ hasSubscription: false });
+      }
+      let type = null;
+      if (tarifStr === '290') type = 'discount';
+      else if (tarifStr === '490') type = 'rolls';
+      else if (tarifStr === '1190') type = 'sets';
+      return res.status(200).json({ hasSubscription: true, tarif: tarifStr, type });
+    }
+
+    // 2. Fallback: WATBOT API
+    const apiToken = process.env.WATBOT_API_TOKEN;
+    if (!apiToken) {
+      return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
+    }
+
     const response = await fetch(
       `https://watbot.ru/api/v1/getListItems?api_token=${apiToken}`,
       {
@@ -43,20 +59,16 @@ module.exports = async (req, res) => {
     );
 
     if (!response.ok) {
-      console.error('WATBOT API error:', response.status, response.statusText);
       return res.status(502).json({ error: 'Ошибка запроса к WATBOT API' });
     }
 
     const data = await response.json();
-
-    // data.data — массив записей пользователя
     const items = data.data || [];
 
     if (items.length === 0) {
       return res.status(200).json({ hasSubscription: false });
     }
 
-    // Ищем тариф в записях
     const item = items[0];
     const tarif = item.tarif || item.Tarif || item.tariff || null;
 
@@ -64,22 +76,13 @@ module.exports = async (req, res) => {
       return res.status(200).json({ hasSubscription: false });
     }
 
-    // Определяем тип подписки по тарифу
     const tarifStr = String(tarif);
     let type = null;
-    if (tarifStr === '290') {
-      type = 'discount'; // TODO: меню со скидками — заглушка
-    } else if (tarifStr === '490') {
-      type = 'rolls';
-    } else if (tarifStr === '1190') {
-      type = 'sets';
-    }
+    if (tarifStr === '290') type = 'discount';
+    else if (tarifStr === '490') type = 'rolls';
+    else if (tarifStr === '1190') type = 'sets';
 
-    return res.status(200).json({
-      hasSubscription: true,
-      tarif: tarifStr,
-      type,
-    });
+    return res.status(200).json({ hasSubscription: true, tarif: tarifStr, type });
   } catch (error) {
     console.error('Ошибка проверки подписки:', error);
     return res.status(500).json({ error: 'Внутренняя ошибка сервера' });

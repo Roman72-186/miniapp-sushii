@@ -1,7 +1,8 @@
 // src/DiscountShopPage.js — Магазин по подписке /discount-shop
 // Основное меню (скидки) + отдельные экраны подарков
 
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useUser } from './UserContext';
 import { useCart } from './hooks/useFrontpad';
 import BrandLoader from './components/BrandLoader';
 import { getProductImage } from './config/imageMap';
@@ -122,6 +123,7 @@ function DiscountShopPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
+  const { telegramId, loading: userLoading, tarif: userTarif } = useUser();
   const { products, loading, error, refetch } = useDiscountMenu();
   const cart = useCart();
 
@@ -137,45 +139,17 @@ function DiscountShopPage() {
   const [selectedGiftProduct, setSelectedGiftProduct] = useState(null);
   const [giftOrderNumber, setGiftOrderNumber] = useState(null);
 
-  // Tariff
-  const [userTarif, setUserTarif] = useState(null);
-  const [tarifLoading, setTarifLoading] = useState(true);
   const [lockedPopup, setLockedPopup] = useState(null);
 
   // Gift windows
-  const [giftStatus, setGiftStatus] = useState(null); // { status, daysLeft, windowNum, totalWindows }
+  const [giftStatus, setGiftStatus] = useState(null);
+  const [giftStatusLoading, setGiftStatusLoading] = useState(true);
   const [contactId, setContactId] = useState(null);
-
-  const telegramId = useMemo(() => {
-    const tg = window.Telegram?.WebApp;
-    const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-    const params = new URLSearchParams(window.location.search);
-    const urlId = params.get('telegram_id');
-    return tgId || urlId || null;
-  }, []);
-
-  useEffect(() => {
-    if (!telegramId) {
-      setTarifLoading(false);
-      return;
-    }
-    setTarifLoading(true);
-    fetch('/api/check-subscription', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.tarif) setUserTarif(data.tarif);
-      })
-      .catch(() => {})
-      .finally(() => setTarifLoading(false));
-  }, [telegramId]);
 
   // Gift window status from server (Vercel Blob)
   const fetchGiftStatus = useCallback(() => {
-    if (!telegramId) return;
+    if (!telegramId) { setGiftStatusLoading(false); return; }
+    setGiftStatusLoading(true);
     fetch('/api/get-gift-windows', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -193,7 +167,8 @@ function DiscountShopPage() {
           totalWindows: d.totalWindows,
         });
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setGiftStatusLoading(false));
   }, [telegramId]);
 
   useEffect(() => { fetchGiftStatus(); }, [fetchGiftStatus]);
@@ -230,8 +205,10 @@ function DiscountShopPage() {
     setTimeout(() => { isScrollingByClick.current = false; }, 800);
   };
 
+  const tarifLoading = userLoading;
+
   const handleGiftClick = (catId) => {
-    if (tarifLoading) return;
+    if (tarifLoading || giftStatusLoading) return;
     const cat = GIFT_CATEGORIES.find(c => c.id === catId);
     if (!cat) return;
     if (isGiftLocked(cat, userTarif)) {
@@ -380,7 +357,8 @@ function DiscountShopPage() {
 
       <div className="shop-gift-row">
         {GIFT_CATEGORIES.map(cat => {
-          const locked = tarifLoading ? true : isGiftLocked(cat, userTarif);
+          const anyLoading = tarifLoading || giftStatusLoading;
+          const locked = anyLoading ? true : isGiftLocked(cat, userTarif);
           // Hide gift button if subscription expired
           if (!locked && giftStatus && giftStatus.status === 'expired') return null;
 
@@ -392,7 +370,7 @@ function DiscountShopPage() {
           let extraClass = '';
           let badge = null;
 
-          if (tarifLoading) {
+          if (anyLoading) {
             badge = <span className="shop-gift-btn__lock">...</span>;
           } else if (locked) {
             badge = <span className="shop-gift-btn__lock">🔒</span>;

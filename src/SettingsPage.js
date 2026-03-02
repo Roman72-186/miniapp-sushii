@@ -1,6 +1,7 @@
 // src/SettingsPage.js — Настройки и опции
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useUser } from './UserContext';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 
@@ -10,45 +11,10 @@ function SettingsPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { telegramId, loading, profile, sync } = useUser();
   const [expandedSection, setExpandedSection] = useState(null);
   const [cancelStep, setCancelStep] = useState(null); // null | 'confirm' | 'done'
   const [cancelLoading, setCancelLoading] = useState(false);
-
-  const telegramId = useMemo(() => {
-    const tg = window.Telegram?.WebApp;
-    const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
-    const params = new URLSearchParams(window.location.search);
-    const urlId = params.get('telegram_id');
-    return tgId || urlId || null;
-  }, []);
-
-  useEffect(() => {
-    if (!telegramId) { setLoading(false); return; }
-
-    // Мгновенно из кэша
-    const cached = sessionStorage.getItem(`profile_${telegramId}`);
-    if (cached) {
-      try { setProfile(JSON.parse(cached)); setLoading(false); } catch (e) {}
-    }
-
-    // Обновляем в фоне
-    fetch('/api/get-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId }),
-    })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data) {
-          setProfile(data);
-          sessionStorage.setItem(`profile_${telegramId}`, JSON.stringify(data));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [telegramId]);
 
   const handleBack = () => {
     if (telegramId) {
@@ -75,11 +41,8 @@ function SettingsPage() {
       .then(data => {
         if (data.success) {
           setCancelStep('done');
-          // Сбрасываем кэш, чтобы профиль загрузился заново
-          sessionStorage.removeItem(`profile_${telegramId}`);
-          sessionStorage.removeItem(`referrals_${telegramId}`);
-          // Обновляем локальный стейт
-          setProfile(prev => prev ? { ...prev, статусСписания: 'неактивно', has_payment_id: false } : prev);
+          // Обновляем кэш пользователя
+          sync(true);
         } else {
           alert(data.error || 'Ошибка отмены');
         }

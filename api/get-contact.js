@@ -1,5 +1,7 @@
-// api/get-contact.js — Получение контактных данных из WATBOT CRM по Telegram ID
+// api/get-contact.js — Получение контактных данных из WATBOT CRM по Telegram ID (с кэшем)
 // Vercel Serverless Function (CommonJS)
+
+const { readUserCache } = require('./_lib/user-cache');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,13 +22,22 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'telegram_id обязателен' });
   }
 
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken) {
-    console.error('WATBOT_API_TOKEN не настроен');
-    return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
-  }
-
   try {
+    // 1. Попытка из кэша
+    const cache = await readUserCache(telegram_id);
+    if (cache && cache.listItem) {
+      return res.status(200).json({
+        name: cache.listItem.name || null,
+        phone: cache.listItem.telefon || null,
+      });
+    }
+
+    // 2. Fallback: WATBOT API
+    const apiToken = process.env.WATBOT_API_TOKEN;
+    if (!apiToken) {
+      return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
+    }
+
     const response = await fetch(
       `https://watbot.ru/api/v1/getListItems?api_token=${apiToken}`,
       {
@@ -43,7 +54,6 @@ module.exports = async (req, res) => {
     );
 
     if (!response.ok) {
-      console.error('WATBOT API error:', response.status, response.statusText);
       return res.status(502).json({ error: 'Ошибка запроса к WATBOT API' });
     }
 
