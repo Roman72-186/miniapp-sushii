@@ -19,10 +19,20 @@ module.exports = async (req, res) => {
   if (!apiToken) return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
 
   try {
-    // 1. Прочитать JSON из Blob
+    // 1. Прочитать JSON из Blob (debug)
+    const { list } = require('@vercel/blob');
+    const listResult = await list({ prefix: 'gifts/' + telegram_id + '.json' });
     const stored = await readGiftWindows(telegram_id);
     if (!stored || !stored.windows || stored.windows.length === 0) {
-      return res.status(400).json({ error: 'Данные подарочных окон не найдены', debug_stored: stored });
+      return res.status(400).json({
+        error: 'Данные подарочных окон не найдены',
+        debug: {
+          stored,
+          blobCount: listResult.blobs?.length,
+          blobPaths: listResult.blobs?.map(b => b.pathname),
+          hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+        },
+      });
     }
 
     // 2. Найти текущее окно
