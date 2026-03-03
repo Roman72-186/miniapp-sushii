@@ -1743,3 +1743,288 @@ body.shop-body {
   font-weight: 800;
   color: #3CC8A1;
 }
+
+/* === Описание амбассадора на PaymentPage === */
+.amb-desc__intro {
+  font-size: 14px;
+  color: #bbb;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.amb-desc__level {
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.amb-desc__level--1 {
+  border: 1.5px solid #3CC8A1;
+  background: rgba(60, 200, 161, 0.06);
+}
+
+.amb-desc__level--2 {
+  border: 1.5px solid #d4a843;
+  background: rgba(212, 168, 67, 0.06);
+}
+
+.amb-desc__level-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.amb-desc__level-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.amb-desc__level-badge--1 {
+  background: rgba(60, 200, 161, 0.15);
+  color: #3CC8A1;
+}
+
+.amb-desc__level-badge--2 {
+  background: rgba(212, 168, 67, 0.15);
+  color: #d4a843;
+}
+
+.amb-desc__level-percent {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.amb-desc__level-text {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.amb-desc__level-unlock {
+  font-size: 12px;
+  color: #d4a843;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.amb-desc__examples {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.amb-desc__example {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.amb-desc__example strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.amb-desc__perks {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.amb-desc__perk {
+  font-size: 13px;
+  color: #999;
+  padding-left: 18px;
+  position: relative;
+}
+
+.amb-desc__perk::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #3CC8A1;
+  font-weight: 700;
+}
+
+/* === Панель амбассадора в ProfilePage === */
+.amb-panel__counters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.amb-panel__counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  background: #1e1e22;
+  border-radius: 10px;
+}
+
+.amb-panel__counter-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #3CC8A1;
+}
+
+.amb-panel__counter-value--gold {
+  color: #d4a843;
+}
+
+.amb-panel__counter-label {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* Прогресс-бар уровня 2 */
+.amb-panel__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amb-panel__progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.amb-panel__progress-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #d4a843;
+}
+
+.amb-panel__progress-status {
+  font-size: 12px;
+  color: #999;
+}
+
+.amb-panel__progress-status--open {
+  color: #3CC8A1;
+  font-weight: 700;
+}
+
+.amb-panel__progress-bar {
+  height: 8px;
+  background: #1e1e22;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.amb-panel__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d4a843, #b8860b);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+.amb-panel__progress-fill--full {
+  background: linear-gradient(90deg, #3CC8A1, #2aa882);
+}
+
+.amb-panel__progress-hint {
+  font-size: 12px;
+  color: #777;
+  line-height: 1.4;
+}
+
+/* Список рефералов */
+.amb-panel__referrals-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.amb-panel__referrals-loading,
+.amb-panel__referrals-empty {
+  font-size: 13px;
+  color: #666;
+}
+
+.amb-panel__referrals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.amb-panel__referral-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #1e1e22;
+  border-radius: 8px;
+}
+
+.amb-panel__referral-name {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.amb-panel__referral-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #d4a843;
+  background: rgba(212, 168, 67, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.amb-panel__show-all {
+  background: none;
+  border: none;
+  color: #3CC8A1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+/* === Блок приглашения (не-амбассадоры) === */
+.amb-invite {
+  text-align: center;
+}
+
+.amb-invite__text {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.amb-invite__text strong {
+  color: #3CC8A1;
+  font-weight: 800;
+}
+
+.amb-invite__btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #d4a843, #b8860b);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.amb-invite__btn:hover {
+  opacity: 0.85;
+}

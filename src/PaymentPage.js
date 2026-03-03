@@ -139,14 +139,59 @@ function PaymentPage() {
           <div className="shop-payment__price">{tariff.label}</div>
           <h2 className="shop-payment__title">{tariff.title}</h2>
 
-          <ul className="shop-payment__features">
-            {tariff.features.map((f, i) => (
-              <li key={i} className="shop-payment__feature">
-                <span className="shop-payment__check">✓</span>
-                {f}
-              </li>
-            ))}
-          </ul>
+          {tarifKey === '9990' ? (
+            <div className="amb-desc">
+              <p className="amb-desc__intro">
+                Амбассадор — это возможность зарабатывать реальные деньги, приглашая друзей в Суши-Хаус 39. Вы получаете процент с каждого платежа ваших рефералов.
+              </p>
+
+              <div className="amb-desc__level amb-desc__level--1">
+                <div className="amb-desc__level-header">
+                  <span className="amb-desc__level-badge amb-desc__level-badge--1">Уровень 1</span>
+                  <span className="amb-desc__level-percent">30%</span>
+                </div>
+                <div className="amb-desc__level-text">
+                  с каждого платежа приглашённых вами подписчиков
+                </div>
+                <div className="amb-desc__examples">
+                  <div className="amb-desc__example">Друг оплатил 490 ₽ → вам <strong>147 ₽</strong></div>
+                  <div className="amb-desc__example">Друг оплатил 1190 ₽ → вам <strong>357 ₽</strong></div>
+                </div>
+              </div>
+
+              <div className="amb-desc__level amb-desc__level--2">
+                <div className="amb-desc__level-header">
+                  <span className="amb-desc__level-badge amb-desc__level-badge--2">Уровень 2</span>
+                  <span className="amb-desc__level-percent">5%</span>
+                </div>
+                <div className="amb-desc__level-text">
+                  со всех платежей подписчиков ваших амбассадоров
+                </div>
+                <div className="amb-desc__level-unlock">
+                  Открывается после 10 приглашённых амбассадоров
+                </div>
+                <div className="amb-desc__examples">
+                  <div className="amb-desc__example">10 амбассадоров × 5 рефералов × 490 ₽ → <strong>1 225 ₽/мес</strong></div>
+                </div>
+              </div>
+
+              <div className="amb-desc__perks">
+                <div className="amb-desc__perk">Все привилегии тарифа 1190 навсегда</div>
+                <div className="amb-desc__perk">Статус «Амбассадор» в личном кабинете</div>
+                <div className="amb-desc__perk">Персональная реферальная ссылка</div>
+                <div className="amb-desc__perk">Приоритетная поддержка</div>
+              </div>
+            </div>
+          ) : (
+            <ul className="shop-payment__features">
+              {tariff.features.map((f, i) => (
+                <li key={i} className="shop-payment__feature">
+                  <span className="shop-payment__check">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {!tariff.oneTime && (() => {

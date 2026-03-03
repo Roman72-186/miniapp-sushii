@@ -1,6 +1,8 @@
 // api/get-referrals.js — Получение рефералов по WATBOT contact_id
 // Vercel Serverless Function (CommonJS)
 
+const { readUserCache } = require('./_lib/user-cache');
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -28,14 +30,34 @@ module.exports = async (req, res) => {
     const refData = await refRes.json();
     const refList = Array.isArray(refData.data) ? refData.data : (Array.isArray(refData) ? refData : []);
 
-    const referrals = refList.map(r => ({
-      name: r.name || 'Без имени',
-      telegram_id: r.telegram_id || null,
-    }));
+    // Проверяем статус амбассадора каждого реферала через Blob кэш
+    const referrals = await Promise.all(
+      refList.map(async (r) => {
+        const entry = {
+          name: r.name || 'Без имени',
+          telegram_id: r.telegram_id || null,
+          is_ambassador: false,
+        };
+
+        if (entry.telegram_id) {
+          try {
+            const cached = await readUserCache(entry.telegram_id);
+            if (cached && Array.isArray(cached.tags) && cached.tags.includes('Амба')) {
+              entry.is_ambassador = true;
+            }
+          } catch (_) {}
+        }
+
+        return entry;
+      })
+    );
+
+    const ambassadors_count = referrals.filter(r => r.is_ambassador).length;
 
     return res.status(200).json({
       referrals_count: referrals.length,
-      referrals_top10: referrals.slice(0, 10),
+      ambassadors_count,
+      referrals,
     });
   } catch (error) {
     console.error('Ошибка получения рефералов:', error);
