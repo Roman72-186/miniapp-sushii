@@ -50,4 +50,39 @@ async function fetchTags(apiToken, contactId) {
   return tags.map(t => typeof t === 'string' ? t : (t.name || t.tag || ''));
 }
 
-module.exports = { findContact, fetchTags };
+/**
+ * Загружает ВСЕ контакты из WATBOT (пагинация)
+ */
+async function fetchAllContacts(apiToken) {
+  const base = `https://watbot.ru/api/v1/getContacts?api_token=${apiToken}&bot_id=72975&count=500`;
+
+  const firstRes = await fetch(`${base}&page=1`, {
+    headers: { 'Accept': 'application/json' },
+  });
+  if (!firstRes.ok) throw new Error('WATBOT getContacts error: ' + firstRes.status);
+
+  const firstData = await firstRes.json();
+  const lastPage = firstData.meta?.last_page || 1;
+  let allContacts = [...(firstData.data || [])];
+
+  if (lastPage > 1) {
+    const pageNums = [];
+    for (let p = 2; p <= lastPage; p++) pageNums.push(p);
+
+    const results = await Promise.all(
+      pageNums.map(p =>
+        fetch(`${base}&page=${p}`, { headers: { 'Accept': 'application/json' } })
+          .then(r => r.json())
+          .then(data => data.data || [])
+          .catch(() => [])
+      )
+    );
+    for (const page of results) {
+      allContacts = allContacts.concat(page);
+    }
+  }
+
+  return allContacts;
+}
+
+module.exports = { findContact, fetchTags, fetchAllContacts };
