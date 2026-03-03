@@ -171,12 +171,12 @@ function PaymentPage() {
                   Открывается после 10 приглашённых амбассадоров
                 </div>
                 <div className="amb-desc__examples">
-                  <div className="amb-desc__example">10 амбассадоров × 5 рефералов × 490 ₽ → <strong>1 225 ₽/мес</strong></div>
+                  <div className="amb-desc__example">Ваш амбассадор привёл 5 подписчиков по 490 ₽ → вам <strong>122 ₽</strong></div>
+                  <div className="amb-desc__example">10 таких амбассадоров → <strong>1 225 ₽/мес</strong></div>
                 </div>
               </div>
 
               <div className="amb-desc__perks">
-                <div className="amb-desc__perk">Все привилегии тарифа 1190 навсегда</div>
                 <div className="amb-desc__perk">Статус «Амбассадор» в личном кабинете</div>
                 <div className="amb-desc__perk">Персональная реферальная ссылка</div>
                 <div className="amb-desc__perk">Приоритетная поддержка</div>
