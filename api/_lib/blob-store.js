@@ -1,25 +1,22 @@
-// api/lib/blob-store.js — Обёртка над Vercel Blob для хранения подарочных окон (CommonJS)
+// api/_lib/blob-store.js — Хранение подарочных окон в файловой системе (CommonJS)
 
-const { put, list } = require('@vercel/blob');
+const fs = require('fs');
+const path = require('path');
 
-const PREFIX = 'gifts/';
+const DATA_DIR = path.join(__dirname, '..', '..', 'data', 'gifts');
 
 /**
  * Читает JSON подарочных окон для пользователя
  * @param {string} telegramId
- * @returns {object|null} данные или null если не существует
+ * @returns {object|null}
  */
 async function readGiftWindows(telegramId) {
   try {
-    const { blobs } = await list({ prefix: `${PREFIX}${telegramId}.json` });
-    if (!blobs || blobs.length === 0) return null;
-
-    const res = await fetch(blobs[0].url, {
-      headers: { 'Authorization': 'Bearer ' + process.env.BLOB_READ_WRITE_TOKEN },
-    });
-    if (!res.ok) return null;
-    return await res.json();
+    const filePath = path.join(DATA_DIR, `${telegramId}.json`);
+    const raw = await fs.promises.readFile(filePath, 'utf8');
+    return JSON.parse(raw);
   } catch (err) {
+    if (err.code === 'ENOENT') return null;
     console.error('readGiftWindows error:', err.message);
     return null;
   }
@@ -31,13 +28,9 @@ async function readGiftWindows(telegramId) {
  * @param {object} data
  */
 async function writeGiftWindows(telegramId, data) {
-  const body = JSON.stringify(data);
-  await put(`${PREFIX}${telegramId}.json`, body, {
-    contentType: 'application/json',
-    access: 'private',
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
+  await fs.promises.mkdir(DATA_DIR, { recursive: true });
+  const filePath = path.join(DATA_DIR, `${telegramId}.json`);
+  await fs.promises.writeFile(filePath, JSON.stringify(data), 'utf8');
 }
 
 module.exports = { readGiftWindows, writeGiftWindows };
