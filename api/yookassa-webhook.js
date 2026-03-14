@@ -3,6 +3,7 @@
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { frontpadRequest } = require('./_lib/frontpad');
+const { upsertUser, recordPayment, processCommissions } = require('./_lib/db');
 
 const WATBOT_BASE = 'https://watbot.ru/api/v1';
 
@@ -246,7 +247,43 @@ module.exports = async (req, res) => {
       // Не фатально — основная логика подписки уже выполнена
     }
 
-    // 6. Инвалидировать кэш — обновить данные
+    // 6. SQLite: записываем платёж + начисляем комиссии
+    try {
+      const paymentAmount = Number(payment.amount?.value) || 0;
+
+      // Обновляем пользователя в SQLite
+      upsertUser({
+        telegram_id: String(telegramId),
+        tariff: String(tarif),
+        is_ambassador: isOneTime ? true : undefined,
+        subscription_status: isOneTime ? undefined : 'активно',
+        subscription_start: isOneTime ? undefined : formatDate(now),
+        subscription_end: isOneTime ? undefined : formatDate(endDate),
+        payment_method_id: isOneTime ? undefined : (paymentMethodId || undefined),
+      });
+
+      // Записываем платёж
+      const paymentDbId = recordPayment({
+        telegram_id: String(telegramId),
+        tariff: String(tarif),
+        amount: paymentAmount,
+        months,
+        yookassa_payment_id: payment.id || null,
+      });
+
+      // Начисляем комиссии амбассадорам (если плательщик — чей-то реферал)
+      if (!isOneTime && paymentAmount > 0) {
+        const commissions = processCommissions(String(telegramId), paymentAmount, paymentDbId);
+        if (commissions.length > 0) {
+          console.log('webhook: commissions processed', commissions);
+        }
+      }
+    } catch (dbErr) {
+      console.error('webhook: SQLite error:', dbErr.message);
+      // Не фатально — основная логика уже выполнена
+    }
+
+    // 7. Инвалидировать кэш — обновить данные
     try {
       const updatedTags = cached?.tags ? [...cached.tags] : [];
       if (isOneTime) {

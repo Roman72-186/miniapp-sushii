@@ -1995,6 +1995,41 @@ body.shop-body {
   text-underline-offset: 3px;
 }
 
+/* === Транзакции амбассадора === */
+.amb-panel__earnings {
+  text-align: center;
+}
+.amb-panel__earnings-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.amb-panel__txn-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.amb-panel__txn-amount {
+  color: #3CC8A1;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.amb-panel__txn-details {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+.amb-panel__txn-date {
+  margin-left: auto;
+}
+
 /* === Блок приглашения (не-амбассадоры) === */
 .amb-invite {
   text-align: center;

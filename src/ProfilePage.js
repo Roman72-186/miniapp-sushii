@@ -15,24 +15,48 @@ function ProfilePage() {
   const [referrals, setReferrals] = useState(null);
   const [showAllReferrals, setShowAllReferrals] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
+  const [earnings, setEarnings] = useState(null);
+  const [transactions, setTransactions] = useState(null);
+  const [showAllTxns, setShowAllTxns] = useState(false);
 
-  // Загружаем рефералов отдельно (зависит от contactId)
+  // Загружаем рефералов (по telegram_id, fallback на contact_id)
   useEffect(() => {
-    if (!contactId) {
+    if (!telegramId && !contactId) {
       if (!userLoading) setReferrals({ referrals_count: 0, ambassadors_count: 0, referrals: [] });
       return;
     }
+    const body = telegramId
+      ? { telegram_id: telegramId }
+      : { contact_id: contactId };
     fetch('/api/get-referrals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contact_id: contactId }),
+      body: JSON.stringify(body),
     })
       .then(r => r.ok ? r.json() : null)
       .then(refData => {
         setReferrals(refData || { referrals_count: 0, ambassadors_count: 0, referrals: [] });
       })
       .catch(() => setReferrals({ referrals_count: 0, ambassadors_count: 0, referrals: [] }));
-  }, [contactId, userLoading]);
+  }, [telegramId, contactId, userLoading]);
+
+  // Загружаем транзакции для амбассадоров
+  useEffect(() => {
+    if (!telegramId || !hasTag('Амба')) return;
+    fetch('/api/get-transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegram_id: telegramId }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) {
+          setEarnings(data.earnings);
+          setTransactions(data.transactions);
+        }
+      })
+      .catch(() => {});
+  }, [telegramId, hasTag]);
 
   const handleBack = () => {
     if (telegramId) {
@@ -215,14 +239,77 @@ function ProfilePage() {
                   </div>
                 )}
 
-                {/* Баланс SHC */}
+                {/* Заработок */}
+                <div className="shop-profile__section">
+                  <div className="amb-panel__earnings">
+                    <div className="amb-panel__earnings-title">Заработок</div>
+                    <div className="amb-panel__counters">
+                      <div className="amb-panel__counter">
+                        <span className="amb-panel__counter-value">
+                          {earnings ? `${earnings.total}₽` : '...'}
+                        </span>
+                        <span className="amb-panel__counter-label">Всего</span>
+                      </div>
+                      <div className="amb-panel__counter">
+                        <span className="amb-panel__counter-value">
+                          {earnings ? `${earnings.level1}₽` : '...'}
+                        </span>
+                        <span className="amb-panel__counter-label">Уровень 1</span>
+                      </div>
+                      {earnings && earnings.level2 > 0 && (
+                        <div className="amb-panel__counter">
+                          <span className="amb-panel__counter-value amb-panel__counter-value--gold">
+                            {earnings.level2}₽
+                          </span>
+                          <span className="amb-panel__counter-label">Уровень 2</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* История начислений */}
+                {transactions && transactions.length > 0 && (
+                  <div className="shop-profile__section">
+                    <div className="amb-panel__referrals-title">История начислений</div>
+                    <div className="amb-panel__referrals-list">
+                      {(showAllTxns ? transactions : transactions.slice(0, 5)).map((t, i) => (
+                        <div key={i} className="amb-panel__referral-item">
+                          <div className="amb-panel__txn-row">
+                            <span className="amb-panel__referral-name">{t.referral_name}</span>
+                            <span className="amb-panel__txn-amount">+{t.commission_amount}₽</span>
+                          </div>
+                          <div className="amb-panel__txn-details">
+                            <span>{t.commission_percent}% от {t.payment_amount}₽</span>
+                            {t.level === 2 && <span className="amb-panel__referral-badge">LVL2</span>}
+                            <span className="amb-panel__txn-date">
+                              {new Date(t.date).toLocaleDateString('ru-RU')}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {transactions.length > 5 && (
+                      <button
+                        className="amb-panel__show-all"
+                        onClick={() => setShowAllTxns(v => !v)}
+                      >
+                        {showAllTxns ? 'Свернуть' : `Все начисления (${transactions.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Баланс */}
                 <div className="shop-profile__section">
                   <div className="shop-profile__row">
-                    <span className="shop-profile__label">Мой баланс:</span>
-                    <span className="shop-profile__value">{profile?.balance_shc ? `${profile.balance_shc} SHC` : '—'}</span>
+                    <span className="shop-profile__label">Баланс к выплате:</span>
+                    <span className="shop-profile__value" style={{ color: '#3CC8A1', fontWeight: 700 }}>
+                      {earnings ? `${earnings.total}₽` : (profile?.balance_shc ? `${profile.balance_shc} SHC` : '0₽')}
+                    </span>
                   </div>
                   <div className="shop-profile__hint">
-                    (баланс за приглашённых в бота друзей)
+                    Для вывода средств свяжитесь с администратором
                   </div>
                 </div>
               </>

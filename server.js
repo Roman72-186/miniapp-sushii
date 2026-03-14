@@ -18,6 +18,9 @@ app.all('/api/check-vip', require('./api/check-vip'));
 app.all('/api/cancel-subscription', require('./api/cancel-subscription'));
 app.all('/api/get-gift-windows', require('./api/get-gift-windows'));
 app.all('/api/export-contacts', require('./api/export-contacts'));
+app.all('/api/get-transactions', require('./api/get-transactions'));
+app.all('/api/register-referral', require('./api/register-referral'));
+app.all('/api/migrate-referrals', require('./api/migrate-referrals'));
 
 // Serve React build
 app.use(express.static(path.join(__dirname, 'build')));

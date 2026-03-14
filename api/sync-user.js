@@ -3,6 +3,7 @@
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { findContact, fetchTags } = require('./_lib/watbot');
+const { upsertUser } = require('./_lib/db');
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 минут
 
@@ -97,8 +98,27 @@ module.exports = async (req, res) => {
       listItem: listItemData,
     };
 
-    // 7. Записываем в Blob
+    // 7. Записываем в файловый кэш
     await writeUserCache(telegram_id, cacheData);
+
+    // 8. Синхронизируем в SQLite
+    try {
+      upsertUser({
+        telegram_id: String(telegram_id),
+        name: contact?.name || listItemData?.name || null,
+        phone: listItemData?.telefon || variables['phone'] || variables['телефон'] || null,
+        tariff: tarif,
+        is_ambassador: tags.includes('Амба'),
+        subscription_status: variables['статусСписания'] || null,
+        subscription_start: variables['датаНачала'] || null,
+        subscription_end: variables['датаОКОНЧАНИЯ'] || null,
+        payment_method_id: variables['PaymentID'] || null,
+        ref_url: variables['ref_url'] || null,
+        watbot_contact_id: contact?.id ? String(contact.id) : null,
+      });
+    } catch (dbErr) {
+      console.error('sync-user: SQLite upsert error:', dbErr.message);
+    }
 
     return res.status(200).json({ success: true, data: cacheData, fromCache: false });
   } catch (error) {
