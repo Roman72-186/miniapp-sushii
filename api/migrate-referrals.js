@@ -2,7 +2,33 @@
 // POST /api/migrate-referrals с секретным ключом
 
 const { upsertUser, setInvitedBy } = require('./_lib/db');
-const { fetchAllContacts, fetchTags } = require('./_lib/watbot');
+const { fetchTags } = require('./_lib/watbot');
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+/**
+ * Загружает контакты постранично с задержкой (обход rate limit)
+ */
+async function fetchAllContactsSlow(apiToken) {
+  const base = `https://watbot.ru/api/v1/getContacts?api_token=${apiToken}&bot_id=72975&count=500`;
+  const firstRes = await fetch(`${base}&page=1`, { headers: { 'Accept': 'application/json' } });
+  if (!firstRes.ok) throw new Error('WATBOT getContacts error: ' + firstRes.status);
+  const firstData = await firstRes.json();
+  const lastPage = firstData.meta?.last_page || 1;
+  let allContacts = [...(firstData.data || [])];
+
+  for (let p = 2; p <= lastPage; p++) {
+    await sleep(1000); // 1 сек между запросами
+    try {
+      const res = await fetch(`${base}&page=${p}`, { headers: { 'Accept': 'application/json' } });
+      if (res.ok) {
+        const data = await res.json();
+        allContacts = allContacts.concat(data.data || []);
+      }
+    } catch (_) {}
+  }
+  return allContacts;
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
@@ -19,8 +45,8 @@ module.exports = async (req, res) => {
   try {
     console.log('migration: starting...');
 
-    // 1. Загружаем все контакты из WATBOT
-    const contacts = await fetchAllContacts(apiToken);
+    // 1. Загружаем все контакты из WATBOT (с задержкой)
+    const contacts = await fetchAllContactsSlow(apiToken);
     console.log(`migration: loaded ${contacts.length} contacts`);
 
     let imported = 0;
@@ -39,9 +65,10 @@ module.exports = async (req, res) => {
         }
       }
 
-      // Получаем теги
+      // Получаем теги (с задержкой)
       let tags = [];
       try {
+        await sleep(500);
         tags = await fetchTags(apiToken, contact.id);
       } catch (_) {}
 
@@ -70,6 +97,7 @@ module.exports = async (req, res) => {
       // 3. Реферальные связи (getReferrals для каждого амбассадора)
       if (tags.includes('Амба')) {
         try {
+          await sleep(500);
           const refRes = await fetch(
             `https://watbot.ru/api/v1/getReferrals?api_token=${apiToken}&bot_id=72975&contact_id=${contact.id}`,
             { headers: { 'Accept': 'application/json' } }
