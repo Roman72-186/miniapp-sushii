@@ -21,6 +21,7 @@ app.all('/api/export-contacts', require('./api/export-contacts'));
 app.all('/api/get-transactions', require('./api/get-transactions'));
 app.all('/api/register-referral', require('./api/register-referral'));
 app.all('/api/migrate-referrals', require('./api/migrate-referrals'));
+app.all('/api/migrate-subscribers', require('./api/migrate-subscribers'));
 
 // Serve React build
 app.use(express.static(path.join(__dirname, 'build')));
