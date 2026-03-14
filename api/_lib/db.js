@@ -60,6 +60,21 @@ function getDb() {
       FOREIGN KEY (payment_id) REFERENCES payments(id)
     );
 
+    CREATE TABLE IF NOT EXISTS referral_bonuses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      referral_id TEXT NOT NULL,
+      base_amount REAL NOT NULL DEFAULT 50,
+      threshold_bonus REAL DEFAULT 0,
+      total_amount REAL NOT NULL,
+      friends_count INTEGER NOT NULL,
+      achievement TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(telegram_id),
+      FOREIGN KEY (referral_id) REFERENCES users(telegram_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_referral_bonuses_user ON referral_bonuses(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_invited_by ON users(invited_by);
     CREATE INDEX IF NOT EXISTS idx_payments_telegram_id ON payments(telegram_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_ambassador ON transactions(ambassador_id);
@@ -272,6 +287,97 @@ function processCommissions(referralTelegramId, paymentAmount, paymentId) {
   return results;
 }
 
+// ─── SHC бонусы за рефералов (обычные пользователи) ──────
+
+const SHC_BASE = 50; // базовое начисление за каждого друга
+const SHC_THRESHOLDS = {
+  1:    50,
+  3:    100,
+  5:    290,
+  10:   490,
+  50:   1500,
+  100:  5000,
+  500:  10000,
+  1000: 30000,
+};
+
+const SHC_ACHIEVEMENTS = {
+  1:    'Ты привёл 1 друга — на счёт зачислено 50 SHC',
+  3:    'Уже 3 друга в Sushi House — ты получаешь 100 SHC',
+  5:    '5 приглашённых — на баланс падает 290 SHC',
+  10:   '10 друзей с тобой — ты зарабатываешь 490 SHC',
+  50:   'Мощный рейд: 50 приглашённых — +1500 SHC',
+  100:  'Сотка друзей в боте — на счёт зачислено 5000 SHC',
+  500:  'Ты собрал целый город: 500 друзей — +10000 SHC',
+  1000: 'Топ-инвайтер Sushi House: 1000 друзей — +30000 SHC',
+};
+
+/**
+ * Начисляет SHC пригласившему за нового реферала.
+ * Вызывается из register-referral при установке invited_by.
+ * @returns {object|null} результат начисления или null если нечего начислять
+ */
+function processReferralBonus(inviterTelegramId, referralTelegramId) {
+  const db = getDb();
+
+  const inviter = getUser(inviterTelegramId);
+  if (!inviter) return null;
+
+  // Проверяем, что бонус за этого реферала ещё не начислен
+  const existing = db.prepare(
+    'SELECT id FROM referral_bonuses WHERE user_id = ? AND referral_id = ?'
+  ).get(String(inviterTelegramId), String(referralTelegramId));
+  if (existing) return null;
+
+  // Считаем текущее количество рефералов (включая нового)
+  const referrals = getReferrals(inviterTelegramId);
+  const friendsCount = referrals.length;
+
+  // Базовый бонус
+  let total = SHC_BASE;
+  let thresholdBonus = 0;
+  let achievement = `На счёт начислено ${SHC_BASE} SHC`;
+
+  // Пороговый бонус
+  if (SHC_THRESHOLDS[friendsCount]) {
+    thresholdBonus = SHC_THRESHOLDS[friendsCount];
+    total += thresholdBonus;
+    achievement = SHC_ACHIEVEMENTS[friendsCount] || achievement;
+  }
+
+  // Записываем в транзакции и обновляем баланс
+  const txn = db.transaction(() => {
+    db.prepare(`
+      INSERT INTO referral_bonuses (user_id, referral_id, base_amount, threshold_bonus, total_amount, friends_count, achievement)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(String(inviterTelegramId), String(referralTelegramId), SHC_BASE, thresholdBonus, total, friendsCount, achievement);
+
+    updateBalance(inviterTelegramId, total);
+  });
+  txn();
+
+  return {
+    friends_count: friendsCount,
+    base: SHC_BASE,
+    threshold_bonus: thresholdBonus,
+    total,
+    achievement,
+    new_balance: getUser(inviterTelegramId)?.balance_shc || 0,
+  };
+}
+
+function getReferralBonuses(telegramId, limit = 50) {
+  const db = getDb();
+  return db.prepare(`
+    SELECT rb.*, u.name as referral_name
+    FROM referral_bonuses rb
+    LEFT JOIN users u ON u.telegram_id = rb.referral_id
+    WHERE rb.user_id = ?
+    ORDER BY rb.created_at DESC
+    LIMIT ?
+  `).all(String(telegramId), limit);
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -285,4 +391,6 @@ module.exports = {
   getTransactions,
   getTotalEarnings,
   processCommissions,
+  processReferralBonus,
+  getReferralBonuses,
 };

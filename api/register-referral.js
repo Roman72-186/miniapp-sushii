@@ -1,7 +1,7 @@
-// api/register-referral.js — Регистрация реферальной связи (кто кого пригласил)
+// api/register-referral.js — Регистрация реферальной связи + начисление SHC
 // Вызывается когда пользователь приходит по реферальной ссылке
 
-const { upsertUser, setInvitedBy, getUser } = require('./_lib/db');
+const { upsertUser, setInvitedBy, getUser, processReferralBonus } = require('./_lib/db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,14 +24,34 @@ module.exports = async (req, res) => {
   try {
     // Создаём запись пользователя если нет
     upsertUser({ telegram_id: String(telegram_id) });
+    upsertUser({ telegram_id: String(invited_by) });
+
+    // Проверяем, был ли уже установлен invited_by
+    const before = getUser(telegram_id);
+    const alreadyLinked = !!before?.invited_by;
 
     // Устанавливаем invited_by (только если ещё не установлен)
     setInvitedBy(String(telegram_id), String(invited_by));
+
+    // Начисляем SHC бонус пригласившему (только если связь новая)
+    let bonus = null;
+    if (!alreadyLinked) {
+      bonus = processReferralBonus(String(invited_by), String(telegram_id));
+      if (bonus) {
+        console.log('register-referral: SHC bonus', {
+          inviter: invited_by,
+          referral: telegram_id,
+          amount: bonus.total,
+          friends: bonus.friends_count,
+        });
+      }
+    }
 
     const user = getUser(telegram_id);
     return res.status(200).json({
       success: true,
       invited_by: user?.invited_by || null,
+      bonus,
     });
   } catch (error) {
     console.error('register-referral error:', error.message);

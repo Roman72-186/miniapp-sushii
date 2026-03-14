@@ -40,9 +40,13 @@ function ProfilePage() {
       .catch(() => setReferrals({ referrals_count: 0, ambassadors_count: 0, referrals: [] }));
   }, [telegramId, contactId, userLoading]);
 
-  // Загружаем транзакции для амбассадоров
+  const [shcData, setShcData] = useState(null);
+  const [bonuses, setBonuses] = useState(null);
+  const [showAllBonuses, setShowAllBonuses] = useState(false);
+
+  // Загружаем транзакции и SHC бонусы для всех пользователей
   useEffect(() => {
-    if (!telegramId || !hasTag('Амба')) return;
+    if (!telegramId) return;
     fetch('/api/get-transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,10 +57,12 @@ function ProfilePage() {
         if (data) {
           setEarnings(data.earnings);
           setTransactions(data.transactions);
+          setShcData(data.shc);
+          setBonuses(data.bonuses);
         }
       })
       .catch(() => {});
-  }, [telegramId, hasTag]);
+  }, [telegramId]);
 
   const handleBack = () => {
     if (telegramId) {
@@ -333,17 +339,21 @@ function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Рефералы (как было) */}
+                {/* Рефералы + баланс SHC */}
                 <div className="shop-profile__section">
-                  <div className="shop-profile__row">
-                    <span className="shop-profile__label">Приглашённые друзья:</span>
-                    {referrals === null ? (
-                      <span className="shop-profile__value" style={{ color: '#666' }}>...</span>
-                    ) : (
-                      <span className="shop-profile__value">
-                        {referrals?.referrals_count ?? 0}
+                  <div className="amb-panel__counters">
+                    <div className="amb-panel__counter">
+                      <span className="amb-panel__counter-value">
+                        {shcData ? shcData.friends_count : (referrals === null ? '...' : referrals?.referrals_count ?? 0)}
                       </span>
-                    )}
+                      <span className="amb-panel__counter-label">Друзей</span>
+                    </div>
+                    <div className="amb-panel__counter">
+                      <span className="amb-panel__counter-value" style={{ color: '#3CC8A1' }}>
+                        {shcData ? shcData.total : (profile?.balance_shc || 0)}
+                      </span>
+                      <span className="amb-panel__counter-label">SHC</span>
+                    </div>
                   </div>
                   {profile?.ref_url && (
                     <button
@@ -359,19 +369,45 @@ function ProfilePage() {
                         }
                       }}
                     >
-                      Поделиться
+                      Поделиться ссылкой
                     </button>
                   )}
                 </div>
 
-                {/* Баланс */}
-                <div className="shop-profile__section">
-                  <div className="shop-profile__row">
-                    <span className="shop-profile__label">Мой баланс:</span>
-                    <span className="shop-profile__value">{profile?.balance_shc ? `${profile.balance_shc} SHC` : '—'}</span>
+                {/* История SHC бонусов */}
+                {bonuses && bonuses.length > 0 && (
+                  <div className="shop-profile__section">
+                    <div className="amb-panel__referrals-title">Начисления SHC</div>
+                    <div className="amb-panel__referrals-list">
+                      {(showAllBonuses ? bonuses : bonuses.slice(0, 5)).map((b, i) => (
+                        <div key={i} className="amb-panel__referral-item">
+                          <div className="amb-panel__txn-row">
+                            <span className="amb-panel__referral-name">{b.referral_name}</span>
+                            <span className="amb-panel__txn-amount">+{b.total_amount} SHC</span>
+                          </div>
+                          <div className="amb-panel__txn-details">
+                            <span>{b.base_amount} базовых{b.threshold_bonus > 0 ? ` + ${b.threshold_bonus} бонус` : ''}</span>
+                            <span className="amb-panel__txn-date">
+                              {new Date(b.date).toLocaleDateString('ru-RU')}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {bonuses.length > 5 && (
+                      <button
+                        className="amb-panel__show-all"
+                        onClick={() => setShowAllBonuses(v => !v)}
+                      >
+                        {showAllBonuses ? 'Свернуть' : `Все начисления (${bonuses.length})`}
+                      </button>
+                    )}
                   </div>
+                )}
+
+                <div className="shop-profile__section">
                   <div className="shop-profile__hint">
-                    (баланс за приглашённых в бота друзей)
+                    +50 SHC за каждого друга. Бонусы на порогах: 5, 10, 50, 100 друзей
                   </div>
                 </div>
               </>
