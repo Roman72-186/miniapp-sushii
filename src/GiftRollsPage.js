@@ -110,7 +110,6 @@ function GiftRollsPage() {
       setFormError('Телефон должен быть в формате +7XXXXXXXXXX');
       return;
     }
-
     setSubmitting(true);
     try {
       const res = await fetch('/api/create-order', {

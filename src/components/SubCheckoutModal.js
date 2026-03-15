@@ -62,7 +62,6 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
       setError('Телефон должен быть в формате +7XXXXXXXXXX');
       return;
     }
-
     setSubmitting(true);
 
     try {
