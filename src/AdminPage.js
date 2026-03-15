@@ -157,7 +157,7 @@ function AdminPage() {
           </form>
           {loginError && <p style={styles.error}>{loginError}</p>}
           <button
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => { window.location.href = '/discount-shop'; }}
             style={{ ...styles.btnSmall, marginTop: 16, width: '100%' }}
           >
             Назад
@@ -186,7 +186,7 @@ function AdminPage() {
       <div style={styles.header}>
         <h2 style={styles.title}>Админка</h2>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => { window.location.href = '/'; }} style={styles.btnSmall}>Назад</button>
+          <button onClick={() => { window.location.href = '/discount-shop'; }} style={styles.btnSmall}>Назад</button>
           <button onClick={logout} style={styles.btnSmall}>Выйти</button>
         </div>
       </div>
