@@ -30,8 +30,11 @@ const GIFT_CATEGORIES = [
 
 function isGiftLocked(cat, userTarif) {
   if (!userTarif) return true;
-  const level = { '290': 1, '490': 2, '1190': 3, '9990': 4 };
-  return (level[userTarif] || 0) < (level[cat.minTarif] || 0);
+  // 9990 (амбассадор) — доступ ко всем подаркам
+  if (userTarif === '9990') return false;
+  // Каждый тариф открывает только свою категорию подарков
+  // 490 → роллы (minTarif='490'), 1190 → сеты (minTarif='1190')
+  return userTarif !== cat.minTarif;
 }
 
 function useDiscountMenu() {
