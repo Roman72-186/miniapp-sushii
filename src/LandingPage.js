@@ -33,6 +33,20 @@ function LandingPage() {
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
+  // Тройной клик по логотипу → админка
+  const logoClicksRef = React.useRef({ count: 0, timer: null });
+  const handleLogoClick = () => {
+    const ref = logoClicksRef.current;
+    ref.count++;
+    clearTimeout(ref.timer);
+    if (ref.count >= 3) {
+      ref.count = 0;
+      window.location.href = '/admin';
+      return;
+    }
+    ref.timer = setTimeout(() => { ref.count = 0; }, 1000);
+  };
+
   // Обработка возврата после успешной оплаты
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -78,7 +92,7 @@ function LandingPage() {
         </div>
       )}
       <div className="shop-landing">
-        <img src="/logo.jpg" alt="\u0421\u0443\u0448\u0438-\u0425\u0430\u0443\u0441 39" className="shop-landing__logo" />
+        <img src="/logo.jpg" alt="\u0421\u0443\u0448\u0438-\u0425\u0430\u0443\u0441 39" className="shop-landing__logo" onClick={handleLogoClick} style={{ cursor: 'default' }} />
         <h1 className="shop-landing__title">{'\u0421\u0423\u0428\u0418-\u0425\u0410\u0423\u0421 39'}</h1>
         <p className="shop-landing__subtitle">{'\u041F\u043E\u0434\u043F\u0438\u0441\u043A\u0430 \u0441\u043E \u0441\u043A\u0438\u0434\u043A\u0430\u043C\u0438 \u0438 \u043F\u043E\u0434\u0430\u0440\u043A\u0430\u043C\u0438'}</p>
 
