@@ -167,7 +167,7 @@ function GiftRollsPage() {
               text: `✅ <b>Заказ №${orderNum} принят!</b>\n\n🍣 ${selectedProduct.name}\n📍 Самовывоз: ${selectedPickup.address}\n\nМы уже готовим ваш подарок. Ожидайте!`,
               reply_markup: {
                 inline_keyboard: [[
-                  { text: '🏠 Главное меню', web_app: { url: 'https://sushi-house-39.ru/' } },
+                  { text: '🏠 Главное меню', callback_data: '/start' },
                 ]],
               },
             }),
