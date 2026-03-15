@@ -179,7 +179,10 @@ function AdminPage() {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>Админка</h2>
-        <button onClick={logout} style={styles.btnSmall}>Выйти</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => { window.location.href = '/'; }} style={styles.btnSmall}>Назад</button>
+          <button onClick={logout} style={styles.btnSmall}>Выйти</button>
+        </div>
       </div>
 
       {/* Tabs */}

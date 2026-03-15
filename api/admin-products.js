@@ -15,6 +15,13 @@ const CATALOGS = [
   { id: 'sets-490', name: 'Подарочные сеты (1190)', file: 'подписка 490/sets-490.json' },
 ];
 
+// Группы каталогов для синхронизации enabled (по имени товара)
+const SYNC_GROUPS = [
+  ['rolls', 'rolls-sub', 'rolls-490'],       // холодные роллы ↔ подписка -30% ↔ подарки
+  ['zaproll', 'zaproll-sub'],                 // запечённые ↔ подписка -30%
+  ['sets', 'sets-sub', 'sets-490'],           // сеты ↔ подписка -20% ↔ подарочные сеты
+];
+
 const BUILD_DIR = path.join(__dirname, '..', 'build');
 const DATA_DIR = path.join(__dirname, '..', 'data', 'products');
 
@@ -110,6 +117,29 @@ module.exports = async (req, res) => {
       }
 
       saveCatalog(catalog.file, data);
+
+      // Синхронизация enabled по имени товара в связанных каталогах
+      if (enabled !== undefined && enabled !== null) {
+        const itemName = data.items[idx].name;
+        const syncGroup = SYNC_GROUPS.find(g => g.includes(catalogId));
+        if (syncGroup) {
+          for (const otherId of syncGroup) {
+            if (otherId === catalogId) continue;
+            const otherCat = CATALOGS.find(c => c.id === otherId);
+            if (!otherCat) continue;
+            const otherData = readCatalog(otherCat.file);
+            if (!otherData || !otherData.items) continue;
+            let changed = false;
+            for (const item of otherData.items) {
+              if (item.name === itemName) {
+                item.enabled = Boolean(enabled);
+                changed = true;
+              }
+            }
+            if (changed) saveCatalog(otherCat.file, otherData);
+          }
+        }
+      }
 
       return res.status(200).json({
         success: true,
