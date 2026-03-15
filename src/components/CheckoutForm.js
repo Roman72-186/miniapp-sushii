@@ -13,6 +13,16 @@ const PICKUP_POINTS = [
 const CLOSE_HOUR = 22; // Закрытие в 22:00
 const OPEN_HOUR = 10;  // Открытие в 10:00
 
+function normalizePhone(raw) {
+  const digits = raw.replace(/[^\d+]/g, '');
+  const nums = digits.replace(/\D/g, '');
+  if (nums.length === 11 && nums.startsWith('8')) return '+7' + nums.slice(1);
+  if (nums.length === 11 && nums.startsWith('7')) return '+7' + nums.slice(1);
+  if (nums.length === 10) return '+7' + nums;
+  if (digits.startsWith('+7') && nums.length === 11) return '+7' + nums.slice(1);
+  return raw;
+}
+
 /**
  * Генерирует список доступных временных слотов (шаг 15 мин)
  * Минимум: текущее время + 1 час (округлено вверх до 15 мин)
@@ -97,7 +107,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   // Автозаполнение имени и телефона из контекста пользователя
   useEffect(() => {
     if (listItemName && !name) setName(listItemName);
-    if (userPhone && !phone) setPhone(userPhone);
+    if (userPhone && !phone) setPhone(normalizePhone(userPhone));
   }, [listItemName, userPhone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Доступные слоты времени
@@ -112,6 +122,13 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
 
     if (!name.trim()) { setError('Укажите имя'); return; }
     if (!phone.trim()) { setError('Укажите телефон'); return; }
+
+    const finalPhone = normalizePhone(phone.trim());
+    if (!/^\+7\d{10}$/.test(finalPhone)) {
+      setError('Телефон должен быть в формате +7XXXXXXXXXX');
+      return;
+    }
+
     if (deliveryType === 'delivery' && !street.trim()) { setError('Укажите улицу'); return; }
     if (timeType === 'scheduled' && !scheduledTime) { setError('Выберите время'); return; }
 
@@ -134,7 +151,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           })),
           client: {
             name: name.trim(),
-            phone: phone.trim(),
+            phone: finalPhone,
             street: deliveryType === 'delivery' ? street.trim() : pickupAddress,
             home: deliveryType === 'delivery' ? home.trim() : '',
             apart: deliveryType === 'delivery' ? apart.trim() : '',
@@ -331,6 +348,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
                   placeholder="+7 (___) ___-__-__"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
+                  onBlur={() => { if (phone.trim()) setPhone(normalizePhone(phone.trim())); }}
                 />
               </div>
             </div>
