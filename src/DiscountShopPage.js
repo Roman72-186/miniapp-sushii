@@ -151,7 +151,13 @@ function DiscountShopPage() {
   };
 
   // Gift view: null = основное меню, 'gift-rolls' | 'gift-sets' = подарочный экран
-  const [giftView, setGiftView] = useState(null);
+  // Поддержка ?view=gift-rolls / ?view=gift-sets для прямой ссылки
+  const initialView = React.useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view');
+    return (v === 'gift-rolls' || v === 'gift-sets') ? v : null;
+  }, []);
+  const [giftView, setGiftView] = useState(initialView);
   const [selectedGiftProduct, setSelectedGiftProduct] = useState(null);
   const [giftOrderNumber, setGiftOrderNumber] = useState(null);
 
