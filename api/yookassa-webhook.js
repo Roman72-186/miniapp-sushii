@@ -3,7 +3,7 @@
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { frontpadRequest } = require('./_lib/frontpad');
-const { upsertUser, recordPayment, processCommissions } = require('./_lib/db');
+const { getUser, upsertUser, recordPayment, processCommissions } = require('./_lib/db');
 
 const WATBOT_BASE = 'https://watbot.ru/api/v1';
 
@@ -115,12 +115,6 @@ async function verifyPayment(paymentId) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken) {
-    console.error('webhook: WATBOT_API_TOKEN not configured');
-    return res.status(500).end();
-  }
-
   try {
     const body = req.body || {};
     const event = body.event;
@@ -141,7 +135,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ status: 'ignored', reason: 'no metadata' });
     }
 
-    // Проверка IP отправителя (Vercel передаёт IP через x-forwarded-for)
+    // Проверка IP отправителя
     const forwardedFor = req.headers['x-forwarded-for'] || '';
     const clientIp = forwardedFor.split(',')[0].trim();
     const isYooKassaIp = YOOKASSA_CIDRS.some(cidr => clientIp.startsWith(cidr));
@@ -155,71 +149,76 @@ module.exports = async (req, res) => {
       }
     }
 
-    // 1. Найти контакт в WATBOT
-    const contact = await findContact(apiToken, telegramId);
-    if (!contact || !contact.id) {
-      console.error('webhook: contact not found for telegram_id', telegramId);
-      return res.status(200).json({ status: 'error', reason: 'contact not found' });
-    }
-
-    const contactId = contact.id;
+    const apiToken = process.env.WATBOT_API_TOKEN;
     const isOneTime = String(tarif) === '9990';
     const now = new Date();
     const endDate = new Date(now);
     endDate.setDate(endDate.getDate() + 30 * months);
 
-    // 2. Установить переменные + теги в WATBOT
-    if (isOneTime) {
-      // Амбассадор: только тег «Амба», без переменных подписки
-      await addTag(apiToken, contactId, 'Амба');
-    } else {
-      // Подписка: переменные + теги
-      const variablePromises = [
-        setVariable(apiToken, contactId, 'статусСписания', 'активно'),
-        setVariable(apiToken, contactId, 'датаНачала', formatDate(now)),
-        setVariable(apiToken, contactId, 'датаОКОНЧАНИЯ', formatDate(endDate)),
-      ];
-      if (paymentMethodId) {
-        variablePromises.push(setVariable(apiToken, contactId, 'PaymentID', paymentMethodId));
+    // 1. WATBOT: синхронизация тегов/переменных (необязательно — если WATBOT недоступен, ничего страшного)
+    try {
+      if (apiToken) {
+        const contact = await findContact(apiToken, telegramId);
+        if (contact && contact.id) {
+          const contactId = contact.id;
+          if (isOneTime) {
+            await addTag(apiToken, contactId, 'Амба');
+          } else {
+            const variablePromises = [
+              setVariable(apiToken, contactId, 'статусСписания', 'активно'),
+              setVariable(apiToken, contactId, 'датаНачала', formatDate(now)),
+              setVariable(apiToken, contactId, 'датаОКОНЧАНИЯ', formatDate(endDate)),
+            ];
+            if (paymentMethodId) {
+              variablePromises.push(setVariable(apiToken, contactId, 'PaymentID', paymentMethodId));
+            }
+            await Promise.all(variablePromises);
+            await Promise.all([
+              addTag(apiToken, contactId, String(tarif)),
+              addTag(apiToken, contactId, 'подписка30'),
+            ]);
+          }
+          console.log('webhook: WATBOT synced for', telegramId);
+        } else {
+          console.warn('webhook: WATBOT contact not found for', telegramId, '— skipping WATBOT sync');
+        }
       }
-      await Promise.all(variablePromises);
-      await Promise.all([
-        addTag(apiToken, contactId, String(tarif)),
-        addTag(apiToken, contactId, 'подписка30'),
-      ]);
+    } catch (watbotErr) {
+      console.warn('webhook: WATBOT sync failed (non-fatal):', watbotErr.message);
     }
 
-    // 4. Читаем кэш (используется для Frontpad + инвалидации)
+    // 2. Читаем кэш + SQLite для телефона
     let cached = null;
     try { cached = await readUserCache(telegramId); } catch (_) {}
 
-    // 5. Создать заказ во Frontpad для учёта подписки
-    try {
-      // Получаем телефон из кэша или WATBOT
-      let phone = cached?.listItem?.telefon || cached?.variables?.phone || null;
+    const dbUser = getUser(telegramId);
 
-      if (!phone) {
-        // Fallback: getListItems
-        const listRes = await fetch('https://watbot.ru/api/v1/getListItems?api_token=' + apiToken, {
-          method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            schema_id: '69a16dc23dd8ee76a202a802',
-            filters: { id_tg: String(telegramId) },
-          }),
-        });
-        if (listRes.ok) {
-          const listData = await listRes.json();
-          const item = (listData.data || [])[0];
-          if (item) phone = item.telefon || item.phone || null;
-        }
+    // 3. Создать заказ во Frontpad для учёта подписки
+    try {
+      let phone = cached?.listItem?.telefon || cached?.variables?.phone || dbUser?.phone || null;
+
+      if (!phone && apiToken) {
+        try {
+          const listRes = await fetch('https://watbot.ru/api/v1/getListItems?api_token=' + apiToken, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              schema_id: '69a16dc23dd8ee76a202a802',
+              filters: { id_tg: String(telegramId) },
+            }),
+          });
+          if (listRes.ok) {
+            const listData = await listRes.json();
+            const item = (listData.data || [])[0];
+            if (item) phone = item.telefon || item.phone || null;
+          }
+        } catch (_) {}
       }
 
       const productId = TARIF_PRODUCT_ID[String(tarif)];
       const monthsLabel = months === 1 ? '1 мес' : `${months} мес`;
 
       if (productId && phone) {
-        // Нормализуем телефон: добавляем 7 если нужно
         const normalizedPhone = phone.replace(/[^\d]/g, '');
         const fullPhone = normalizedPhone.startsWith('7') ? normalizedPhone : '7' + normalizedPhone;
 
@@ -244,7 +243,6 @@ module.exports = async (req, res) => {
       }
     } catch (fpErr) {
       console.error('webhook: frontpad error', fpErr.message);
-      // Не фатально — основная логика подписки уже выполнена
     }
 
     // 6. SQLite: записываем платёж + начисляем комиссии

@@ -29,7 +29,7 @@ function LandingPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, hasTag, sync } = useUser();
+  const { telegramId, loading: userLoading, tarif, sync } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
@@ -65,11 +65,12 @@ function LandingPage() {
 
   useEffect(() => {
     if (userLoading || !telegramId) return;
-    if (hasTag('подписка30')) {
+    // Есть активный тариф — редирект в магазин со скидками
+    if (tarif && ['290', '490', '1190', '9990'].includes(tarif)) {
       setRedirecting(true);
       window.location.href = `/discount-shop?telegram_id=${telegramId}`;
     }
-  }, [userLoading, telegramId, hasTag]);
+  }, [userLoading, telegramId, tarif]);
 
   const handleTariffClick = (price) => {
     const tid = telegramId ? `?telegram_id=${telegramId}` : '';

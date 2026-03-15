@@ -1,79 +1,10 @@
-// api/get-gift-windows.js — Получение статуса подарочных окон (Vercel Blob + WATBOT, с кэшем)
-// Vercel Serverless Function (CommonJS)
+// api/get-gift-windows.js — Получение статуса подарочных окон
+// Источник данных: SQLite (primary) → файловый кэш → WATBOT (fallback)
 
 const { buildWindows, computeStatus } = require('./_lib/gift-windows');
 const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
+const { getUser } = require('./_lib/db');
 const { readUserCache } = require('./_lib/user-cache');
-
-/**
- * Находит контакт по telegram_id в WATBOT (fallback)
- */
-async function findContact(apiToken, telegramId) {
-  const tgId = String(telegramId);
-  const base = `https://watbot.ru/api/v1/getContacts?api_token=${apiToken}&bot_id=72975&count=500`;
-
-  const firstRes = await fetch(`${base}&page=1`, {
-    headers: { 'Accept': 'application/json' },
-  });
-  if (!firstRes.ok) throw new Error('WATBOT API error: ' + firstRes.status);
-
-  const firstData = await firstRes.json();
-  const lastPage = firstData.meta?.last_page || 1;
-
-  let contact = (firstData.data || []).find(c => c.telegram_id === tgId);
-
-  if (!contact && lastPage > 1) {
-    const pageNums = [];
-    for (let p = 2; p <= lastPage; p++) pageNums.push(p);
-
-    const results = await Promise.all(
-      pageNums.map(p =>
-        fetch(`${base}&page=${p}`, { headers: { 'Accept': 'application/json' } })
-          .then(r => r.json())
-          .then(data => (data.data || []).find(c => c.telegram_id === tgId) || null)
-          .catch(() => null)
-      )
-    );
-    contact = results.find(c => c !== null) || null;
-  }
-
-  return contact;
-}
-
-/**
- * Извлекает переменные из контакта WATBOT
- */
-function extractVariables(contact) {
-  const vars = {};
-  for (const v of (contact.variables || [])) {
-    const name = v.name || '';
-    const value = v.value != null ? String(v.value) : '';
-    if (['датаНачала', 'датаОКОНЧАНИЯ', 'датаПодарка'].includes(name)) {
-      vars[name] = value;
-    }
-  }
-  return vars;
-}
-
-/**
- * Определяет тариф через getListItems (fallback)
- */
-async function getTarif(apiToken, telegramId) {
-  const res = await fetch('https://watbot.ru/api/v1/getListItems?api_token=' + apiToken, {
-    method: 'POST',
-    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      schema_id: '69a16dc23dd8ee76a202a802',
-      filters: { id_tg: String(telegramId) },
-    }),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  const items = data.data || [];
-  if (items.length === 0) return null;
-  const item = items[0];
-  return String(item.tarif || item.Tarif || item.tariff || '');
-}
 
 /**
  * При пересоздании окон сохраняет claimed статусы из старого массива
@@ -104,59 +35,54 @@ module.exports = async (req, res) => {
   const { telegram_id } = req.body || {};
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken) return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
-
   try {
-    // 1. Попытка из кэша пользователя
-    const cache = await readUserCache(telegram_id);
-    let contactId, tarif, vars;
+    let tarif = null;
+    let датаНачала = '';
+    let датаОКОНЧАНИЯ = '';
 
-    if (cache && cache.contact && cache.tarif !== undefined) {
-      contactId = cache.contact.id || null;
-      tarif = cache.tarif || '';
-      vars = {
-        датаНачала: (cache.variables || {})['датаНачала'] || '',
-        датаОКОНЧАНИЯ: (cache.variables || {})['датаОКОНЧАНИЯ'] || '',
-      };
-    } else {
-      // 2. Fallback: WATBOT API
-      const [contact, tarifResult] = await Promise.all([
-        findContact(apiToken, telegram_id),
-        getTarif(apiToken, telegram_id),
-      ]);
-
-      if (!contact) {
-        return res.status(404).json({ error: 'Контакт не найден' });
-      }
-
-      contactId = contact.id || null;
-      tarif = tarifResult || '';
-      vars = extractVariables(contact);
+    // 1. SQLite — основной источник
+    const dbUser = getUser(telegram_id);
+    if (dbUser && dbUser.tariff) {
+      tarif = dbUser.tariff;
+      датаНачала = dbUser.subscription_start || '';
+      датаОКОНЧАНИЯ = dbUser.subscription_end || '';
     }
 
+    // 2. Файловый кэш — дополнение (может быть свежее)
+    if (!tarif || !датаНачала) {
+      try {
+        const cache = await readUserCache(telegram_id);
+        if (cache) {
+          if (!tarif && cache.tarif) tarif = cache.tarif;
+          if (!датаНачала && cache.variables) {
+            датаНачала = cache.variables['датаНачала'] || '';
+            датаОКОНЧАНИЯ = cache.variables['датаОКОНЧАНИЯ'] || '';
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Нет данных — expired
     if (!tarif || (tarif !== '490' && tarif !== '1190')) {
       return res.status(200).json({
         success: true,
-        data: { tarif: tarif || null, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], contact_id: contactId },
+        data: { tarif: tarif || null, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [] },
       });
     }
-
-    const { датаНачала, датаОКОНЧАНИЯ } = vars;
 
     if (!датаНачала || !датаОКОНЧАНИЯ) {
       return res.status(200).json({
         success: true,
-        data: { tarif, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], contact_id: contactId },
+        data: { tarif, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [] },
       });
     }
 
     const windowDays = tarif === '1190' ? 30 : 15;
 
-    // 3. Попробовать прочитать из Blob (подарочные окна)
+    // 3. Читаем сохранённые окна
     let stored = await readGiftWindows(telegram_id);
 
-    // 4. Проверить, нужно ли пересоздать
+    // 4. Пересоздаём если изменились параметры
     const needRebuild = !stored ||
       stored.startDate !== датаНачала ||
       stored.endDate !== датаОКОНЧАНИЯ ||
@@ -168,7 +94,6 @@ module.exports = async (req, res) => {
 
       stored = {
         telegram_id: String(telegram_id),
-        contact_id: contactId,
         tarif,
         startDate: датаНачала,
         endDate: датаОКОНЧАНИЯ,
@@ -181,7 +106,7 @@ module.exports = async (req, res) => {
       await writeGiftWindows(telegram_id, stored);
     }
 
-    // 5. Вычислить статус
+    // 5. Статус
     const status = computeStatus(stored.windows);
 
     return res.status(200).json({
@@ -193,7 +118,6 @@ module.exports = async (req, res) => {
         currentWindow: status.currentWindow,
         totalWindows: status.totalWindows,
         windows: stored.windows,
-        contact_id: contactId,
       },
     });
   } catch (error) {
