@@ -22,6 +22,7 @@ app.all('/api/get-transactions', require('./api/get-transactions'));
 app.all('/api/register-referral', require('./api/register-referral'));
 app.all('/api/migrate-referrals', require('./api/migrate-referrals'));
 app.all('/api/migrate-subscribers', require('./api/migrate-subscribers'));
+app.all('/api/send-bot-message', require('./api/send-bot-message'));
 
 // Admin API
 app.all('/api/admin/login', require('./api/admin-login'));

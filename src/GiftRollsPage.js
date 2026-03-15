@@ -1,7 +1,7 @@
 // src/GiftRollsPage.js — Отдельная страница подарочных роллов (для кнопки в боте)
 // Без навигации, после заказа — автозакрытие мини-аппа
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from './UserContext';
 import { getProductImage } from './config/imageMap';
 import BrandLoader from './components/BrandLoader';
@@ -153,7 +153,27 @@ function GiftRollsPage() {
         sync(true);
       }
 
-      setOrderNumber(data.orderNumber || data.orderId || '');
+      const orderNum = data.orderNumber || data.orderId || '';
+      setOrderNumber(orderNum);
+
+      // Отправить сообщение в бот
+      if (telegramId) {
+        try {
+          await fetch('/api/send-bot-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              telegram_id: telegramId,
+              text: `✅ <b>Заказ №${orderNum} принят!</b>\n\n🍣 ${selectedProduct.name}\n📍 Самовывоз: ${selectedPickup.address}\n\nМы уже готовим ваш подарок. Ожидайте!`,
+              reply_markup: {
+                inline_keyboard: [[
+                  { text: '🏠 Главное меню', web_app: { url: 'https://sushi-house-39.ru/' } },
+                ]],
+              },
+            }),
+          });
+        } catch (_) {}
+      }
     } catch (err) {
       setFormError(err.message || 'Не удалось отправить заказ');
       setSubmitting(false);
