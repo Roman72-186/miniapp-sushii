@@ -30,7 +30,7 @@ function useLocalMenu() {
           const res = await fetch(cat.jsonUrl);
           if (!res.ok) throw new Error(`Ошибка загрузки ${cat.name}`);
           const data = await res.json();
-          return data.items.map((item, idx) => ({
+          return data.items.filter(item => item.enabled !== false).map((item, idx) => ({
             id: item.sku || `${cat.id}-${idx}`,
             name: item.name,
             cleanName: item.name,

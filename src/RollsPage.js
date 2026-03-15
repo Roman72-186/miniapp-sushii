@@ -39,7 +39,7 @@ function RollsPage() {
     }
   }, [urlTelegramId]);
 
-  const rolls = useMemo(() => normalizeRolls(rawProducts), []);
+  const rolls = useMemo(() => normalizeRolls(rawProducts).filter(p => p.enabled !== false), []);
 
   return (
     <div className="app">

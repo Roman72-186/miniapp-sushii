@@ -51,7 +51,7 @@ function useDiscountMenu() {
           if (!res.ok) throw new Error(`Ошибка загрузки ${cat.name}`);
           const data = await res.json();
           const isGift = GIFT_CATEGORIES.some(g => g.id === cat.id);
-          return data.items.map((item, idx) => {
+          return data.items.filter(item => item.enabled !== false).map((item, idx) => {
             if (isGift) {
               return {
                 id: item.sku || `${cat.id}-${idx}`,

@@ -42,7 +42,7 @@ function SetsPage() {
     }
   }, [urlTelegramId]);
 
-  const sets = useMemo(() => normalizeSets(subscriptionSets), []);
+  const sets = useMemo(() => normalizeSets(subscriptionSets).filter(p => p.enabled !== false), []);
 
   return (
     <div className="app">
