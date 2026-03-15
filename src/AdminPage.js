@@ -156,6 +156,12 @@ function AdminPage() {
             <button type="submit" style={styles.btnPrimary}>Войти</button>
           </form>
           {loginError && <p style={styles.error}>{loginError}</p>}
+          <button
+            onClick={() => { window.location.href = '/'; }}
+            style={{ ...styles.btnSmall, marginTop: 16, width: '100%' }}
+          >
+            Назад
+          </button>
         </div>
       </div>
     );
