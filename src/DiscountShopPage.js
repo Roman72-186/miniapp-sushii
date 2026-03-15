@@ -134,6 +134,20 @@ function DiscountShopPage() {
   const sectionRefs = useRef({});
   const isScrollingByClick = useRef(false);
 
+  // Тройной клик по логотипу → админка
+  const logoClicksRef = useRef({ count: 0, timer: null });
+  const handleLogoClick = () => {
+    const ref = logoClicksRef.current;
+    ref.count++;
+    clearTimeout(ref.timer);
+    if (ref.count >= 3) {
+      ref.count = 0;
+      window.location.href = '/admin';
+      return;
+    }
+    ref.timer = setTimeout(() => { ref.count = 0; }, 1000);
+  };
+
   // Gift view: null = основное меню, 'gift-rolls' | 'gift-sets' = подарочный экран
   const [giftView, setGiftView] = useState(null);
   const [selectedGiftProduct, setSelectedGiftProduct] = useState(null);
@@ -333,7 +347,7 @@ function DiscountShopPage() {
     <div className="shop-page">
       <header className="shop-header">
         <div className="shop-header__center">
-          <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" />
+          <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" onClick={handleLogoClick} />
           <span className="shop-header__title">Sushi House</span>
         </div>
         <div className="shop-header__actions">
