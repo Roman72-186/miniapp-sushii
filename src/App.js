@@ -13,6 +13,7 @@ import LandingPage from "./LandingPage"; // посадочная страниц�
 import PaymentPage from "./PaymentPage"; // страница оплаты подписки
 import AdminPage from "./AdminPage"; // админка
 import GiftRollsPage from "./GiftRollsPage"; // подарочные роллы (отдельная страница для бота)
+import GiftSetsPage from "./GiftSetsPage"; // подарочные сеты (отдельная страница для бота)
 
 function App() {
   // без условных хуков — просто флаги страниц
@@ -36,6 +37,8 @@ function App() {
     typeof window !== "undefined" && window.location.pathname === "/admin";
   const isGiftRollsPage =
     typeof window !== "undefined" && window.location.pathname === "/gift-rolls";
+  const isGiftSetsPage =
+    typeof window !== "undefined" && window.location.pathname === "/gift-sets";
   const isPaymentPage =
     typeof window !== "undefined" && window.location.pathname.startsWith("/pay/");
   const isLandingPage =
@@ -44,6 +47,10 @@ function App() {
 
   if (isGiftRollsPage) {
     return <GiftRollsPage />;
+  }
+
+  if (isGiftSetsPage) {
+    return <GiftSetsPage />;
   }
 
   if (isAdminPage) {
