@@ -30,9 +30,8 @@ const GIFT_CATEGORIES = [
 
 function isGiftLocked(cat, userTarif) {
   if (!userTarif) return true;
-  if (cat.minTarif === '490') return userTarif !== '490';
-  if (cat.minTarif === '1190') return userTarif !== '1190';
-  return false;
+  const level = { '290': 1, '490': 2, '1190': 3, '9990': 4 };
+  return (level[userTarif] || 0) < (level[cat.minTarif] || 0);
 }
 
 function useDiscountMenu() {
