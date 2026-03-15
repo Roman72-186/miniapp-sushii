@@ -164,15 +164,11 @@ module.exports = async (req, res) => {
           if (isOneTime) {
             await addTag(apiToken, contactId, 'Амба');
           } else {
-            const variablePromises = [
+            await Promise.all([
               setVariable(apiToken, contactId, 'статусСписания', 'активно'),
               setVariable(apiToken, contactId, 'датаНачала', formatDate(now)),
               setVariable(apiToken, contactId, 'датаОКОНЧАНИЯ', formatDate(endDate)),
-            ];
-            if (paymentMethodId) {
-              variablePromises.push(setVariable(apiToken, contactId, 'PaymentID', paymentMethodId));
-            }
-            await Promise.all(variablePromises);
+            ]);
             await Promise.all([
               addTag(apiToken, contactId, String(tarif)),
               addTag(apiToken, contactId, 'подписка30'),
@@ -300,7 +296,6 @@ module.exports = async (req, res) => {
 
       const updatedVariables = { ...(cached?.variables || {}) };
       if (!isOneTime) {
-        if (paymentMethodId) updatedVariables['PaymentID'] = paymentMethodId;
         updatedVariables['статусСписания'] = 'активно';
         updatedVariables['датаНачала'] = formatDate(now);
         updatedVariables['датаОКОНЧАНИЯ'] = formatDate(endDate);

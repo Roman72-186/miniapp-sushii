@@ -378,6 +378,71 @@ function getReferralBonuses(telegramId, limit = 50) {
   `).all(String(telegramId), limit);
 }
 
+// ─── Подписки: выборки по датам ─────────────────────────
+
+/**
+ * Подписки, истекающие через N дней (для напоминаний)
+ */
+function getExpiringSubscriptions(daysFromNow) {
+  const db = getDb();
+  const target = new Date();
+  target.setDate(target.getDate() + daysFromNow);
+  const targetStr = `${String(target.getDate()).padStart(2,'0')}.${String(target.getMonth()+1).padStart(2,'0')}.${target.getFullYear()}`;
+
+  return db.prepare(`
+    SELECT * FROM users
+    WHERE subscription_status = 'активно'
+      AND subscription_end = ?
+  `).all(targetStr);
+}
+
+/**
+ * Подписки, истёкшие на сегодня (subscription_end = сегодня)
+ */
+function getExpiredToday() {
+  const db = getDb();
+  const now = new Date();
+  const todayStr = `${String(now.getDate()).padStart(2,'0')}.${String(now.getMonth()+1).padStart(2,'0')}.${now.getFullYear()}`;
+
+  return db.prepare(`
+    SELECT * FROM users
+    WHERE subscription_status = 'активно'
+      AND subscription_end = ?
+  `).all(todayStr);
+}
+
+/**
+ * Деактивировать подписку пользователя
+ */
+function deactivateSubscription(telegramId) {
+  const db = getDb();
+  db.prepare(`
+    UPDATE users
+    SET subscription_status = 'неактивно',
+        payment_method_id = NULL,
+        updated_at = datetime('now')
+    WHERE telegram_id = ?
+  `).run(String(telegramId));
+}
+
+/**
+ * Продлить подписку после рекуррентного платежа
+ */
+function renewSubscription(telegramId, newEndDate) {
+  const db = getDb();
+  const now = new Date();
+  const startStr = `${String(now.getDate()).padStart(2,'0')}.${String(now.getMonth()+1).padStart(2,'0')}.${now.getFullYear()}`;
+
+  db.prepare(`
+    UPDATE users
+    SET subscription_status = 'активно',
+        subscription_start = ?,
+        subscription_end = ?,
+        updated_at = datetime('now')
+    WHERE telegram_id = ?
+  `).run(startStr, newEndDate, String(telegramId));
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -393,4 +458,8 @@ module.exports = {
   processCommissions,
   processReferralBonus,
   getReferralBonuses,
+  getExpiringSubscriptions,
+  getExpiredToday,
+  deactivateSubscription,
+  renewSubscription,
 };

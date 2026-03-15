@@ -35,7 +35,7 @@ function SettingsPage() {
     fetch('/api/cancel-subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contact_id: profile.contact_id }),
+      body: JSON.stringify({ telegram_id: telegramId, contact_id: profile.contact_id }),
     })
       .then(r => r.json())
       .then(data => {

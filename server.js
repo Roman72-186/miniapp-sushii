@@ -23,6 +23,7 @@ app.all('/api/register-referral', require('./api/register-referral'));
 app.all('/api/migrate-referrals', require('./api/migrate-referrals'));
 app.all('/api/migrate-subscribers', require('./api/migrate-subscribers'));
 app.all('/api/send-bot-message', require('./api/send-bot-message'));
+app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 
 // Admin API
 app.all('/api/admin/login', require('./api/admin-login'));
@@ -49,4 +50,25 @@ app.get('/{*splat}', (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // Cron: проверка подписок каждый день в 10:00 UTC (13:00 МСК)
+  const { runSubscriptionCron } = require('./api/cron-subscriptions');
+
+  function scheduleDailyCron() {
+    const now = new Date();
+    const next = new Date(now);
+    next.setUTCHours(10, 0, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+
+    const delay = next.getTime() - now.getTime();
+    console.log(`cron: next subscription check scheduled at ${next.toISOString()} (in ${Math.round(delay / 60000)} min)`);
+
+    setTimeout(() => {
+      runSubscriptionCron().catch(err => console.error('cron error:', err));
+      // Перезапланировать на следующий день
+      scheduleDailyCron();
+    }, delay);
+  }
+
+  scheduleDailyCron();
 });
