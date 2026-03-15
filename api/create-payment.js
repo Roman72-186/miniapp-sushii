@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
   const totalAmount = PRICE_TABLE[tarifStr][monthsNum];
   const amount = totalAmount.toFixed(2);
 
-  const returnUrl = `https://sushii.vercel.app/?telegram_id=${encodeURIComponent(telegram_id)}&payment=success`;
+  const returnUrl = `https://sushi-house-39.ru/?telegram_id=${encodeURIComponent(telegram_id)}&payment=success`;
 
   const monthsLabel = monthsNum === 1 ? '1 мес' : `${monthsNum} мес`;
   const description = isOneTime
