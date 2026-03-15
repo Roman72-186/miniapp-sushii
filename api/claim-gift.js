@@ -45,21 +45,20 @@ module.exports = async (req, res) => {
     // 4. Записать обратно в Blob
     await writeGiftWindows(telegram_id, stored);
 
-    // 5. Обратная совместимость: записать датаПодарка в WATBOT
+    // 5. Записать переменные в WATBOT: датаПодарка + выдано (номер периода)
     if (contact_id) {
-      try {
-        await fetch('https://watbot.ru/api/v1/setContactVariable', {
+      const cid = Number(contact_id);
+      const setVar = (name, value) =>
+        fetch('https://watbot.ru/api/v1/setContactVariable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({
-            api_token: apiToken,
-            bot_id: 72975,
-            contact_id: Number(contact_id),
-            name: 'датаПодарка',
-            value: today,
-          }),
-        });
-      } catch (_) { /* не блокируем успех */ }
+          body: JSON.stringify({ api_token: apiToken, bot_id: 72975, contact_id: cid, name, value }),
+        }).catch(() => {});
+
+      await Promise.all([
+        setVar('датаПодарка', today),
+        setVar('выдано', String(current.num)),
+      ]);
     }
 
     // 6. Вычислить дату следующего окна

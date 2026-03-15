@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, text, reply_markup } = req.body || {};
+  const { telegram_id, text, reply_markup, delete_message_id } = req.body || {};
   if (!telegram_id || !text) {
     return res.status(400).json({ error: 'telegram_id и text обязательны' });
   }
@@ -20,6 +20,19 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // Удалить предыдущее сообщение, если передан ID
+    if (delete_message_id) {
+      try {
+        await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: telegram_id, message_id: Number(delete_message_id) }),
+        });
+      } catch (e) {
+        console.error('send-bot-message: deleteMessage failed:', e.message);
+      }
+    }
+
     const body = {
       chat_id: telegram_id,
       text,

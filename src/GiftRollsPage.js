@@ -30,7 +30,7 @@ function GiftRollsPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, listItemName, phone: userPhone, sync } = useUser();
+  const { telegramId, loading: userLoading, listItemName, phone: userPhone, userData, contactId } = useUser();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,10 +43,6 @@ function GiftRollsPage() {
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState(null);
-
-  // Успех
-  const [orderNumber, setOrderNumber] = useState(null);
-  const [countdown, setCountdown] = useState(5);
 
   // Загрузка роллов
   const fetchRolls = useCallback(async () => {
@@ -78,25 +74,6 @@ function GiftRollsPage() {
     if (listItemName && !name) setName(listItemName);
     if (userPhone && !phone) setPhone(normalizePhone(userPhone));
   }, [listItemName, userPhone]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Автозакрытие после заказа
-  useEffect(() => {
-    if (!orderNumber) return;
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          const tg = window.Telegram?.WebApp;
-          if (tg && tg.close) {
-            tg.close();
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [orderNumber]);
 
   const selectedPickup = PICKUP_POINTS.find(p => p.id === pickupPoint);
 
@@ -140,63 +117,46 @@ function GiftRollsPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Ошибка создания заказа');
 
-      // Отметить подарок как полученный
+      const orderNum = data.orderNumber || data.orderId || '';
+      const mesId = userData?.variables?.mes_id || null;
+
+      // Fire-and-forget: отметить подарок как полученный + записать «выдано» в WATBOT
       if (telegramId) {
-        try {
-          await fetch('/api/claim-gift', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ telegram_id: telegramId }),
-          });
-        } catch (_) {}
-        sync(true);
+        fetch('/api/claim-gift', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId || undefined }),
+        }).catch(() => {});
       }
 
-      const orderNum = data.orderNumber || data.orderId || '';
-      setOrderNumber(orderNum);
-
-      // Отправить сообщение в бот
+      // Fire-and-forget: сообщение в бот (с удалением предыдущего)
       if (telegramId) {
-        try {
-          await fetch('/api/send-bot-message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              telegram_id: telegramId,
-              text: `✅ <b>Заказ №${orderNum} принят!</b>\n\n🍣 ${selectedProduct.name}\n📍 Самовывоз: ${selectedPickup.address}\n\nМы уже готовим ваш подарок. Ожидайте!`,
-              reply_markup: {
-                inline_keyboard: [[
-                  { text: '🏠 Главное меню', callback_data: '/start' },
-                ]],
-              },
-            }),
-          });
-        } catch (_) {}
+        fetch('/api/send-bot-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            telegram_id: telegramId,
+            text: `✅ <b>Заказ №${orderNum} принят!</b>\n\n🍣 ${selectedProduct.name}\n📍 Самовывоз: ${selectedPickup.address}\n\nМы уже готовим ваш подарок. Ожидайте!`,
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '🏠 Главное меню', callback_data: '/start' },
+              ]],
+            },
+            ...(mesId ? { delete_message_id: mesId } : {}),
+          }),
+        }).catch(() => {});
+      }
+
+      // Мгновенное закрытие мини-аппа
+      const tg = window.Telegram?.WebApp;
+      if (tg && tg.close) {
+        tg.close();
       }
     } catch (err) {
       setFormError(err.message || 'Не удалось отправить заказ');
       setSubmitting(false);
     }
   };
-
-  // === Экран успеха с автозакрытием ===
-  if (orderNumber) {
-    return (
-      <div className="shop-page">
-        <div className="shop-success">
-          <div className="shop-success__icon">✅</div>
-          <h2 className="shop-success__title">Заказ принят!</h2>
-          <p className="shop-success__order-num">Номер заказа: {orderNumber}</p>
-          <p className="shop-success__text">
-            Мы уже готовим ваш заказ. Ожидайте!
-          </p>
-          <p style={{ color: '#999', fontSize: 13, marginTop: 12 }}>
-            Окно закроется через {countdown} сек.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   // === Форма оформления ===
   if (selectedProduct) {
