@@ -23,7 +23,13 @@ app.all('/api/register-referral', require('./api/register-referral'));
 app.all('/api/migrate-referrals', require('./api/migrate-referrals'));
 app.all('/api/migrate-subscribers', require('./api/migrate-subscribers'));
 
-// Serve React build
+// Admin API
+app.all('/api/admin/login', require('./api/admin-login'));
+app.all('/api/admin/products', require('./api/admin-products'));
+app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
+
+// Serve product overrides from persistent volume (admin edits), then React build
+app.use(express.static(path.join(__dirname, 'data', 'products')));
 app.use(express.static(path.join(__dirname, 'build')));
 
 // SPA fallback — all non-API routes serve index.html
