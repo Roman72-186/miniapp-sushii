@@ -28,6 +28,14 @@ app.all('/api/admin/login', require('./api/admin-login'));
 app.all('/api/admin/products', require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
 
+// JSON files: no-cache (чтобы админские правки подхватывались сразу)
+app.use('/', (req, res, next) => {
+  if (req.path.endsWith('.json')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+  next();
+});
+
 // Serve product overrides from persistent volume (admin edits), then React build
 app.use(express.static(path.join(__dirname, 'data', 'products')));
 app.use(express.static(path.join(__dirname, 'build')));

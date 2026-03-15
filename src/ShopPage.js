@@ -27,7 +27,7 @@ function useLocalMenu() {
     try {
       const results = await Promise.all(
         SHOP_CATEGORIES.map(async (cat) => {
-          const res = await fetch(cat.jsonUrl);
+          const res = await fetch(cat.jsonUrl + '?v=' + Date.now());
           if (!res.ok) throw new Error(`Ошибка загрузки ${cat.name}`);
           const data = await res.json();
           return data.items.filter(item => item.enabled !== false).map((item, idx) => ({

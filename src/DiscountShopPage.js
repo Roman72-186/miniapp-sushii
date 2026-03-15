@@ -47,7 +47,7 @@ function useDiscountMenu() {
       const allCats = [...DISCOUNT_CATEGORIES, ...GIFT_CATEGORIES];
       const results = await Promise.all(
         allCats.map(async (cat) => {
-          const res = await fetch(cat.jsonUrl);
+          const res = await fetch(cat.jsonUrl + '?v=' + Date.now());
           if (!res.ok) throw new Error(`Ошибка загрузки ${cat.name}`);
           const data = await res.json();
           const isGift = GIFT_CATEGORIES.some(g => g.id === cat.id);
