@@ -336,6 +336,26 @@ function AdminPage() {
                   )}
                   {s.balance_shc > 0 && <span>SHC: {s.balance_shc}</span>}
                 </div>
+                {/* Подарки */}
+                {s.gifts && (
+                  <div style={styles.giftsRow}>
+                    <span style={styles.giftsSummary}>
+                      Подарки: {s.gifts.claimed}/{s.gifts.totalWindows} получено
+                    </span>
+                    {s.gifts.lastClaimed && (
+                      <span style={styles.giftsLast}>Последний: {s.gifts.lastClaimed}</span>
+                    )}
+                    {s.gifts.windows && s.gifts.windows.some(w => w.claimedAt) && (
+                      <div style={styles.giftsWindows}>
+                        {s.gifts.windows.filter(w => w.claimedAt).map(w => (
+                          <span key={w.num} style={styles.giftClaimed}>
+                            #{w.num} {w.claimedAt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -612,6 +632,34 @@ const styles = {
     gap: 12,
     fontSize: 12,
     color: '#888',
+  },
+  // Gifts
+  giftsRow: {
+    marginTop: 6,
+    paddingTop: 6,
+    borderTop: '1px solid #2a2a4a',
+  },
+  giftsSummary: {
+    fontSize: 12,
+    color: '#64b5f6',
+    marginRight: 12,
+  },
+  giftsLast: {
+    fontSize: 12,
+    color: '#888',
+  },
+  giftsWindows: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  giftClaimed: {
+    padding: '2px 8px',
+    background: '#2a4a2a',
+    borderRadius: 4,
+    fontSize: 11,
+    color: '#3CC8A1',
   },
 };
 

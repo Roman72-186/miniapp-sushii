@@ -1,6 +1,23 @@
-// api/admin-subscribers.js — Список подписчиков из SQLite
+// api/admin-subscribers.js — Список подписчиков из SQLite + данные подарков
 const { checkAuth } = require('./_lib/admin-auth');
 const { getDb } = require('./_lib/db');
+const fs = require('fs');
+const path = require('path');
+
+const GIFTS_DIR = path.join(__dirname, '..', 'data', 'gifts');
+
+/**
+ * Читает подарочные окна пользователя (синхронно, для массовой загрузки)
+ */
+function readGiftWindowsSync(telegramId) {
+  try {
+    const filePath = path.join(GIFTS_DIR, `${telegramId}.json`);
+    const raw = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,7 +31,7 @@ module.exports = async (req, res) => {
     const db = getDb();
 
     // Все пользователи с подпиской (tariff не null)
-    const subscribers = db.prepare(`
+    const rows = db.prepare(`
       SELECT telegram_id, name, phone, tariff, is_ambassador,
              subscription_status, subscription_start, subscription_end,
              balance_shc, created_at, updated_at
@@ -27,17 +44,43 @@ module.exports = async (req, res) => {
 
     // Статистика
     const stats = {
-      total: subscribers.length,
+      total: rows.length,
       by_tariff: {},
       ambassadors: 0,
       active: 0,
     };
 
-    for (const s of subscribers) {
+    // Добавляем данные подарков
+    const subscribers = rows.map(s => {
       stats.by_tariff[s.tariff] = (stats.by_tariff[s.tariff] || 0) + 1;
       if (s.is_ambassador) stats.ambassadors++;
       if (s.subscription_status === 'активно') stats.active++;
-    }
+
+      // Подарочные окна
+      const giftData = readGiftWindowsSync(s.telegram_id);
+      let gifts = null;
+      if (giftData && giftData.windows) {
+        const claimed = giftData.windows.filter(w => w.status === 'claimed');
+        const total = giftData.windows.length;
+        gifts = {
+          totalWindows: total,
+          claimed: claimed.length,
+          remaining: total - claimed.length,
+          lastClaimed: claimed.length > 0
+            ? claimed.sort((a, b) => (b.claimedAt || '').localeCompare(a.claimedAt || ''))[0].claimedAt
+            : null,
+          windows: giftData.windows.map(w => ({
+            num: w.num,
+            start: w.start,
+            end: w.end,
+            status: w.status,
+            claimedAt: w.claimedAt || null,
+          })),
+        };
+      }
+
+      return { ...s, gifts };
+    });
 
     return res.status(200).json({ success: true, subscribers, stats });
   } catch (error) {
