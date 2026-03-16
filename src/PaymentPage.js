@@ -66,11 +66,13 @@ function PaymentPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId } = useUser();
+  const { telegramId, phone: userPhone, loading: userLoading } = useUser();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [months, setMonths] = useState(1);
   const [priceTable, setPriceTable] = useState(DEFAULT_PRICE_TABLE);
+  const [phoneInput, setPhoneInput] = useState('');
+  const hasPhone = !!userPhone;
 
   useEffect(() => {
     fetch('/api/admin/pricing')
@@ -108,6 +110,13 @@ function PaymentPage() {
   };
 
   const handlePay = async () => {
+    // Проверяем телефон
+    const phone = userPhone || phoneInput.replace(/[^\d]/g, '');
+    if (!phone || phone.length < 10) {
+      setError('Укажите номер телефона для чека');
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
@@ -118,6 +127,7 @@ function PaymentPage() {
         body: JSON.stringify({
           telegram_id: telegramId,
           tarif: tarifKey,
+          phone,
           ...(tariff.oneTime ? {} : { months }),
         }),
       });
@@ -237,6 +247,19 @@ function PaymentPage() {
             </div>
           );
         })()}
+
+        {!userLoading && !hasPhone && (
+          <div className="shop-payment__phone">
+            <label className="shop-payment__phone-label">Номер телефона (для чека)</label>
+            <input
+              type="tel"
+              className="shop-payment__phone-input"
+              placeholder="+7 (___) ___-__-__"
+              value={phoneInput}
+              onChange={e => setPhoneInput(e.target.value)}
+            />
+          </div>
+        )}
 
         {error && (
           <div className="shop-payment__error">{error}</div>

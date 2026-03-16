@@ -3,7 +3,7 @@
 
 const crypto = require('crypto');
 const { getPriceTable } = require('./admin-pricing');
-const { getUser } = require('./_lib/db');
+const { getUser, upsertUser } = require('./_lib/db');
 
 const VALID_TARIFS = ['290', '490', '1190', '9990'];
 const VALID_MONTHS = [1, 3, 5];
@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, tarif, months } = req.body || {};
+  const { telegram_id, tarif, months, phone: reqPhone } = req.body || {};
 
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
   if (!tarif || !VALID_TARIFS.includes(String(tarif))) {
@@ -49,7 +49,13 @@ module.exports = async (req, res) => {
 
   // Телефон пользователя для чека (54-ФЗ)
   const dbUser = getUser(telegram_id);
-  const userPhone = dbUser?.phone ? dbUser.phone.replace(/[^\d]/g, '') : null;
+  const rawPhone = reqPhone || dbUser?.phone || null;
+  const userPhone = rawPhone ? rawPhone.replace(/[^\d]/g, '') : null;
+
+  // Сохраняем телефон в БД если пришёл из формы и в базе пусто
+  if (reqPhone && (!dbUser?.phone || dbUser.phone !== rawPhone)) {
+    upsertUser({ telegram_id: String(telegram_id), phone: rawPhone });
+  }
 
   const body = {
     amount: {

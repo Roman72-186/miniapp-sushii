@@ -1733,6 +1733,33 @@ body.shop-body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.shop-payment__phone {
+  margin-bottom: 12px;
+}
+
+.shop-payment__phone-label {
+  display: block;
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.shop-payment__phone-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #444;
+  background: #2a2a2e;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.shop-payment__phone-input:focus {
+  border-color: #3CC8A1;
+}
+
 .shop-payment__error {
   background: rgba(229, 57, 53, 0.15);
   color: #e53935;
