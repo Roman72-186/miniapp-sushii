@@ -119,8 +119,9 @@ module.exports = async (req, res) => {
       saveCatalog(catalog.file, data);
 
       // Синхронизация enabled по имени товара в связанных каталогах
+      // (регистронезависимое сравнение — в разных каталогах регистр может отличаться)
       if (enabled !== undefined && enabled !== null) {
-        const itemName = data.items[idx].name;
+        const itemNameLower = data.items[idx].name.toLowerCase();
         const syncGroup = SYNC_GROUPS.find(g => g.includes(catalogId));
         if (syncGroup) {
           for (const otherId of syncGroup) {
@@ -131,7 +132,7 @@ module.exports = async (req, res) => {
             if (!otherData || !otherData.items) continue;
             let changed = false;
             for (const item of otherData.items) {
-              if (item.name === itemName) {
+              if (item.name.toLowerCase() === itemNameLower) {
                 item.enabled = Boolean(enabled);
                 changed = true;
               }

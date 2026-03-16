@@ -30,20 +30,24 @@ app.all('/api/admin/login', require('./api/admin-login'));
 app.all('/api/admin/products', require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
 
-// JSON files: no-cache (чтобы админские правки подхватывались сразу)
-app.use('/', (req, res, next) => {
-  if (req.path.endsWith('.json')) {
+// no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
+function noCacheHeaders(res, filePath) {
+  if (filePath.endsWith('.json') || filePath.endsWith('.html')) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
   }
-  next();
-});
+}
 
 // Serve product overrides from persistent volume (admin edits), then React build
-app.use(express.static(path.join(__dirname, 'data', 'products')));
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'data', 'products'), { setHeaders: noCacheHeaders }));
+app.use(express.static(path.join(__dirname, 'build'), { setHeaders: noCacheHeaders }));
 
-// SPA fallback — all non-API routes serve index.html
+// SPA fallback — all non-API routes serve index.html (no-cache для Telegram WebView)
 app.get('/{*splat}', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
