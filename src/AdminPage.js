@@ -136,7 +136,7 @@ function AdminPage() {
 
   // Выдать подарок
   const grantGift = async (telegramId, type) => {
-    setGrantingGift(telegramId + type);
+    setGrantingGift(telegramId + '+' + type);
     try {
       const res = await fetch(`${API}/api/admin/grant-gift`, {
         method: 'POST',
@@ -144,11 +144,26 @@ function AdminPage() {
         body: JSON.stringify({ telegram_id: telegramId, type }),
       });
       const data = await res.json();
-      if (data.success) {
-        loadSubscribers();
-      }
+      if (data.success) loadSubscribers();
     } catch (err) {
       console.error('grantGift error:', err);
+    }
+    setGrantingGift(null);
+  };
+
+  // Отметить подарок полученным
+  const claimGift = async (telegramId, type) => {
+    setGrantingGift(telegramId + '-' + type);
+    try {
+      const res = await fetch(`${API}/api/admin/claim-gift`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ telegram_id: telegramId, type }),
+      });
+      const data = await res.json();
+      if (data.success) loadSubscribers();
+    } catch (err) {
+      console.error('claimGift error:', err);
     }
     setGrantingGift(null);
   };
@@ -320,20 +335,10 @@ function AdminPage() {
               onChange={e => setGrantTgId(e.target.value)}
               style={styles.grantInput}
             />
-            <button
-              style={styles.grantBtn}
-              onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'roll'); }}
-              disabled={!!grantingGift || !grantTgId.trim()}
-            >
-              +Roll
-            </button>
-            <button
-              style={styles.grantBtn}
-              onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'set'); }}
-              disabled={!!grantingGift || !grantTgId.trim()}
-            >
-              +Set
-            </button>
+            <button style={styles.grantBtn} onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'roll'); }} disabled={!!grantingGift || !grantTgId.trim()}>+R</button>
+            <button style={styles.claimBtn} onClick={() => { if (grantTgId.trim()) claimGift(grantTgId.trim(), 'roll'); }} disabled={!!grantingGift || !grantTgId.trim()}>-R</button>
+            <button style={styles.grantBtn} onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'set'); }} disabled={!!grantingGift || !grantTgId.trim()}>+S</button>
+            <button style={styles.claimBtn} onClick={() => { if (grantTgId.trim()) claimGift(grantTgId.trim(), 'set'); }} disabled={!!grantingGift || !grantTgId.trim()}>-S</button>
           </div>
 
           {stats && (
@@ -375,20 +380,18 @@ function AdminPage() {
                   <span style={styles.subName}>{s.name || 'Без имени'}</span>
                   <span style={styles.tariffBadge(s.tariff)}>{s.tariff}&#8381;</span>
                   {s.is_ambassador ? <span style={styles.ambBadge}>AMB</span> : null}
-                  <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-                    <button
-                      style={styles.grantBtn}
-                      onClick={() => grantGift(s.telegram_id, 'roll')}
-                      disabled={!!grantingGift}
-                    >
-                      {grantingGift === s.telegram_id + 'roll' ? '...' : '+Roll'}
+                  <span style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
+                    <button style={styles.grantBtn} onClick={() => grantGift(s.telegram_id, 'roll')} disabled={!!grantingGift}>
+                      {grantingGift === s.telegram_id + '+roll' ? '...' : '+R'}
                     </button>
-                    <button
-                      style={styles.grantBtn}
-                      onClick={() => grantGift(s.telegram_id, 'set')}
-                      disabled={!!grantingGift}
-                    >
-                      {grantingGift === s.telegram_id + 'set' ? '...' : '+Set'}
+                    <button style={styles.claimBtn} onClick={() => claimGift(s.telegram_id, 'roll')} disabled={!!grantingGift}>
+                      {grantingGift === s.telegram_id + '-roll' ? '...' : '-R'}
+                    </button>
+                    <button style={styles.grantBtn} onClick={() => grantGift(s.telegram_id, 'set')} disabled={!!grantingGift}>
+                      {grantingGift === s.telegram_id + '+set' ? '...' : '+S'}
+                    </button>
+                    <button style={styles.claimBtn} onClick={() => claimGift(s.telegram_id, 'set')} disabled={!!grantingGift}>
+                      {grantingGift === s.telegram_id + '-set' ? '...' : '-S'}
                     </button>
                   </span>
                 </div>
@@ -747,12 +750,23 @@ const styles = {
     fontSize: 14,
   },
   grantBtn: {
-    padding: '6px 12px',
+    padding: '6px 10px',
     background: '#0f3460',
     color: '#64b5f6',
     border: '1px solid #2a4a5e',
     borderRadius: 6,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  claimBtn: {
+    padding: '6px 10px',
+    background: '#3d1a1a',
+    color: '#ff8a80',
+    border: '1px solid #5e2a2a',
+    borderRadius: 6,
+    fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
     whiteSpace: 'nowrap',

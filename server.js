@@ -28,6 +28,7 @@ app.all('/api/admin/login', require('./api/admin-login'));
 app.all('/api/admin/products', require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
 app.all('/api/admin/grant-gift', require('./api/admin-grant-gift'));
+app.all('/api/admin/claim-gift', require('./api/admin-claim-gift'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {
