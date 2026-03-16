@@ -3,7 +3,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 // API routes (handlers manage CORS and method checks internally)
 app.all('/api/sync-user', require('./api/sync-user'));
@@ -29,6 +29,7 @@ app.all('/api/admin/products', require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
 app.all('/api/admin/grant-gift', require('./api/admin-grant-gift'));
 app.all('/api/admin/claim-gift', require('./api/admin-claim-gift'));
+app.all('/api/admin/banners', require('./api/admin-banners'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {
@@ -40,6 +41,7 @@ function noCacheHeaders(res, filePath) {
 }
 
 // Serve product overrides from persistent volume (admin edits), then React build
+app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: noCacheHeaders }));
 app.use(express.static(path.join(__dirname, 'data', 'products'), { setHeaders: noCacheHeaders }));
 app.use(express.static(path.join(__dirname, 'build'), { setHeaders: noCacheHeaders }));
 

@@ -26,6 +26,11 @@ function AdminPage() {
   const [grantingGift, setGrantingGift] = useState(null); // telegram_id пока идёт запрос
   const [grantTgId, setGrantTgId] = useState(''); // ввод telegram_id для выдачи подарка
 
+  // Banners state
+  const [banners, setBanners] = useState([]);
+  const [bannersLoading, setBannersLoading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(null);
+
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
@@ -100,6 +105,7 @@ function AdminPage() {
   useEffect(() => {
     if (loggedIn && tab === 'products' && catalogs.length === 0) loadProducts();
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
+    if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Сохранение товара
@@ -166,6 +172,56 @@ function AdminPage() {
       console.error('claimGift error:', err);
     }
     setGrantingGift(null);
+  };
+
+  // Загрузка баннеров
+  const loadBanners = useCallback(async () => {
+    setBannersLoading(true);
+    try {
+      const res = await fetch(`${API}/api/admin/banners`, { headers: headers() });
+      const data = await res.json();
+      if (data.success) setBanners(data.banners);
+    } catch (err) {
+      console.error('loadBanners error:', err);
+    }
+    setBannersLoading(false);
+  }, [headers]);
+
+  const uploadBanner = async (slot, file) => {
+    setBannerUploading(slot);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const res = await fetch(`${API}/api/admin/banners`, {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({ slot, imageData: reader.result }),
+        });
+        const data = await res.json();
+        if (data.success) loadBanners();
+        setBannerUploading(null);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('uploadBanner error:', err);
+      setBannerUploading(null);
+    }
+  };
+
+  const deleteBanner = async (slot) => {
+    setBannerUploading(slot);
+    try {
+      const res = await fetch(`${API}/api/admin/banners`, {
+        method: 'DELETE',
+        headers: headers(),
+        body: JSON.stringify({ slot }),
+      });
+      const data = await res.json();
+      if (data.success) loadBanners();
+    } catch (err) {
+      console.error('deleteBanner error:', err);
+    }
+    setBannerUploading(null);
   };
 
   const logout = () => {
@@ -240,6 +296,12 @@ function AdminPage() {
           onClick={() => setTab('subscribers')}
         >
           Подписчики
+        </button>
+        <button
+          style={tab === 'banners' ? styles.tabActive : styles.tab}
+          onClick={() => setTab('banners')}
+        >
+          Баннеры
         </button>
       </div>
 
@@ -434,6 +496,57 @@ function AdminPage() {
           </div>
 
           <button onClick={loadSubscribers} style={{ ...styles.btnSmall, marginTop: 16 }} disabled={subsLoading}>
+            Обновить
+          </button>
+        </div>
+      )}
+
+      {/* ─── Banners Tab ─── */}
+      {tab === 'banners' && (
+        <div>
+          {bannersLoading && <p style={styles.muted}>Загрузка...</p>}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[1, 2, 3].map(slot => {
+              const banner = banners.find(b => b.id === slot);
+              const hasImage = banner && banner.image;
+              return (
+                <div key={slot} style={styles.bannerSlot}>
+                  <div style={styles.bannerHeader}>
+                    <span style={{ color: '#e0e0e0', fontSize: 14, fontWeight: 600 }}>Баннер {slot}</span>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <label style={styles.grantBtn}>
+                        {bannerUploading === slot ? '...' : 'Загрузить'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={e => { if (e.target.files[0]) uploadBanner(slot, e.target.files[0]); }}
+                          disabled={bannerUploading === slot}
+                        />
+                      </label>
+                      {hasImage && (
+                        <button style={styles.claimBtn} onClick={() => deleteBanner(slot)} disabled={!!bannerUploading}>
+                          Удалить
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={styles.bannerPreview}>
+                    {hasImage ? (
+                      <img src={banner.image + '?v=' + Date.now()} alt="" style={styles.bannerImg} />
+                    ) : (
+                      <div style={{ ...styles.bannerEmpty, background: banner?.color || '#f5f5f5' }}>
+                        Пустой слот
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <button onClick={loadBanners} style={{ ...styles.btnSmall, marginTop: 16 }} disabled={bannersLoading}>
             Обновить
           </button>
         </div>
@@ -770,6 +883,38 @@ const styles = {
     fontWeight: 600,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
+  },
+  // Banners
+  bannerSlot: {
+    background: '#16213e',
+    borderRadius: 10,
+    padding: 12,
+  },
+  bannerHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  bannerPreview: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  bannerImg: {
+    width: '100%',
+    height: 'auto',
+    display: 'block',
+    borderRadius: 8,
+  },
+  bannerEmpty: {
+    width: '100%',
+    aspectRatio: '8/3',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    color: '#999',
+    fontSize: 14,
   },
 };
 
