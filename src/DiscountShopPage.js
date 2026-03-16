@@ -126,6 +126,19 @@ function DiscountShopPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
+  // Уведомление об успешной оплате
+  const [paymentSuccess, setPaymentSuccess] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('payment') === 'success';
+  });
+
+  useEffect(() => {
+    if (paymentSuccess) {
+      const timer = setTimeout(() => setPaymentSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentSuccess]);
+
   const { telegramId, loading: userLoading, tarif: userTarif } = useUser();
   const { products, loading, error, refetch } = useDiscountMenu();
   const cart = useCart();
@@ -383,6 +396,12 @@ function DiscountShopPage() {
           )}
         </div>
       </header>
+
+      {paymentSuccess && (
+        <div className="payment-success-banner" onClick={() => setPaymentSuccess(false)}>
+          Оплата прошла успешно! Подписка активирована.
+        </div>
+      )}
 
       <div className="shop-gift-row">
         {GIFT_CATEGORIES.map(cat => {

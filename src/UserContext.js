@@ -37,7 +37,19 @@ export function UserProvider({ children }) {
       .finally(() => setLoading(false));
   }, [telegramId]);
 
-  useEffect(() => { sync(); }, [sync]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isPaymentReturn = params.get('payment') === 'success';
+    sync(isPaymentReturn).then(() => {
+      // Очищаем payment=success из URL чтобы не было повторных sync при рефреше
+      if (isPaymentReturn) {
+        params.delete('payment');
+        const clean = params.toString();
+        const newUrl = window.location.pathname + (clean ? '?' + clean : '');
+        window.history.replaceState({}, '', newUrl);
+      }
+    });
+  }, [sync]);
 
   // Вычисляемые геттеры
   const tarif = userData?.tarif || null;
