@@ -75,6 +75,21 @@ async function tryRecurringPayment(user) {
         capture: true,
         payment_method_id: user.payment_method_id,
         description: `Автопродление подписки Суши-Хаус 39 (${user.tariff}₽)`,
+        receipt: {
+          customer: user.phone
+            ? { phone: user.phone.replace(/[^\d]/g, '').replace(/^(?!7)/, '7').replace(/^/, '+') }
+            : { email: 'order@sushi-house-39.ru' },
+          items: [
+            {
+              description: `Автопродление подписки Суши-Хаус 39 (${user.tariff}₽)`,
+              quantity: '1.00',
+              amount: { value: amount.toFixed(2), currency: 'RUB' },
+              vat_code: 1,
+              payment_subject: 'service',
+              payment_mode: 'full_payment',
+            },
+          ],
+        },
         metadata: {
           telegram_id: String(user.telegram_id),
           tarif: String(user.tariff),

@@ -3,6 +3,7 @@
 
 const crypto = require('crypto');
 const { getPriceTable } = require('./admin-pricing');
+const { getUser } = require('./_lib/db');
 
 const VALID_TARIFS = ['290', '490', '1190', '9990'];
 const VALID_MONTHS = [1, 3, 5];
@@ -46,6 +47,10 @@ module.exports = async (req, res) => {
     ? `Амбассадор Суши-Хаус 39 (${tarifStr}\u20BD)`
     : `Подписка Суши-Хаус 39 (${tarifStr}\u20BD \u00D7 ${monthsLabel})`;
 
+  // Телефон пользователя для чека (54-ФЗ)
+  const dbUser = getUser(telegram_id);
+  const userPhone = dbUser?.phone ? dbUser.phone.replace(/[^\d]/g, '') : null;
+
   const body = {
     amount: {
       value: amount,
@@ -57,6 +62,21 @@ module.exports = async (req, res) => {
     },
     capture: true,
     description,
+    receipt: {
+      customer: userPhone
+        ? { phone: userPhone.startsWith('7') ? `+${userPhone}` : `+7${userPhone}` }
+        : { email: 'order@sushi-house-39.ru' },
+      items: [
+        {
+          description,
+          quantity: '1.00',
+          amount: { value: amount, currency: 'RUB' },
+          vat_code: 1,
+          payment_subject: 'service',
+          payment_mode: 'full_payment',
+        },
+      ],
+    },
     metadata: {
       telegram_id: String(telegram_id),
       tarif: tarifStr,
