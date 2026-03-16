@@ -58,9 +58,9 @@ module.exports = async (req, res) => {
     if (digits.length === 11 && digits.startsWith('7')) userPhone = digits;
   }
 
-  // Сохраняем телефон в БД если пришёл из формы и в базе пусто
-  if (reqPhone && (!dbUser?.phone || dbUser.phone !== rawPhone)) {
-    upsertUser({ telegram_id: String(telegram_id), phone: rawPhone });
+  // Сохраняем нормализованный телефон в БД (7XXXXXXXXXX)
+  if (userPhone && (!dbUser?.phone || dbUser.phone !== userPhone)) {
+    upsertUser({ telegram_id: String(telegram_id), phone: userPhone });
   }
 
   const body = {
