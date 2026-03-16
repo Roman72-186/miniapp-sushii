@@ -5,13 +5,20 @@ import React, { createContext, useContext, useState, useEffect, useMemo, useCall
 const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
-  const telegramId = useMemo(() => {
+  const tgUser = useMemo(() => {
     const tg = window.Telegram?.WebApp;
-    const tgId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : null;
+    const user = tg?.initDataUnsafe?.user;
+    return user ? {
+      id: String(user.id),
+      name: [user.first_name, user.last_name].filter(Boolean).join(' ') || null,
+    } : null;
+  }, []);
+
+  const telegramId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     const urlId = params.get('telegram_id');
-    return tgId || urlId || null;
-  }, []);
+    return tgUser?.id || urlId || null;
+  }, [tgUser]);
 
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -25,7 +32,7 @@ export function UserProvider({ children }) {
     return fetch('/api/sync-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId, force }),
+      body: JSON.stringify({ telegram_id: telegramId, force, tg_name: tgUser?.name || null }),
     })
       .then(r => r.json())
       .then(resp => {

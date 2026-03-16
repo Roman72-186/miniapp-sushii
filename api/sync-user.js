@@ -15,10 +15,19 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, force } = req.body || {};
+  const { telegram_id, force, tg_name } = req.body || {};
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
   try {
+    // Обновляем имя из Telegram если в БД пусто
+    if (tg_name) {
+      const existing = getUser(telegram_id);
+      if (!existing) {
+        upsertUser({ telegram_id: String(telegram_id), name: tg_name });
+      } else if (!existing.name) {
+        upsertUser({ telegram_id: String(telegram_id), name: tg_name });
+      }
+    }
     // 1. Проверяем файловый кэш (TTL)
     if (!force) {
       const cached = await readUserCache(telegram_id);
