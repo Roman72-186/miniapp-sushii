@@ -2063,3 +2063,78 @@ body.shop-body {
 .amb-invite__btn:hover {
   opacity: 0.85;
 }
+
+/* === Promo Banner (слайдер) === */
+.promo-banner {
+  margin: 8px 16px 4px;
+}
+
+.promo-banner__track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 0;
+  border-radius: 12px;
+}
+
+.promo-banner__track::-webkit-scrollbar {
+  display: none;
+}
+
+.promo-banner__slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  min-height: 72px;
+  box-sizing: border-box;
+}
+
+.promo-banner__emoji {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.promo-banner__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.promo-banner__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.promo-banner__text {
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.3;
+}
+
+.promo-banner__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.promo-banner__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #444;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.promo-banner__dot--active {
+  background: #3CC8A1;
+  transform: scale(1.3);
+}

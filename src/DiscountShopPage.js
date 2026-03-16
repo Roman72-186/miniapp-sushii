@@ -10,6 +10,7 @@ import ShopProductCard from './components/ShopProductCard';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import SubCheckoutModal from './components/SubCheckoutModal';
+import PromoBanner from './components/PromoBanner';
 import './shop.css';
 
 const DISCOUNT_CATEGORIES = [
@@ -424,6 +425,8 @@ function DiscountShopPage() {
           );
         })}
       </div>
+
+      <PromoBanner />
 
       <nav className="shop-tabs">
         {DISCOUNT_CATEGORIES.map(cat => (
