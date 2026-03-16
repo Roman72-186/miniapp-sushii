@@ -50,7 +50,13 @@ module.exports = async (req, res) => {
   // Телефон пользователя для чека (54-ФЗ)
   const dbUser = getUser(telegram_id);
   const rawPhone = reqPhone || dbUser?.phone || null;
-  const userPhone = rawPhone ? rawPhone.replace(/[^\d]/g, '') : null;
+  let userPhone = null;
+  if (rawPhone) {
+    let digits = rawPhone.replace(/[^\d]/g, '');
+    if (digits.length === 11 && digits.startsWith('8')) digits = '7' + digits.slice(1);
+    if (digits.length === 10) digits = '7' + digits;
+    if (digits.length === 11 && digits.startsWith('7')) userPhone = digits;
+  }
 
   // Сохраняем телефон в БД если пришёл из формы и в базе пусто
   if (reqPhone && (!dbUser?.phone || dbUser.phone !== rawPhone)) {
@@ -70,7 +76,7 @@ module.exports = async (req, res) => {
     description,
     receipt: {
       customer: userPhone
-        ? { phone: userPhone.startsWith('7') ? `+${userPhone}` : `+7${userPhone}` }
+        ? { phone: `+${userPhone}` }
         : { email: 'order@sushi-house-39.ru' },
       items: [
         {

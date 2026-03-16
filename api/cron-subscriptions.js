@@ -76,9 +76,13 @@ async function tryRecurringPayment(user) {
         payment_method_id: user.payment_method_id,
         description: `Автопродление подписки Суши-Хаус 39 (${user.tariff}₽)`,
         receipt: {
-          customer: user.phone
-            ? { phone: user.phone.replace(/[^\d]/g, '').replace(/^(?!7)/, '7').replace(/^/, '+') }
-            : { email: 'order@sushi-house-39.ru' },
+          customer: (() => {
+            if (!user.phone) return { email: 'order@sushi-house-39.ru' };
+            let d = user.phone.replace(/[^\d]/g, '');
+            if (d.length === 11 && d.startsWith('8')) d = '7' + d.slice(1);
+            if (d.length === 10) d = '7' + d;
+            return (d.length === 11 && d.startsWith('7')) ? { phone: `+${d}` } : { email: 'order@sushi-house-39.ru' };
+          })(),
           items: [
             {
               description: `Автопродление подписки Суши-Хаус 39 (${user.tariff}₽)`,
