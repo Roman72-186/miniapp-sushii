@@ -187,25 +187,39 @@ function AdminPage() {
     setBannersLoading(false);
   }, [headers]);
 
+  const cropToAspect = (file, ratio) => new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const targetW = img.width;
+      const targetH = Math.round(img.width / ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.min(targetW, 1200);
+      canvas.height = Math.round(canvas.width / ratio);
+      const ctx = canvas.getContext('2d');
+      // Центрируем обрезку по вертикали
+      const srcH = Math.round(img.width / ratio);
+      const srcY = Math.max(0, Math.round((img.height - srcH) / 2));
+      ctx.drawImage(img, 0, srcY, img.width, srcH, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    };
+    img.src = URL.createObjectURL(file);
+  });
+
   const uploadBanner = async (slot, file) => {
     setBannerUploading(slot);
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const res = await fetch(`${API}/api/admin/banners`, {
-          method: 'POST',
-          headers: headers(),
-          body: JSON.stringify({ slot, imageData: reader.result }),
-        });
-        const data = await res.json();
-        if (data.success) loadBanners();
-        setBannerUploading(null);
-      };
-      reader.readAsDataURL(file);
+      const imageData = await cropToAspect(file, 8 / 3);
+      const res = await fetch(`${API}/api/admin/banners`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ slot, imageData }),
+      });
+      const data = await res.json();
+      if (data.success) loadBanners();
     } catch (err) {
       console.error('uploadBanner error:', err);
-      setBannerUploading(null);
     }
+    setBannerUploading(null);
   };
 
   const deleteBanner = async (slot) => {
@@ -505,6 +519,11 @@ function AdminPage() {
       {tab === 'banners' && (
         <div>
           {bannersLoading && <p style={styles.muted}>Загрузка...</p>}
+
+          <div style={{ padding: '8px 12px', background: '#0f3460', borderRadius: 8, marginBottom: 12, fontSize: 12, color: '#aaa', lineHeight: 1.5 }}>
+            Рекомендуемый размер: <b style={{ color: '#e0e0e0' }}>1200×450 px</b> (соотношение 8:3).
+            Картинка будет автоматически обрезана по центру до нужных пропорций.
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[1, 2, 3].map(slot => {
