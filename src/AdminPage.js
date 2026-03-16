@@ -31,6 +31,11 @@ function AdminPage() {
   const [bannersLoading, setBannersLoading] = useState(false);
   const [bannerUploading, setBannerUploading] = useState(null);
 
+  // Pricing state
+  const [pricing, setPricing] = useState(null);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingSaving, setPricingSaving] = useState(false);
+
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
@@ -106,6 +111,7 @@ function AdminPage() {
     if (loggedIn && tab === 'products' && catalogs.length === 0) loadProducts();
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
+    if (loggedIn && tab === 'pricing' && !pricing) loadPricing();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Сохранение товара
@@ -172,6 +178,45 @@ function AdminPage() {
       console.error('claimGift error:', err);
     }
     setGrantingGift(null);
+  };
+
+  // Загрузка цен
+  const loadPricing = useCallback(async () => {
+    setPricingLoading(true);
+    try {
+      const res = await fetch(`${API}/api/admin/pricing`, { headers: headers() });
+      const data = await res.json();
+      if (data.success) setPricing(data.pricing);
+    } catch (err) {
+      console.error('loadPricing error:', err);
+    }
+    setPricingLoading(false);
+  }, [headers]);
+
+  const savePricing = async () => {
+    setPricingSaving(true);
+    try {
+      await fetch(`${API}/api/admin/pricing`, {
+        method: 'PUT',
+        headers: headers(),
+        body: JSON.stringify({ pricing }),
+      });
+    } catch (err) {
+      console.error('savePricing error:', err);
+    }
+    setPricingSaving(false);
+  };
+
+  const updatePrice = (tarif, field, value) => {
+    setPricing(prev => {
+      const updated = { ...prev };
+      if (field === 'price') {
+        updated[tarif] = { ...updated[tarif], price: Number(value) || 0, months: { ...updated[tarif].months, 1: Number(value) || 0 } };
+      } else {
+        updated[tarif] = { ...updated[tarif], months: { ...updated[tarif].months, [field]: Number(value) || 0 } };
+      }
+      return updated;
+    });
   };
 
   // Загрузка баннеров
@@ -354,6 +399,12 @@ function AdminPage() {
           onClick={() => setTab('banners')}
         >
           Баннеры
+        </button>
+        <button
+          style={tab === 'pricing' ? styles.tabActive : styles.tab}
+          onClick={() => setTab('pricing')}
+        >
+          Цены
         </button>
       </div>
 
@@ -635,6 +686,62 @@ function AdminPage() {
               Обновить
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ─── Pricing Tab ─── */}
+      {tab === 'pricing' && (
+        <div>
+          {pricingLoading && <p style={styles.muted}>Загрузка...</p>}
+
+          {pricing && Object.entries(pricing).map(([tarif, data]) => (
+            <div key={tarif} style={{ ...styles.bannerSlot, marginBottom: 12 }}>
+              <div style={{ color: '#fff', fontSize: 15, fontWeight: 700, marginBottom: 8 }}>
+                Тариф {tarif}₽ {tarif === '9990' ? '(Амбассадор)' : ''}
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={styles.priceField}>
+                  <label style={styles.priceLabel}>1 мес</label>
+                  <input
+                    type="number"
+                    value={data.months?.[1] || data.price || ''}
+                    onChange={e => updatePrice(tarif, 'price', e.target.value)}
+                    style={styles.priceInput2}
+                  />
+                </div>
+                {tarif !== '9990' && (
+                  <>
+                    <div style={styles.priceField}>
+                      <label style={styles.priceLabel}>3 мес</label>
+                      <input
+                        type="number"
+                        value={data.months?.[3] || ''}
+                        onChange={e => updatePrice(tarif, '3', e.target.value)}
+                        style={styles.priceInput2}
+                      />
+                    </div>
+                    <div style={styles.priceField}>
+                      <label style={styles.priceLabel}>5 мес</label>
+                      <input
+                        type="number"
+                        value={data.months?.[5] || ''}
+                        onChange={e => updatePrice(tarif, '5', e.target.value)}
+                        style={styles.priceInput2}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+
+          <button
+            style={styles.btnPrimary}
+            onClick={savePricing}
+            disabled={pricingSaving}
+          >
+            {pricingSaving ? 'Сохранение...' : 'Сохранить цены'}
+          </button>
         </div>
       )}
     </div>
@@ -1001,6 +1108,30 @@ const styles = {
     borderRadius: 8,
     color: '#999',
     fontSize: 14,
+  },
+  // Pricing
+  priceField: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    flex: 1,
+    minWidth: 80,
+  },
+  priceLabel: {
+    fontSize: 11,
+    color: '#888',
+  },
+  priceInput2: {
+    padding: '8px 10px',
+    background: '#0f3460',
+    border: '1px solid #333',
+    borderRadius: 6,
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 600,
+    textAlign: 'center',
+    width: '100%',
+    boxSizing: 'border-box',
   },
 };
 

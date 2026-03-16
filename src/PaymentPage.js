@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 import './shop.css';
 
-// Фиксированные цены со скидкой за мультимесячные подписки
-const PRICE_TABLE = {
+// Дефолтные цены (перезаписываются из API)
+const DEFAULT_PRICE_TABLE = {
   '290':  { 1: 290,  3: 750,  5: 1200 },
   '490':  { 1: 490,  3: 1200, 5: 2150 },
   '1190': { 1: 1190, 3: 3300, 5: 5650 },
@@ -70,6 +70,22 @@ function PaymentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [months, setMonths] = useState(1);
+  const [priceTable, setPriceTable] = useState(DEFAULT_PRICE_TABLE);
+
+  useEffect(() => {
+    fetch('/api/admin/pricing')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.pricing) {
+          const table = {};
+          for (const [key, val] of Object.entries(data.pricing)) {
+            table[key] = val.months || { 1: val.price };
+          }
+          setPriceTable(table);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Определяем тариф из URL: /pay/290, /pay/490, /pay/1190
   const path = window.location.pathname;
@@ -195,7 +211,7 @@ function PaymentPage() {
         </div>
 
         {!tariff.oneTime && (() => {
-          const totalDiscount = PRICE_TABLE[tarifKey][months];
+          const totalDiscount = priceTable[tarifKey][months];
           const totalFull = tariff.price * months;
           const hasDiscount = totalDiscount < totalFull;
           return (
@@ -231,7 +247,7 @@ function PaymentPage() {
           disabled={submitting || !telegramId}
           onClick={handlePay}
         >
-          {submitting ? 'Переход к оплате...' : `Оплатить ${tariff.oneTime ? tariff.price : PRICE_TABLE[tarifKey][months]} ₽`}
+          {submitting ? 'Переход к оплате...' : `Оплатить ${tariff.oneTime ? tariff.price : priceTable[tarifKey][months]} ₽`}
         </button>
       </div>
     </div>

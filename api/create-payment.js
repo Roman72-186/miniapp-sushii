@@ -2,17 +2,10 @@
 // Vercel Serverless Function (CommonJS)
 
 const crypto = require('crypto');
+const { getPriceTable } = require('./admin-pricing');
 
 const VALID_TARIFS = ['290', '490', '1190', '9990'];
 const VALID_MONTHS = [1, 3, 5];
-
-// Фиксированные цены со скидкой за мультимесячные подписки
-const PRICE_TABLE = {
-  '290':  { 1: 290,  3: 750,  5: 1200 },
-  '490':  { 1: 490,  3: 1200, 5: 2150 },
-  '1190': { 1: 1190, 3: 3300, 5: 5650 },
-  '9990': { 1: 9990 },
-};
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -42,7 +35,8 @@ module.exports = async (req, res) => {
   }
 
   const tarifStr = String(tarif);
-  const totalAmount = PRICE_TABLE[tarifStr][monthsNum];
+  const PRICE_TABLE = getPriceTable();
+  const totalAmount = PRICE_TABLE[tarifStr]?.[monthsNum];
   const amount = totalAmount.toFixed(2);
 
   const returnUrl = `https://sushi-house-39.ru/?telegram_id=${encodeURIComponent(telegram_id)}&payment=success`;
