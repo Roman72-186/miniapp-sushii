@@ -3,11 +3,11 @@ const { checkAuth } = require('./_lib/admin-auth');
 const fs = require('fs');
 const path = require('path');
 
-// Каталоги товаров
+// Каталоги товаров (hidden = не показывать в админке, но участвует в синхронизации)
 const CATALOGS = [
-  { id: 'rolls', name: 'Холодные роллы', file: 'холодные роллы/rolls.json' },
-  { id: 'zaproll', name: 'Запечённые роллы', file: 'запеченные роллы/zaproll.json' },
-  { id: 'sets', name: 'Сеты', file: 'сеты/set.json' },
+  { id: 'rolls', name: 'Холодные роллы', file: 'холодные роллы/rolls.json', hidden: true },
+  { id: 'zaproll', name: 'Запечённые роллы', file: 'запеченные роллы/zaproll.json', hidden: true },
+  { id: 'sets', name: 'Сеты', file: 'сеты/set.json', hidden: true },
   { id: 'rolls-sub', name: 'Роллы (подписка -30%)', file: 'подписка роллы/rolls-sub.json' },
   { id: 'zaproll-sub', name: 'Запечённые (подписка -30%)', file: 'подписка запеченные/zaproll-sub.json' },
   { id: 'sets-sub', name: 'Сеты (подписка -20%)', file: 'подписка сеты/sets-sub.json' },
@@ -67,6 +67,7 @@ module.exports = async (req, res) => {
     if (req.method === 'GET') {
       const result = [];
       for (const cat of CATALOGS) {
+        if (cat.hidden) continue; // пропускаем базовые каталоги (без подписки)
         const data = readCatalog(cat.file);
         if (data) {
           result.push({
