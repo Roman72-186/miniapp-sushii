@@ -72,7 +72,15 @@ function PaymentPage() {
   const [months, setMonths] = useState(1);
   const [priceTable, setPriceTable] = useState(DEFAULT_PRICE_TABLE);
   const [phoneInput, setPhoneInput] = useState('');
-  const hasPhone = !!userPhone;
+  // Проверяем что телефон российский (7XXXXXXXXXX)
+  const isValidRuPhone = (() => {
+    if (!userPhone) return false;
+    const digits = userPhone.replace(/\D/g, '');
+    if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) return true;
+    if (digits.length === 10) return true;
+    return false;
+  })();
+  const hasPhone = isValidRuPhone;
 
   useEffect(() => {
     fetch('/api/admin/pricing')
