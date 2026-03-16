@@ -15,13 +15,11 @@ const PICKUP_POINTS = [
 ];
 
 function normalizePhone(raw) {
-  const digits = raw.replace(/[^\d+]/g, '');
-  const nums = digits.replace(/\D/g, '');
-  if (nums.length === 11 && nums.startsWith('8')) return '+7' + nums.slice(1);
-  if (nums.length === 11 && nums.startsWith('7')) return '+7' + nums.slice(1);
-  if (nums.length === 10) return '+7' + nums;
-  if (digits.startsWith('+7') && nums.length === 11) return '+7' + nums.slice(1);
-  return raw;
+  const nums = raw.replace(/\D/g, '');
+  if (nums.length === 11 && nums.startsWith('8')) return '7' + nums.slice(1);
+  if (nums.length === 11 && nums.startsWith('7')) return nums;
+  if (nums.length === 10) return '7' + nums;
+  return nums;
 }
 
 function GiftSetsPage() {
@@ -83,7 +81,7 @@ function GiftSetsPage() {
     if (!phone.trim()) { setFormError('Укажите телефон'); return; }
 
     const finalPhone = normalizePhone(phone.trim());
-    if (!/^\+7\d{10}$/.test(finalPhone)) {
+    if (!/^7\d{10}$/.test(finalPhone)) {
       setFormError('Телефон должен быть в формате +7XXXXXXXXXX');
       return;
     }

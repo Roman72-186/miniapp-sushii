@@ -14,25 +14,11 @@ const PICKUP_POINTS = [
  * Нормализует телефон к формату +7XXXXXXXXXX
  */
 function normalizePhone(raw) {
-  // Убираем всё кроме цифр и +
-  const digits = raw.replace(/[^\d+]/g, '');
-  // Только цифры
-  const nums = digits.replace(/\D/g, '');
-
-  if (nums.length === 11 && nums.startsWith('8')) {
-    return '+7' + nums.slice(1);
-  }
-  if (nums.length === 11 && nums.startsWith('7')) {
-    return '+7' + nums.slice(1);
-  }
-  if (nums.length === 10) {
-    return '+7' + nums;
-  }
-  // Если уже +7...
-  if (digits.startsWith('+7') && nums.length === 11) {
-    return '+7' + nums.slice(1);
-  }
-  return raw;
+  const nums = raw.replace(/\D/g, '');
+  if (nums.length === 11 && nums.startsWith('8')) return '7' + nums.slice(1);
+  if (nums.length === 11 && nums.startsWith('7')) return nums;
+  if (nums.length === 10) return '7' + nums;
+  return nums;
 }
 
 function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }) {
@@ -58,7 +44,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
     if (!phone.trim()) { setError('Укажите телефон'); return; }
 
     const finalPhone = normalizePhone(phone.trim());
-    if (!/^\+7\d{10}$/.test(finalPhone)) {
+    if (!/^7\d{10}$/.test(finalPhone)) {
       setError('Телефон должен быть в формате +7XXXXXXXXXX');
       return;
     }
