@@ -3,39 +3,8 @@ import React, { useRef, useState, useEffect } from 'react';
 
 const BANNERS = [
   { id: 1, image: '/banners/banner-1.jpg' },
-  {
-    id: 2,
-    bg: 'linear-gradient(135deg, #1a2e1a 0%, #0d1f0d 100%)',
-    title: '3 тарифа на выбор',
-    lines: [
-      { label: '290₽', text: 'скидки 30% на роллы и 20% на сеты' },
-      { label: '490₽', text: 'скидки + 2 бесплатных ролла в месяц' },
-      { label: '1190₽', text: 'скидки + бесплатный сет + кофе' },
-    ],
-  },
-  {
-    id: 3,
-    bg: 'linear-gradient(135deg, #2a1a1a 0%, #1f0f0f 100%)',
-    title: 'Самовывоз — 4 точки',
-    lines: [
-      { text: 'ул. Ю.Гагарина, д. 16Б' },
-      { text: 'ул. Согласия, д. 46' },
-      { text: 'ул. Автомобильная, д. 12Б' },
-      { text: 'Гурьевск' },
-    ],
-    emoji: '📍',
-  },
-  {
-    id: 4,
-    bg: 'linear-gradient(135deg, #1a1a2e 0%, #0d0d1f 100%)',
-    title: 'Реферальная система',
-    lines: [
-      { text: 'Делитесь ссылкой с друзьями' },
-      { text: 'Получайте баллы SHC за каждого' },
-      { text: 'Оплачивайте баллами до 100% сета' },
-    ],
-    emoji: '🔥',
-  },
+  { id: 2, image: '/banners/banner-2.jpg' },
+  { id: 3, image: '/banners/banner-3.jpg' },
 ];
 
 function PromoBanner() {
