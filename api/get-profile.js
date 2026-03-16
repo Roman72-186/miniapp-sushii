@@ -1,7 +1,8 @@
-// api/get-profile.js — Получение профиля подписчика через WATBOT API (с кэшем)
-// Vercel Serverless Function (CommonJS)
+// api/get-profile.js — Получение профиля подписчика (SQLite + blob-store)
 
 const { readUserCache } = require('./_lib/user-cache');
+const { getUser } = require('./_lib/db');
+const { readGiftWindows } = require('./_lib/blob-store');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,13 +24,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 1. Попытка из кэша
+    // 1. Попытка из кэша (быстрый путь)
     const cache = await readUserCache(telegram_id);
     if (cache && cache.contact) {
       const v = cache.variables || {};
       return res.status(200).json({
         name: cache.contact.name || null,
-        phone: v['phone'] || v['телефон'] || (cache.listItem && cache.listItem.telefon) || null,
+        phone: (cache.listItem && cache.listItem.telefon) || null,
         статусСписания: v['статусСписания'] || null,
         balance_shc: v['balance_shc'] || null,
         датаОКОНЧАНИЯ: v['датаОКОНЧАНИЯ'] || null,
@@ -41,85 +42,33 @@ module.exports = async (req, res) => {
       });
     }
 
-    // 2. Fallback: WATBOT API
-    const apiToken = process.env.WATBOT_API_TOKEN;
-    if (!apiToken) {
-      return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
-    }
-
-    const tgId = String(telegram_id);
-    const base = `https://watbot.ru/api/v1/getContacts?api_token=${apiToken}&bot_id=72975&count=500`;
-
-    const firstRes = await fetch(`${base}&page=1`, {
-      headers: { 'Accept': 'application/json' },
-    });
-
-    if (!firstRes.ok) {
-      return res.status(502).json({ error: 'Ошибка запроса к WATBOT API' });
-    }
-
-    const firstData = await firstRes.json();
-    const lastPage = firstData.meta?.last_page || 1;
-
-    let contact = (firstData.data || []).find(c => c.telegram_id === tgId);
-
-    if (!contact && lastPage > 1) {
-      const pageNums = [];
-      for (let p = 2; p <= lastPage; p++) pageNums.push(p);
-
-      const results = await Promise.all(
-        pageNums.map(p =>
-          fetch(`${base}&page=${p}`, { headers: { 'Accept': 'application/json' } })
-            .then(r => r.json())
-            .then(data => (data.data || []).find(c => c.telegram_id === tgId) || null)
-            .catch(() => null)
-        )
-      );
-
-      contact = results.find(c => c !== null) || null;
-    }
-
-    if (!contact) {
+    // 2. Fallback: SQLite + blob-store
+    const dbUser = getUser(telegram_id);
+    if (!dbUser) {
       return res.status(404).json({ error: 'Контакт не найден' });
     }
 
-    const contactName = contact.name || null;
-    const variables = contact.variables || [];
-    let статусСписания = null;
-    let balance_shc = null;
-    let датаОКОНЧАНИЯ = null;
-    let датаНачала = null;
-    let датаПодарка = null;
-    let phone = null;
-    let телефон = null;
-    let ref_url = null;
-    let paymentId = null;
-
-    for (const v of variables) {
-      const name = v.name || '';
-      const value = v.value != null ? String(v.value) : '';
-      if (name === 'статусСписания') статусСписания = value;
-      if (name === 'balance_shc') balance_shc = value;
-      if (name === 'датаОКОНЧАНИЯ') датаОКОНЧАНИЯ = value;
-      if (name === 'датаНачала') датаНачала = value;
-      if (name === 'датаПодарка') датаПодарка = value;
-      if (name === 'phone') phone = value;
-      if (name === 'телефон') телефон = value;
-      if (name === 'ref_url') ref_url = value;
-      if (name === 'PaymentID') paymentId = value;
-    }
+    // Читаем датаПодарка из blob-store
+    let giftDate = null;
+    try {
+      const giftData = await readGiftWindows(telegram_id);
+      if (giftData?.windows) {
+        const claimed = giftData.windows.filter(w => w.claimedAt).sort((a, b) => b.num - a.num);
+        if (claimed.length > 0) giftDate = claimed[0].claimedAt;
+      }
+    } catch (_) {}
 
     return res.status(200).json({
-      name: contactName,
-      phone: phone || телефон || null,
-      статусСписания,
-      balance_shc,
-      датаОКОНЧАНИЯ,
-      датаНачала,
-      датаПодарка,
-      contact_id: contact.id || null,
-      ref_url,
-      has_payment_id: !!paymentId,
+      name: dbUser.name || null,
+      phone: dbUser.phone || null,
+      статусСписания: dbUser.subscription_status || null,
+      balance_shc: dbUser.balance_shc ? String(dbUser.balance_shc) : null,
+      датаОКОНЧАНИЯ: dbUser.subscription_end || null,
+      датаНачала: dbUser.subscription_start || null,
+      датаПодарка: giftDate,
+      contact_id: dbUser.watbot_contact_id || null,
+      ref_url: dbUser.ref_url || null,
+      has_payment_id: !!dbUser.payment_method_id,
     });
   } catch (error) {
     console.error('Ошибка получения профиля:', error);

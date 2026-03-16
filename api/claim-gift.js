@@ -1,5 +1,4 @@
-// api/claim-gift.js — Отметить подарочное окно как полученное (Vercel Blob + WATBOT)
-// Vercel Serverless Function (CommonJS)
+// api/claim-gift.js — Отметить подарочное окно как полученное (файловый blob-store)
 
 const { getCurrentWindow, formatDDMMYYYY, todayUTC, parseDDMMYYYY } = require('./_lib/gift-windows');
 const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
@@ -12,14 +11,11 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, contact_id } = req.body || {};
+  const { telegram_id } = req.body || {};
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken) return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
-
   try {
-    // 1. Прочитать JSON из Blob
+    // 1. Прочитать JSON из blob-store
     const stored = await readGiftWindows(telegram_id);
     if (!stored || !stored.windows || stored.windows.length === 0) {
       return res.status(400).json({ error: 'Данные подарочных окон не найдены' });
@@ -42,26 +38,10 @@ module.exports = async (req, res) => {
     windowInArray.claimedAt = today;
     stored.updatedAt = new Date().toISOString();
 
-    // 4. Записать обратно в Blob
+    // 4. Записать обратно в blob-store
     await writeGiftWindows(telegram_id, stored);
 
-    // 5. Записать переменные в WATBOT: датаПодарка + выдано (номер периода)
-    if (contact_id) {
-      const cid = Number(contact_id);
-      const setVar = (name, value) =>
-        fetch('https://watbot.ru/api/v1/setContactVariable', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ api_token: apiToken, bot_id: 72975, contact_id: cid, name, value }),
-        }).catch(() => {});
-
-      await Promise.all([
-        setVar('датаПодарка', today),
-        setVar('выдано', String(current.num)),
-      ]);
-    }
-
-    // 6. Вычислить дату следующего окна
+    // 5. Вычислить дату следующего окна
     let nextWindowDate = null;
     const nextWindow = stored.windows.find(w => w.num === current.num + 1);
     if (nextWindow) {

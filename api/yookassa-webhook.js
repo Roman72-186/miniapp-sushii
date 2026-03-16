@@ -1,11 +1,8 @@
 // api/yookassa-webhook.js — Обработка webhook от YooKassa (payment.succeeded)
-// Vercel Serverless Function (CommonJS)
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { frontpadRequest } = require('./_lib/frontpad');
 const { getUser, upsertUser, recordPayment, processCommissions } = require('./_lib/db');
-
-const WATBOT_BASE = 'https://watbot.ru/api/v1';
 
 // ID подписок во Frontpad
 const TARIF_PRODUCT_ID = {
@@ -17,74 +14,6 @@ const TARIF_PRODUCT_ID = {
 
 // YooKassa IP ranges (для проверки подлинности)
 const YOOKASSA_CIDRS = ['185.71.76.', '185.71.77.'];
-
-/**
- * Находит контакт по telegram_id (пагинация getContacts)
- */
-async function findContact(apiToken, telegramId) {
-  const tgId = String(telegramId);
-  const base = `${WATBOT_BASE}/getContacts?api_token=${apiToken}&bot_id=72975&count=500`;
-
-  const firstRes = await fetch(`${base}&page=1`, {
-    headers: { 'Accept': 'application/json' },
-  });
-  if (!firstRes.ok) throw new Error('WATBOT getContacts error: ' + firstRes.status);
-
-  const firstData = await firstRes.json();
-  const lastPage = firstData.meta?.last_page || 1;
-
-  let contact = (firstData.data || []).find(c => c.telegram_id === tgId);
-
-  if (!contact && lastPage > 1) {
-    const pageNums = [];
-    for (let p = 2; p <= lastPage; p++) pageNums.push(p);
-
-    const results = await Promise.all(
-      pageNums.map(p =>
-        fetch(`${base}&page=${p}`, { headers: { 'Accept': 'application/json' } })
-          .then(r => r.json())
-          .then(data => (data.data || []).find(c => c.telegram_id === tgId) || null)
-          .catch(() => null)
-      )
-    );
-    contact = results.find(c => c !== null) || null;
-  }
-
-  return contact;
-}
-
-/**
- * Устанавливает переменную контакта в WATBOT
- */
-async function setVariable(apiToken, contactId, name, value) {
-  await fetch(`${WATBOT_BASE}/setContactVariable`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({
-      api_token: apiToken,
-      bot_id: 72975,
-      contact_id: Number(contactId),
-      name,
-      value: String(value),
-    }),
-  });
-}
-
-/**
- * Добавляет тег контакту в WATBOT
- */
-async function addTag(apiToken, contactId, tagName) {
-  await fetch(`${WATBOT_BASE}/addContactTag`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({
-      api_token: apiToken,
-      bot_id: 72975,
-      contact_id: Number(contactId),
-      tag: tagName,
-    }),
-  });
-}
 
 /**
  * Форматирует дату в DD.MM.YYYY
@@ -149,67 +78,20 @@ module.exports = async (req, res) => {
       }
     }
 
-    const apiToken = process.env.WATBOT_API_TOKEN;
     const isOneTime = String(tarif) === '9990';
     const now = new Date();
     const endDate = new Date(now);
     endDate.setDate(endDate.getDate() + 30 * months);
 
-    // 1. WATBOT: синхронизация тегов/переменных (необязательно — если WATBOT недоступен, ничего страшного)
-    try {
-      if (apiToken) {
-        const contact = await findContact(apiToken, telegramId);
-        if (contact && contact.id) {
-          const contactId = contact.id;
-          if (isOneTime) {
-            await addTag(apiToken, contactId, 'Амба');
-          } else {
-            await Promise.all([
-              setVariable(apiToken, contactId, 'статусСписания', 'активно'),
-              setVariable(apiToken, contactId, 'датаНачала', formatDate(now)),
-              setVariable(apiToken, contactId, 'датаОКОНЧАНИЯ', formatDate(endDate)),
-            ]);
-            await Promise.all([
-              addTag(apiToken, contactId, String(tarif)),
-              addTag(apiToken, contactId, 'подписка30'),
-            ]);
-          }
-          console.log('webhook: WATBOT synced for', telegramId);
-        } else {
-          console.warn('webhook: WATBOT contact not found for', telegramId, '— skipping WATBOT sync');
-        }
-      }
-    } catch (watbotErr) {
-      console.warn('webhook: WATBOT sync failed (non-fatal):', watbotErr.message);
-    }
-
-    // 2. Читаем кэш + SQLite для телефона
+    // 1. Читаем кэш + SQLite для телефона
     let cached = null;
     try { cached = await readUserCache(telegramId); } catch (_) {}
 
     const dbUser = getUser(telegramId);
 
-    // 3. Создать заказ во Frontpad для учёта подписки
+    // 2. Создать заказ во Frontpad для учёта подписки
     try {
-      let phone = cached?.listItem?.telefon || cached?.variables?.phone || dbUser?.phone || null;
-
-      if (!phone && apiToken) {
-        try {
-          const listRes = await fetch('https://watbot.ru/api/v1/getListItems?api_token=' + apiToken, {
-            method: 'POST',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              schema_id: '69a16dc23dd8ee76a202a802',
-              filters: { id_tg: String(telegramId) },
-            }),
-          });
-          if (listRes.ok) {
-            const listData = await listRes.json();
-            const item = (listData.data || [])[0];
-            if (item) phone = item.telefon || item.phone || null;
-          }
-        } catch (_) {}
-      }
+      const phone = cached?.listItem?.telefon || cached?.variables?.phone || dbUser?.phone || null;
 
       const productId = TARIF_PRODUCT_ID[String(tarif)];
       const monthsLabel = months === 1 ? '1 мес' : `${months} мес`;
@@ -241,7 +123,7 @@ module.exports = async (req, res) => {
       console.error('webhook: frontpad error', fpErr.message);
     }
 
-    // 6. SQLite: записываем платёж + начисляем комиссии
+    // 3. SQLite: записываем платёж + начисляем комиссии
     try {
       const paymentAmount = Number(payment.amount?.value) || 0;
 
@@ -274,10 +156,9 @@ module.exports = async (req, res) => {
       }
     } catch (dbErr) {
       console.error('webhook: SQLite error:', dbErr.message);
-      // Не фатально — основная логика уже выполнена
     }
 
-    // 7. Инвалидировать кэш — обновить данные
+    // 4. Инвалидировать кэш — обновить данные
     try {
       const updatedTags = cached?.tags ? [...cached.tags] : [];
       if (isOneTime) {
@@ -311,7 +192,6 @@ module.exports = async (req, res) => {
       });
     } catch (cacheErr) {
       console.error('webhook: cache update failed', cacheErr.message);
-      // Не фатально — кэш обновится при следующем sync
     }
 
     console.log('webhook: payment processed', { telegramId, tarif, months, paymentMethodId: !!paymentMethodId });

@@ -120,7 +120,7 @@ function GiftRollsPage() {
       const orderNum = data.orderNumber || data.orderId || '';
       const mesId = userData?.variables?.mes_id || null;
 
-      // Fire-and-forget: отметить подарок как полученный + записать «выдано» в WATBOT
+      // Fire-and-forget: отметить подарок как полученный
       if (telegramId) {
         fetch('/api/claim-gift', {
           method: 'POST',

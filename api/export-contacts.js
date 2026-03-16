@@ -1,7 +1,6 @@
-// api/export-contacts.js — Экспорт всех контактов со всеми переменными
-// Vercel Serverless Function (CommonJS)
+// api/export-contacts.js — Экспорт всех пользователей из SQLite
 
-const { fetchAllContacts } = require('./_lib/watbot');
+const { getAllUsers } = require('./_lib/db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,51 +9,32 @@ module.exports = async (req, res) => {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken) return res.status(500).json({ error: 'Ошибка конфигурации сервера' });
-
   try {
-    const contacts = await fetchAllContacts(apiToken);
+    const users = getAllUsers();
 
-    // Собираем все уникальные имена переменных
-    const varNamesSet = new Set();
-    for (const c of contacts) {
-      if (Array.isArray(c.variables)) {
-        for (const v of c.variables) {
-          if (v.name) varNamesSet.add(v.name);
-        }
-      }
-    }
-    const varNames = [...varNamesSet].sort();
-
-    // Формируем таблицу
-    const rows = contacts.map(c => {
-      const variables = {};
-      if (Array.isArray(c.variables)) {
-        for (const v of c.variables) {
-          if (v.name) variables[v.name] = v.value != null ? String(v.value) : '';
-        }
-      }
-
-      const row = {
-        id: c.id || '',
-        name: c.name || '',
-        telegram_id: c.telegram_id || '',
-        phone: c.phone || '',
-      };
-
-      for (const vn of varNames) {
-        row[vn] = variables[vn] || '';
-      }
-
-      return row;
-    });
+    const rows = users.map(u => ({
+      telegram_id: u.telegram_id || '',
+      name: u.name || '',
+      phone: u.phone || '',
+      tariff: u.tariff || '',
+      is_ambassador: u.is_ambassador ? 'Да' : '',
+      subscription_status: u.subscription_status || '',
+      subscription_start: u.subscription_start || '',
+      subscription_end: u.subscription_end || '',
+      balance_shc: u.balance_shc != null ? String(u.balance_shc) : '',
+      ref_url: u.ref_url || '',
+      invited_by: u.invited_by || '',
+      created_at: u.created_at || '',
+      updated_at: u.updated_at || '',
+    }));
 
     const format = req.query.format || 'json';
 
     if (format === 'csv') {
-      // CSV с BOM для корректного отображения кириллицы в Excel
-      const columns = ['id', 'name', 'telegram_id', 'phone', ...varNames];
+      const columns = ['telegram_id', 'name', 'phone', 'tariff', 'is_ambassador',
+        'subscription_status', 'subscription_start', 'subscription_end',
+        'balance_shc', 'ref_url', 'invited_by', 'created_at', 'updated_at'];
+
       const escapeCsv = (val) => {
         const s = String(val);
         if (s.includes(',') || s.includes('"') || s.includes('\n')) {
@@ -75,7 +55,6 @@ module.exports = async (req, res) => {
     // JSON по умолчанию
     return res.status(200).json({
       total: rows.length,
-      variable_names: varNames,
       contacts: rows,
     });
   } catch (error) {

@@ -443,11 +443,16 @@ function renewSubscription(telegramId, newEndDate) {
   `).run(startStr, newEndDate, String(telegramId));
 }
 
+function getAllUsers() {
+  return getDb().prepare('SELECT * FROM users ORDER BY updated_at DESC').all();
+}
+
 module.exports = {
   getDb,
   upsertUser,
   getUser,
   getUserByContactId,
+  getAllUsers,
   updateBalance,
   getReferrals,
   setInvitedBy,

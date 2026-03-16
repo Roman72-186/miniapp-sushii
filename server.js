@@ -20,8 +20,6 @@ app.all('/api/get-gift-windows', require('./api/get-gift-windows'));
 app.all('/api/export-contacts', require('./api/export-contacts'));
 app.all('/api/get-transactions', require('./api/get-transactions'));
 app.all('/api/register-referral', require('./api/register-referral'));
-app.all('/api/migrate-referrals', require('./api/migrate-referrals'));
-app.all('/api/migrate-subscribers', require('./api/migrate-subscribers'));
 app.all('/api/send-bot-message', require('./api/send-bot-message'));
 app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 
@@ -29,6 +27,7 @@ app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 app.all('/api/admin/login', require('./api/admin-login'));
 app.all('/api/admin/products', require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
+app.all('/api/admin/grant-gift', require('./api/admin-grant-gift'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {

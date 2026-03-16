@@ -1,8 +1,8 @@
-// api/create-order.js — Endpoint для создания заказа (WATBOT phone lookup + Frontpad + Telegram)
-// Vercel Serverless Function (CommonJS)
+// api/create-order.js — Endpoint для создания заказа (SQLite phone lookup + Frontpad + Telegram)
 
 const { createOrder } = require('./_lib/frontpad');
 const { readUserCache } = require('./_lib/user-cache');
+const { getUser } = require('./_lib/db');
 
 function parseJsonBody(req) {
   try {
@@ -13,48 +13,6 @@ function parseJsonBody(req) {
     return {};
   } catch (e) {
     return {};
-  }
-}
-
-/**
- * Получает телефон пользователя из WATBOT CRM по Telegram ID
- */
-async function getPhoneByTelegramId(telegramId) {
-  const apiToken = process.env.WATBOT_API_TOKEN;
-  if (!apiToken || !telegramId) return null;
-
-  try {
-    const response = await fetch(
-      `https://watbot.ru/api/v1/getListItems?api_token=${apiToken}`,
-      {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          schema_id: '69a16dc23dd8ee76a202a802',
-          filters: { id_tg: String(telegramId) },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      console.error('WATBOT phone lookup error:', response.status);
-      return null;
-    }
-
-    const data = await response.json();
-    const items = data.data || [];
-
-    if (items.length === 0) return null;
-
-    // Поле telefon в записи пользователя
-    const item = items[0];
-    return item.telefon || item.phone || item.Telefon || null;
-  } catch (err) {
-    console.error('WATBOT phone lookup failed:', err.message);
-    return null;
   }
 }
 
@@ -83,7 +41,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Укажите имя' });
     }
 
-    // 1. Получаем телефон: сначала из кэша, потом из WATBOT
+    // 1. Получаем телефон: из формы → кэш → SQLite
     let orderPhone = client.phone || '';
     if (telegram_id) {
       const cache = await readUserCache(telegram_id);
@@ -91,9 +49,9 @@ module.exports = async (req, res) => {
       if (cachedPhone) {
         orderPhone = cachedPhone;
       } else {
-        const watbotPhone = await getPhoneByTelegramId(telegram_id);
-        if (watbotPhone) {
-          orderPhone = watbotPhone;
+        const dbUser = getUser(telegram_id);
+        if (dbUser?.phone) {
+          orderPhone = dbUser.phone;
         }
       }
     }

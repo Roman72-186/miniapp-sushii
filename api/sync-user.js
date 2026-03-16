@@ -1,73 +1,11 @@
 // api/sync-user.js — Синхронизация данных пользователя
-// Источник данных: SQLite (primary) → файловый кэш → WATBOT (optional enrichment)
+// Источник данных: SQLite (primary) → файловый кэш
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { getUser, upsertUser } = require('./_lib/db');
+const { readGiftWindows } = require('./_lib/blob-store');
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 минут
-
-/**
- * Пытается обогатить данные из WATBOT (необязательно — если WATBOT недоступен, работаем без него)
- */
-async function enrichFromWatbot(apiToken, telegramId) {
-  if (!apiToken) return null;
-
-  try {
-    const { findContact, fetchTags } = require('./_lib/watbot');
-
-    const contact = await findContact(apiToken, telegramId);
-    if (!contact) return null;
-
-    let tags = [];
-    if (contact.id) {
-      tags = await fetchTags(apiToken, contact.id);
-    }
-
-    const variables = {};
-    if (contact.variables) {
-      for (const v of contact.variables) {
-        const name = v.name || '';
-        const value = v.value != null ? String(v.value) : '';
-        if (name) variables[name] = value;
-      }
-    }
-
-    // listItem для телефона/имени
-    let listItemData = null;
-    try {
-      const res = await fetch('https://watbot.ru/api/v1/getListItems?api_token=' + apiToken, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          schema_id: '69a16dc23dd8ee76a202a802',
-          filters: { id_tg: String(telegramId) },
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const item = (data.data || [])[0];
-        if (item) {
-          listItemData = {
-            name: item.name || item.Name || null,
-            telefon: item.telefon || item.phone || item.Telefon || null,
-          };
-        }
-      }
-    } catch (_) {}
-
-    // Тариф из тегов
-    let tarif = null;
-    if (tags.includes('Амба')) tarif = '9990';
-    else if (tags.includes('1190')) tarif = '1190';
-    else if (tags.includes('490')) tarif = '490';
-    else if (tags.includes('290')) tarif = '290';
-
-    return { contact, tags, variables, listItemData, tarif };
-  } catch (err) {
-    console.warn('sync-user: WATBOT enrichment failed:', err.message);
-    return null;
-  }
-}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -92,70 +30,47 @@ module.exports = async (req, res) => {
       }
     }
 
-    // 2. SQLite — основной источник данных
+    // 2. SQLite — единственный источник данных
     const dbUser = getUser(telegram_id);
 
-    // 3. WATBOT — необязательное обогащение (может быть недоступен)
-    const apiToken = process.env.WATBOT_API_TOKEN;
-    const watbot = await enrichFromWatbot(apiToken, telegram_id);
+    const tarif = dbUser?.tariff || null;
+    const isAmbassador = !!dbUser?.is_ambassador;
+    const tags = [];
+    if (tarif) tags.push(tarif);
+    if (isAmbassador) tags.push('Амба');
 
-    // 4. Собираем итоговые данные (SQLite приоритет, WATBOT дополняет)
-    let tarif = dbUser?.tariff || watbot?.tarif || null;
-    const tags = watbot?.tags || [];
-    const variables = watbot?.variables || {};
-    const listItemData = watbot?.listItemData || null;
-    const contact = watbot?.contact || null;
+    // Читаем датаПодарка из blob-store
+    let giftDate = '';
+    try {
+      const giftData = await readGiftWindows(telegram_id);
+      if (giftData?.windows) {
+        const claimed = giftData.windows.filter(w => w.claimedAt).sort((a, b) => b.num - a.num);
+        if (claimed.length > 0) giftDate = claimed[0].claimedAt;
+      }
+    } catch (_) {}
 
-    // Подписочные даты: SQLite приоритет
-    if (!variables['датаНачала'] && dbUser?.subscription_start) {
-      variables['датаНачала'] = dbUser.subscription_start;
-    }
-    if (!variables['датаОКОНЧАНИЯ'] && dbUser?.subscription_end) {
-      variables['датаОКОНЧАНИЯ'] = dbUser.subscription_end;
-    }
-    if (!variables['статусСписания'] && dbUser?.subscription_status) {
-      variables['статусСписания'] = dbUser.subscription_status;
-    }
-    if (!variables['PaymentID'] && dbUser?.payment_method_id) {
-      variables['PaymentID'] = dbUser.payment_method_id;
-    }
+    const variables = {
+      'статусСписания': dbUser?.subscription_status || '',
+      'датаНачала': dbUser?.subscription_start || '',
+      'датаОКОНЧАНИЯ': dbUser?.subscription_end || '',
+      'PaymentID': dbUser?.payment_method_id || '',
+      'balance_shc': dbUser?.balance_shc ? String(dbUser.balance_shc) : '',
+      'ref_url': dbUser?.ref_url || '',
+      'датаПодарка': giftDate,
+    };
 
-    // Амбассадор из SQLite
-    const isAmbassador = dbUser?.is_ambassador || tags.includes('Амба');
-    if (isAmbassador && !tags.includes('Амба')) tags.push('Амба');
-
-    // Формируем кэш
     const cacheData = {
       telegram_id: String(telegram_id),
       syncedAt: new Date().toISOString(),
-      contact: contact ? { id: contact.id, name: contact.name || null } : null,
+      contact: { id: dbUser?.watbot_contact_id || null, name: dbUser?.name || null },
       variables,
       tags,
       tarif,
-      listItem: listItemData || (dbUser ? { name: dbUser.name, telefon: dbUser.phone } : null),
+      listItem: dbUser ? { name: dbUser.name, telefon: dbUser.phone } : null,
     };
 
-    // 5. Записываем в файловый кэш
+    // 3. Записываем в файловый кэш
     await writeUserCache(telegram_id, cacheData);
-
-    // 6. Синхронизируем в SQLite (обновляем данными из WATBOT если есть)
-    try {
-      upsertUser({
-        telegram_id: String(telegram_id),
-        name: contact?.name || listItemData?.name || dbUser?.name || null,
-        phone: listItemData?.telefon || variables['phone'] || variables['телефон'] || dbUser?.phone || null,
-        tariff: tarif,
-        is_ambassador: isAmbassador,
-        subscription_status: variables['статусСписания'] || dbUser?.subscription_status || null,
-        subscription_start: variables['датаНачала'] || dbUser?.subscription_start || null,
-        subscription_end: variables['датаОКОНЧАНИЯ'] || dbUser?.subscription_end || null,
-        payment_method_id: variables['PaymentID'] || dbUser?.payment_method_id || null,
-        ref_url: variables['ref_url'] || dbUser?.ref_url || null,
-        watbot_contact_id: contact?.id ? String(contact.id) : (dbUser?.watbot_contact_id || null),
-      });
-    } catch (dbErr) {
-      console.error('sync-user: SQLite upsert error:', dbErr.message);
-    }
 
     return res.status(200).json({ success: true, data: cacheData, fromCache: false });
   } catch (error) {

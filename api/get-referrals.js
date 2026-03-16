@@ -1,7 +1,6 @@
-// api/get-referrals.js — Получение рефералов (SQLite основной, WATBOT fallback)
+// api/get-referrals.js — Получение рефералов из SQLite
 
 const { getUser, getReferrals: getDbReferrals } = require('./_lib/db');
-const { readUserCache } = require('./_lib/user-cache');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,7 +17,6 @@ module.exports = async (req, res) => {
     let tgId = telegram_id;
 
     if (!tgId && contact_id) {
-      // Ищем по watbot_contact_id в SQLite
       const { getUserByContactId } = require('./_lib/db');
       const user = getUserByContactId(contact_id);
       if (user) tgId = user.telegram_id;
@@ -47,41 +45,6 @@ module.exports = async (req, res) => {
     });
   } catch (error) {
     console.error('get-referrals error:', error.message);
-
-    // Fallback на WATBOT если SQLite не работает
-    if (contact_id) {
-      try {
-        const apiToken = process.env.WATBOT_API_TOKEN;
-        if (apiToken) {
-          const refRes = await fetch(
-            `https://watbot.ru/api/v1/getReferrals?api_token=${apiToken}&bot_id=72975&contact_id=${contact_id}`,
-            { headers: { 'Accept': 'application/json' } }
-          );
-          if (refRes.ok) {
-            const refData = await refRes.json();
-            const refList = Array.isArray(refData.data) ? refData.data : (Array.isArray(refData) ? refData : []);
-            const referrals = await Promise.all(
-              refList.map(async (r) => {
-                const entry = { name: r.name || 'Без имени', telegram_id: r.telegram_id || null, is_ambassador: false };
-                if (entry.telegram_id) {
-                  try {
-                    const cached = await readUserCache(entry.telegram_id);
-                    if (cached && Array.isArray(cached.tags) && cached.tags.includes('Амба')) entry.is_ambassador = true;
-                  } catch (_) {}
-                }
-                return entry;
-              })
-            );
-            return res.status(200).json({
-              referrals_count: referrals.length,
-              ambassadors_count: referrals.filter(r => r.is_ambassador).length,
-              referrals,
-            });
-          }
-        }
-      } catch (_) {}
-    }
-
     return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
   }
 };

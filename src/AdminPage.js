@@ -23,6 +23,7 @@ function AdminPage() {
   const [subsLoading, setSubsLoading] = useState(false);
   const [subsFilter, setSubsFilter] = useState('all');
   const [subsSearch, setSubsSearch] = useState('');
+  const [grantingGift, setGrantingGift] = useState(null); // telegram_id пока идёт запрос
 
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -130,6 +131,25 @@ function AdminPage() {
   // Toggle enabled
   const toggleEnabled = (catalogId, index, currentEnabled) => {
     saveItem(catalogId, index, { enabled: !currentEnabled });
+  };
+
+  // Выдать подарок
+  const grantGift = async (telegramId, type) => {
+    setGrantingGift(telegramId + type);
+    try {
+      const res = await fetch(`${API}/api/admin/grant-gift`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ telegram_id: telegramId, type }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadSubscribers();
+      }
+    } catch (err) {
+      console.error('grantGift error:', err);
+    }
+    setGrantingGift(null);
   };
 
   const logout = () => {
@@ -330,6 +350,22 @@ function AdminPage() {
                   <span style={styles.subName}>{s.name || 'Без имени'}</span>
                   <span style={styles.tariffBadge(s.tariff)}>{s.tariff}&#8381;</span>
                   {s.is_ambassador ? <span style={styles.ambBadge}>AMB</span> : null}
+                  <span style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+                    <button
+                      style={styles.grantBtn}
+                      onClick={() => grantGift(s.telegram_id, 'roll')}
+                      disabled={!!grantingGift}
+                    >
+                      {grantingGift === s.telegram_id + 'roll' ? '...' : '+Roll'}
+                    </button>
+                    <button
+                      style={styles.grantBtn}
+                      onClick={() => grantGift(s.telegram_id, 'set')}
+                      disabled={!!grantingGift}
+                    >
+                      {grantingGift === s.telegram_id + 'set' ? '...' : '+Set'}
+                    </button>
+                  </span>
                 </div>
                 <div style={styles.subDetails}>
                   {s.phone && <span>Tel: {s.phone}</span>}
@@ -669,6 +705,16 @@ const styles = {
     borderRadius: 4,
     fontSize: 11,
     color: '#3CC8A1',
+  },
+  grantBtn: {
+    padding: '3px 8px',
+    background: '#0f3460',
+    color: '#64b5f6',
+    border: '1px solid #2a4a5e',
+    borderRadius: 4,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: 'pointer',
   },
 };
 

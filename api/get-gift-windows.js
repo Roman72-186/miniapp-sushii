@@ -1,5 +1,5 @@
 // api/get-gift-windows.js — Получение статуса подарочных окон
-// Источник данных: SQLite (primary) → файловый кэш → WATBOT (fallback)
+// Источник данных: SQLite (primary) → файловый blob-store
 
 const { buildWindows, computeStatus } = require('./_lib/gift-windows');
 const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');

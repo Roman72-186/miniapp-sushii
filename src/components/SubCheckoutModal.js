@@ -99,7 +99,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
         throw new Error(data.error || 'Ошибка создания заказа');
       }
 
-      // Mark gift window as claimed (Vercel Blob + WATBOT)
+      // Mark gift window as claimed
       if (telegramId) {
         try {
           await fetch('/api/claim-gift', {
