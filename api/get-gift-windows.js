@@ -62,25 +62,49 @@ module.exports = async (req, res) => {
       } catch (_) {}
     }
 
+    // 3. Читаем сохранённые окна (проверяем admin-гранты до проверки тарифа)
+    let stored = await readGiftWindows(telegram_id);
+
+    // Проверяем admin-granted окна (доступны без тарифа)
+    const adminWindows = stored?.windows?.filter(w => w.grantedBy === 'admin' && w.status === 'available') || [];
+    const adminGrants = {
+      roll: adminWindows.some(w => w.grantType === 'roll'),
+      set: adminWindows.some(w => w.grantType === 'set'),
+    };
+
+    // Если есть admin-гранты — возвращаем их статус даже без тарифа
+    if (adminWindows.length > 0 && (!tarif || (tarif !== '490' && tarif !== '1190'))) {
+      const status = computeStatus(stored.windows);
+      return res.status(200).json({
+        success: true,
+        data: {
+          tarif: tarif || null,
+          currentStatus: status.currentStatus,
+          daysLeft: status.daysLeft,
+          currentWindow: status.currentWindow,
+          totalWindows: status.totalWindows,
+          windows: stored.windows,
+          adminGrants,
+        },
+      });
+    }
+
     // Нет данных — expired
     if (!tarif || (tarif !== '490' && tarif !== '1190')) {
       return res.status(200).json({
         success: true,
-        data: { tarif: tarif || null, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [] },
+        data: { tarif: tarif || null, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], adminGrants },
       });
     }
 
     if (!датаНачала || !датаОКОНЧАНИЯ) {
       return res.status(200).json({
         success: true,
-        data: { tarif, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [] },
+        data: { tarif, currentStatus: 'expired', daysLeft: 0, currentWindow: 0, totalWindows: 0, windows: [], adminGrants },
       });
     }
 
     const windowDays = tarif === '1190' ? 30 : 15;
-
-    // 3. Читаем сохранённые окна
-    let stored = await readGiftWindows(telegram_id);
 
     // 4. Пересоздаём если изменились параметры
     const needRebuild = !stored ||
@@ -109,6 +133,13 @@ module.exports = async (req, res) => {
     // 5. Статус
     const status = computeStatus(stored.windows);
 
+    // Обновляем adminGrants с учётом пересобранных окон
+    const updatedAdminWindows = stored.windows.filter(w => w.grantedBy === 'admin' && w.status === 'available');
+    const updatedAdminGrants = {
+      roll: updatedAdminWindows.some(w => w.grantType === 'roll'),
+      set: updatedAdminWindows.some(w => w.grantType === 'set'),
+    };
+
     return res.status(200).json({
       success: true,
       data: {
@@ -118,6 +149,7 @@ module.exports = async (req, res) => {
         currentWindow: status.currentWindow,
         totalWindows: status.totalWindows,
         windows: stored.windows,
+        adminGrants: updatedAdminGrants,
       },
     });
   } catch (error) {

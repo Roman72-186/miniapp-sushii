@@ -167,6 +167,7 @@ function DiscountShopPage() {
   const [giftStatus, setGiftStatus] = useState(null);
   const [giftStatusLoading, setGiftStatusLoading] = useState(true);
   const [contactId, setContactId] = useState(null);
+  const [adminGrants, setAdminGrants] = useState({ roll: false, set: false });
 
   // Gift window status from server (Vercel Blob)
   const fetchGiftStatus = useCallback(() => {
@@ -182,6 +183,7 @@ function DiscountShopPage() {
         if (!resp.success || !resp.data) return;
         const d = resp.data;
         if (d.contact_id) setContactId(d.contact_id);
+        if (d.adminGrants) setAdminGrants(d.adminGrants);
         setGiftStatus({
           status: d.currentStatus,
           daysLeft: d.daysLeft,
@@ -233,14 +235,18 @@ function DiscountShopPage() {
     if (tarifLoading || giftStatusLoading) return;
     const cat = GIFT_CATEGORIES.find(c => c.id === catId);
     if (!cat) return;
-    if (isGiftLocked(cat, userTarif)) {
+
+    // Admin-гранты обходят проверку тарифа
+    const hasAdminGrant = (catId === 'gift-rolls' && adminGrants.roll) || (catId === 'gift-sets' && adminGrants.set);
+
+    if (!hasAdminGrant && isGiftLocked(cat, userTarif)) {
       const tarifLabel = cat.minTarif === '1190' ? '1190' : '490';
       setLockedPopup(`Этот раздел доступен подписчикам тарифа от ${tarifLabel}₽`);
       return;
     }
-    // Block if gift already claimed or waiting
-    if (giftStatus && giftStatus.status === 'claimed') return;
-    if (giftStatus && giftStatus.status === 'waiting') return;
+    // Block if gift already claimed or waiting (only for non-admin grants)
+    if (!hasAdminGrant && giftStatus && giftStatus.status === 'claimed') return;
+    if (!hasAdminGrant && giftStatus && giftStatus.status === 'waiting') return;
     setGiftView(catId);
     window.scrollTo(0, 0);
   };
@@ -380,12 +386,13 @@ function DiscountShopPage() {
       <div className="shop-gift-row">
         {GIFT_CATEGORIES.map(cat => {
           const anyLoading = tarifLoading || giftStatusLoading;
-          const locked = anyLoading ? true : isGiftLocked(cat, userTarif);
-          // Hide gift button if subscription expired
-          if (!locked && giftStatus && giftStatus.status === 'expired') return null;
+          const hasAdminGrant = (cat.id === 'gift-rolls' && adminGrants.roll) || (cat.id === 'gift-sets' && adminGrants.set);
+          const locked = anyLoading ? true : (!hasAdminGrant && isGiftLocked(cat, userTarif));
+          // Hide gift button if subscription expired (but not if admin granted)
+          if (!locked && !hasAdminGrant && giftStatus && giftStatus.status === 'expired') return null;
 
-          const isClaimed = !locked && giftStatus && giftStatus.status === 'claimed';
-          const isWaiting = !locked && giftStatus && giftStatus.status === 'waiting';
+          const isClaimed = !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'claimed';
+          const isWaiting = !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'waiting';
           const isDisabled = locked || isClaimed || isWaiting;
 
           let label = `${cat.icon} ${cat.tab}`;
