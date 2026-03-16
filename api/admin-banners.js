@@ -43,12 +43,18 @@ module.exports = async (req, res) => {
   // POST/DELETE — требуют auth
   if (!checkAuth(req, res)) return;
 
-  // POST — загрузка нового баннера (base64)
+  // POST — загрузка баннера или обновление списка
   if (req.method === 'POST') {
-    const { slot, imageData } = req.body || {};
+    const { slot, imageData, action, banners: newBanners } = req.body || {};
 
-    if (!slot || slot < 1 || slot > 5) {
-      return res.status(400).json({ error: 'slot должен быть 1-5' });
+    // Сохранить весь массив баннеров (добавление/удаление слотов)
+    if (action === 'set-all' && Array.isArray(newBanners)) {
+      writeBanners(newBanners.slice(0, 7));
+      return res.status(200).json({ success: true });
+    }
+
+    if (!slot || slot < 1 || slot > 7) {
+      return res.status(400).json({ error: 'slot должен быть 1-7' });
     }
 
     if (!imageData) {

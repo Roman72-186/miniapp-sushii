@@ -222,6 +222,44 @@ function AdminPage() {
     setBannerUploading(null);
   };
 
+  const addBannerSlot = async () => {
+    const newId = banners.length > 0 ? Math.max(...banners.map(b => b.id)) + 1 : 1;
+    if (newId > 7) return;
+    const updated = [...banners, { id: newId, placeholder: true, color: '#f5f5f5' }];
+    setBanners(updated);
+    try {
+      await fetch(`${API}/api/admin/banners`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ action: 'set-all', banners: updated }),
+      });
+    } catch {}
+  };
+
+  const removeBannerSlot = async () => {
+    if (banners.length <= 1) return;
+    const last = banners[banners.length - 1];
+    // Удаляем файл если есть
+    if (last.image) {
+      try {
+        await fetch(`${API}/api/admin/banners`, {
+          method: 'DELETE',
+          headers: headers(),
+          body: JSON.stringify({ slot: last.id }),
+        });
+      } catch {}
+    }
+    const updated = banners.slice(0, -1);
+    setBanners(updated);
+    try {
+      await fetch(`${API}/api/admin/banners`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ action: 'set-all', banners: updated }),
+      });
+    } catch {}
+  };
+
   const deleteBanner = async (slot) => {
     setBannerUploading(slot);
     try {
@@ -526,8 +564,8 @@ function AdminPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[1, 2, 3].map(slot => {
-              const banner = banners.find(b => b.id === slot);
+            {banners.map((banner, idx) => {
+              const slot = banner.id;
               const hasImage = banner && banner.image;
               return (
                 <div key={slot} style={styles.bannerSlot}>
@@ -565,9 +603,21 @@ function AdminPage() {
             })}
           </div>
 
-          <button onClick={loadBanners} style={{ ...styles.btnSmall, marginTop: 16 }} disabled={bannersLoading}>
-            Обновить
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            {banners.length < 7 && (
+              <button style={styles.grantBtn} onClick={addBannerSlot} disabled={!!bannerUploading}>
+                + Добавить слот
+              </button>
+            )}
+            {banners.length > 1 && (
+              <button style={styles.claimBtn} onClick={removeBannerSlot} disabled={!!bannerUploading}>
+                − Удалить последний
+              </button>
+            )}
+            <button onClick={loadBanners} style={styles.btnSmall} disabled={bannersLoading}>
+              Обновить
+            </button>
+          </div>
         </div>
       )}
     </div>
