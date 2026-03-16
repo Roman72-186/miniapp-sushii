@@ -2086,18 +2086,36 @@ body.shop-body {
 .promo-banner__slide {
   flex: 0 0 100%;
   scroll-snap-align: start;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
   border-radius: 12px;
-  min-height: 72px;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
+.promo-banner__slide--img {
+  padding: 0;
+  line-height: 0;
+}
+
+.promo-banner__img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.promo-banner__slide--text {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  min-height: 120px;
+}
+
 .promo-banner__emoji {
-  font-size: 28px;
+  font-size: 24px;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .promo-banner__content {
@@ -2106,16 +2124,30 @@ body.shop-body {
 }
 
 .promo-banner__title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 3px;
+  margin-bottom: 8px;
+}
+
+.promo-banner__line {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+  align-items: baseline;
+}
+
+.promo-banner__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3CC8A1;
+  flex-shrink: 0;
 }
 
 .promo-banner__text {
   font-size: 12px;
-  color: #aaa;
-  line-height: 1.3;
+  color: #bbb;
+  line-height: 1.35;
 }
 
 .promo-banner__dots {

@@ -1,34 +1,40 @@
-// src/components/PromoBanner.js — Горизонтальный слайдер промо-баннеров
+// src/components/PromoBanner.js — Горизонтальный слайдер промо-баннеров (картинки + текст)
 import React, { useRef, useState, useEffect } from 'react';
 
 const BANNERS = [
-  {
-    id: 1,
-    bg: 'linear-gradient(135deg, #1a3a2a 0%, #0f2a1f 100%)',
-    title: 'Бесплатная доставка',
-    text: 'При заказе от 1 000₽ — доставка бесплатно по всему городу',
-    emoji: '🚗',
-  },
+  { id: 1, image: '/banners/banner-1.jpg' },
   {
     id: 2,
-    bg: 'linear-gradient(135deg, #2a1a3a 0%, #1f0f2a 100%)',
-    title: 'Топпинги к роллам',
-    text: 'Соевый соус, имбирь и васаби — всегда в комплекте',
-    emoji: '🥢',
+    bg: 'linear-gradient(135deg, #1a2e1a 0%, #0d1f0d 100%)',
+    title: '3 тарифа на выбор',
+    lines: [
+      { label: '290₽', text: 'скидки 30% на роллы и 20% на сеты' },
+      { label: '490₽', text: 'скидки + 2 бесплатных ролла в месяц' },
+      { label: '1190₽', text: 'скидки + бесплатный сет + кофе' },
+    ],
   },
   {
     id: 3,
-    bg: 'linear-gradient(135deg, #3a2a1a 0%, #2a1f0f 100%)',
-    title: 'Скидки по подписке',
-    text: 'До 30% на роллы и 20% на сеты — каждый день',
-    emoji: '💰',
+    bg: 'linear-gradient(135deg, #2a1a1a 0%, #1f0f0f 100%)',
+    title: 'Самовывоз — 4 точки',
+    lines: [
+      { text: 'ул. Ю.Гагарина, д. 16Б' },
+      { text: 'ул. Согласия, д. 46' },
+      { text: 'ул. Автомобильная, д. 12Б' },
+      { text: 'Гурьевск' },
+    ],
+    emoji: '📍',
   },
   {
     id: 4,
-    bg: 'linear-gradient(135deg, #1a2a3a 0%, #0f1f2a 100%)',
-    title: 'Самовывоз — 4 точки',
-    text: 'Гагарина 16Б, Согласия 46, Автомобильная 12Б, Гурьевск',
-    emoji: '📍',
+    bg: 'linear-gradient(135deg, #1a1a2e 0%, #0d0d1f 100%)',
+    title: 'Реферальная система',
+    lines: [
+      { text: 'Делитесь ссылкой с друзьями' },
+      { text: 'Получайте баллы SHC за каждого' },
+      { text: 'Оплачивайте баллами до 100% сета' },
+    ],
+    emoji: '🔥',
   },
 ];
 
@@ -61,13 +67,24 @@ function PromoBanner() {
     <div className="promo-banner">
       <div className="promo-banner__track" ref={scrollRef}>
         {BANNERS.map(b => (
-          <div key={b.id} className="promo-banner__slide" style={{ background: b.bg }}>
-            <span className="promo-banner__emoji">{b.emoji}</span>
-            <div className="promo-banner__content">
-              <div className="promo-banner__title">{b.title}</div>
-              <div className="promo-banner__text">{b.text}</div>
+          b.image ? (
+            <div key={b.id} className="promo-banner__slide promo-banner__slide--img">
+              <img src={b.image} alt="" className="promo-banner__img" />
             </div>
-          </div>
+          ) : (
+            <div key={b.id} className="promo-banner__slide promo-banner__slide--text" style={{ background: b.bg }}>
+              {b.emoji && <span className="promo-banner__emoji">{b.emoji}</span>}
+              <div className="promo-banner__content">
+                <div className="promo-banner__title">{b.title}</div>
+                {b.lines && b.lines.map((line, i) => (
+                  <div key={i} className="promo-banner__line">
+                    {line.label && <span className="promo-banner__label">{line.label}</span>}
+                    <span className="promo-banner__text">{line.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
         ))}
       </div>
       <div className="promo-banner__dots">
