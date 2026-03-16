@@ -24,6 +24,7 @@ function AdminPage() {
   const [subsFilter, setSubsFilter] = useState('all');
   const [subsSearch, setSubsSearch] = useState('');
   const [grantingGift, setGrantingGift] = useState(null); // telegram_id пока идёт запрос
+  const [grantTgId, setGrantTgId] = useState(''); // ввод telegram_id для выдачи подарка
 
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -311,6 +312,30 @@ function AdminPage() {
       {/* ─── Subscribers Tab ─── */}
       {tab === 'subscribers' && (
         <div>
+          <div style={styles.grantRow}>
+            <input
+              type="text"
+              placeholder="telegram_id"
+              value={grantTgId}
+              onChange={e => setGrantTgId(e.target.value)}
+              style={styles.grantInput}
+            />
+            <button
+              style={styles.grantBtn}
+              onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'roll'); }}
+              disabled={!!grantingGift || !grantTgId.trim()}
+            >
+              +Roll
+            </button>
+            <button
+              style={styles.grantBtn}
+              onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'set'); }}
+              disabled={!!grantingGift || !grantTgId.trim()}
+            >
+              +Set
+            </button>
+          </div>
+
           {stats && (
             <div style={styles.statsRow}>
               <span style={styles.statBadge}>Всего: {stats.total}</span>
@@ -706,15 +731,31 @@ const styles = {
     fontSize: 11,
     color: '#3CC8A1',
   },
+  grantRow: {
+    display: 'flex',
+    gap: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  grantInput: {
+    flex: 1,
+    padding: '8px 12px',
+    background: '#16213e',
+    border: '1px solid #333',
+    borderRadius: 6,
+    color: '#e0e0e0',
+    fontSize: 14,
+  },
   grantBtn: {
-    padding: '3px 8px',
+    padding: '6px 12px',
     background: '#0f3460',
     color: '#64b5f6',
     border: '1px solid #2a4a5e',
-    borderRadius: 4,
-    fontSize: 11,
+    borderRadius: 6,
+    fontSize: 13,
     fontWeight: 600,
     cursor: 'pointer',
+    whiteSpace: 'nowrap',
   },
 };
 
