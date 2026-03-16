@@ -589,6 +589,23 @@ function AdminPage() {
                       )}
                     </div>
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Ссылка (опционально)"
+                    value={banner.link || ''}
+                    onChange={e => {
+                      const updated = banners.map(b => b.id === slot ? { ...b, link: e.target.value } : b);
+                      setBanners(updated);
+                    }}
+                    onBlur={() => {
+                      fetch(`${API}/api/admin/banners`, {
+                        method: 'POST',
+                        headers: headers(),
+                        body: JSON.stringify({ action: 'set-all', banners }),
+                      }).catch(() => {});
+                    }}
+                    style={{ ...styles.grantInput, marginBottom: 8, fontSize: 12 }}
+                  />
                   <div style={styles.bannerPreview}>
                     {hasImage ? (
                       <img src={banner.image + '?v=' + Date.now()} alt="" style={styles.bannerImg} />

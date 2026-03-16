@@ -49,7 +49,12 @@ function PromoBanner() {
     <div className="promo-banner">
       <div className="promo-banner__track" ref={scrollRef}>
         {banners.map(b => (
-          <div key={b.id} className="promo-banner__card">
+          <div
+            key={b.id}
+            className="promo-banner__card"
+            onClick={() => { if (b.link) window.open(b.link, '_blank'); }}
+            style={b.link ? { cursor: 'pointer' } : undefined}
+          >
             {b.image ? (
               <img src={b.image + '?v=' + Date.now()} alt="" className="promo-banner__img" />
             ) : (
