@@ -1,10 +1,10 @@
-// src/components/PromoBanner.js — Горизонтальный слайдер промо-баннеров (картинки + текст)
+// src/components/PromoBanner.js — Горизонтальный слайдер промо-баннеров
 import React, { useRef, useState, useEffect } from 'react';
 
 const BANNERS = [
   { id: 1, image: '/banners/banner-1.jpg' },
-  { id: 2, image: '/banners/banner-2.jpg' },
-  { id: 3, image: '/banners/banner-3.jpg' },
+  { id: 2, placeholder: true, color: '#f5f5f5' },
+  { id: 3, placeholder: true, color: '#eef6f2' },
 ];
 
 function PromoBanner() {
@@ -17,8 +17,8 @@ function PromoBanner() {
 
     const handleScroll = () => {
       const scrollLeft = el.scrollLeft;
-      const width = el.offsetWidth;
-      const idx = Math.round(scrollLeft / width);
+      const cardWidth = el.firstChild?.offsetWidth || el.offsetWidth;
+      const idx = Math.round(scrollLeft / cardWidth);
       setActive(idx);
     };
 
@@ -28,32 +28,21 @@ function PromoBanner() {
 
   const scrollTo = (idx) => {
     const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({ left: idx * el.offsetWidth, behavior: 'smooth' });
+    if (!el || !el.children[idx]) return;
+    el.children[idx].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
   };
 
   return (
     <div className="promo-banner">
       <div className="promo-banner__track" ref={scrollRef}>
         {BANNERS.map(b => (
-          b.image ? (
-            <div key={b.id} className="promo-banner__slide promo-banner__slide--img">
+          <div key={b.id} className="promo-banner__card">
+            {b.image ? (
               <img src={b.image} alt="" className="promo-banner__img" />
-            </div>
-          ) : (
-            <div key={b.id} className="promo-banner__slide promo-banner__slide--text" style={{ background: b.bg }}>
-              {b.emoji && <span className="promo-banner__emoji">{b.emoji}</span>}
-              <div className="promo-banner__content">
-                <div className="promo-banner__title">{b.title}</div>
-                {b.lines && b.lines.map((line, i) => (
-                  <div key={i} className="promo-banner__line">
-                    {line.label && <span className="promo-banner__label">{line.label}</span>}
-                    <span className="promo-banner__text">{line.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
+            ) : (
+              <div className="promo-banner__empty" style={{ background: b.color }} />
+            )}
+          </div>
         ))}
       </div>
       <div className="promo-banner__dots">

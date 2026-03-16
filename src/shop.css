@@ -2075,79 +2075,33 @@ body.shop-body {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  gap: 0;
-  border-radius: 12px;
+  gap: 10px;
+  padding-right: 16px;
 }
 
 .promo-banner__track::-webkit-scrollbar {
   display: none;
 }
 
-.promo-banner__slide {
-  flex: 0 0 100%;
+.promo-banner__card {
+  flex: 0 0 92%;
   scroll-snap-align: start;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  box-sizing: border-box;
-}
-
-.promo-banner__slide--img {
-  padding: 0;
-  line-height: 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .promo-banner__img {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 12px;
-  object-fit: cover;
 }
 
-.promo-banner__slide--text {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px 16px;
-  min-height: 120px;
-}
-
-.promo-banner__emoji {
-  font-size: 24px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.promo-banner__content {
-  flex: 1;
-  min-width: 0;
-}
-
-.promo-banner__title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
-}
-
-.promo-banner__line {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 4px;
-  align-items: baseline;
-}
-
-.promo-banner__label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #3CC8A1;
-  flex-shrink: 0;
-}
-
-.promo-banner__text {
-  font-size: 12px;
-  color: #bbb;
-  line-height: 1.35;
+.promo-banner__empty {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
 }
 
 .promo-banner__dots {
