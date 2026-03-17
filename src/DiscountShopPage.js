@@ -6,7 +6,9 @@ import { useUser } from './UserContext';
 import { useCart } from './hooks/useFrontpad';
 import BrandLoader from './components/BrandLoader';
 import { getProductImage } from './config/imageMap';
+import { getProductDescription } from './config/descriptionMap';
 import ShopProductCard from './components/ShopProductCard';
+import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import SubCheckoutModal from './components/SubCheckoutModal';
@@ -95,11 +97,15 @@ function useDiscountMenu() {
   return { products, loading, error, refetch: fetchAll };
 }
 
-function SubCard({ product, onSelect }) {
+function SubCard({ product, onSelect, onImageClick }) {
   const [imgError, setImgError] = useState(false);
   return (
     <div className="shop-card">
-      <div className="shop-card__image-wrap">
+      <div
+        className="shop-card__image-wrap"
+        onClick={() => onImageClick && onImageClick(product)}
+        style={onImageClick ? { cursor: 'pointer' } : undefined}
+      >
         <img
           src={imgError ? '/logo.jpg' : product.image}
           alt={product.name}
@@ -175,6 +181,7 @@ function DiscountShopPage() {
   const [selectedGiftProduct, setSelectedGiftProduct] = useState(null);
   const [giftOrderNumber, setGiftOrderNumber] = useState(null);
 
+  const [modalProduct, setModalProduct] = useState(null);
   const [lockedPopup, setLockedPopup] = useState(null);
 
   // Gift windows
@@ -348,9 +355,14 @@ function DiscountShopPage() {
                 key={product.id}
                 product={product}
                 onSelect={setSelectedGiftProduct}
+                onImageClick={(p) => setModalProduct({ ...p, description: getProductDescription(p.name) })}
               />
             ))}
           </div>
+        )}
+
+        {modalProduct && (
+          <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
         )}
 
         {selectedGiftProduct && (
@@ -488,6 +500,7 @@ function DiscountShopPage() {
                       quantity={getQuantity(product.id)}
                       onAdd={cart.addItem}
                       onUpdateQuantity={cart.updateQuantity}
+                      onImageClick={(p) => setModalProduct({ ...p, description: getProductDescription(p.name) })}
                     />
                   ))}
                 </div>
@@ -495,6 +508,10 @@ function DiscountShopPage() {
             );
           })}
         </div>
+      )}
+
+      {modalProduct && (
+        <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
       )}
 
       {showCart && (

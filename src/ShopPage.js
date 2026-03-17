@@ -4,7 +4,9 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useCart } from './hooks/useFrontpad';
 import BrandLoader from './components/BrandLoader';
 import { getProductImage } from './config/imageMap';
+import { getProductDescription } from './config/descriptionMap';
 import ShopProductCard from './components/ShopProductCard';
+import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import './shop.css';
@@ -66,6 +68,7 @@ function ShopPage() {
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderNumber, setOrderNumber] = useState(null);
+  const [modalProduct, setModalProduct] = useState(null);
   const [visibleCategory, setVisibleCategory] = useState(SHOP_CATEGORIES[0]?.id);
   const sectionRefs = useRef({});
   const isScrollingByClick = useRef(false);
@@ -221,6 +224,7 @@ function ShopPage() {
                       quantity={getQuantity(product.id)}
                       onAdd={cart.addItem}
                       onUpdateQuantity={cart.updateQuantity}
+                      onImageClick={(p) => setModalProduct({ ...p, description: getProductDescription(p.name) })}
                     />
                   ))}
                 </div>
@@ -228,6 +232,11 @@ function ShopPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Модалка товара */}
+      {modalProduct && (
+        <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
       )}
 
       {/* Корзина */}

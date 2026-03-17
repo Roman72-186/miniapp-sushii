@@ -2,10 +2,14 @@
 
 import React from 'react';
 
-function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity }) {
+function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity, onImageClick }) {
   return (
     <div className="shop-card">
-      <div className="shop-card__image-wrap">
+      <div
+        className="shop-card__image-wrap"
+        onClick={() => onImageClick && onImageClick(product)}
+        style={onImageClick ? { cursor: 'pointer' } : undefined}
+      >
         <img
           className="shop-card__image"
           src={product.image || '/logo.jpg'}

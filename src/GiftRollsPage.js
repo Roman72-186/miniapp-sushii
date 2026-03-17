@@ -4,6 +4,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from './UserContext';
 import { getProductImage } from './config/imageMap';
+import { getProductDescription } from './config/descriptionMap';
+import ProductModal from './components/ProductModal';
 import { isShopOpen } from './utils/timeUtils';
 import { normalizePhone } from './utils/phone';
 import { PICKUP_POINTS } from './config/pickupPoints';
@@ -23,6 +25,8 @@ function GiftRollsPage() {
   const [error, setError] = useState(null);
 
   const shopOpen = useMemo(() => isShopOpen(), []);
+
+  const [modalProduct, setModalProduct] = useState(null);
 
   // Выбранный товар → форма оформления
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -307,7 +311,11 @@ function GiftRollsPage() {
         <div className="shop-grid">
           {products.map(product => (
             <div key={product.id} className="shop-card">
-              <div className="shop-card__image-wrap">
+              <div
+                className="shop-card__image-wrap"
+                onClick={() => setModalProduct({ ...product, gift: true, description: getProductDescription(product.name) })}
+                style={{ cursor: 'pointer' }}
+              >
                 <img
                   src={product.image}
                   alt={product.name}
@@ -327,6 +335,10 @@ function GiftRollsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {modalProduct && (
+        <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
       )}
     </div>
   );
