@@ -17,7 +17,11 @@ function parseJsonBody(req) {
 }
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = ['https://sushi-house-39.ru', 'http://localhost:3000'];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -31,10 +35,8 @@ module.exports = async (req, res) => {
 
   try {
     // Проверка времени работы (10:00–21:50 Калининград)
-    const nowKgd = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kaliningrad' }));
-    const h = nowKgd.getHours();
-    const m = nowKgd.getMinutes();
-    if (h < 10 || h > 21 || (h === 21 && m >= 50)) {
+    const { isShopOpenServer } = require('./_lib/time-utils');
+    if (!isShopOpenServer()) {
       return res.status(400).json({
         success: false,
         error: 'Приём заказов закрыт. Заказы принимаются ежедневно с 10:00 до 21:50 (Калининград)',

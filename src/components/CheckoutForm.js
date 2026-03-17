@@ -3,21 +3,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useUser } from '../UserContext';
 import { isShopOpen, getTimeSlots } from '../utils/timeUtils';
-
-const PICKUP_POINTS = [
-  { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–21:50', affiliate: '184' },
-  { id: '2', address: 'ул. Согласия, д. 46', hours: '10:00–21:50', affiliate: '435' },
-  { id: '3', address: 'ул. Автомобильная, д. 12Б', hours: '10:00–21:50', affiliate: '457' },
-  { id: '4', address: 'Гурьевск', hours: '10:00–21:50', affiliate: '396' },
-];
-
-function normalizePhone(raw) {
-  const nums = raw.replace(/\D/g, '');
-  if (nums.length === 11 && nums.startsWith('8')) return '7' + nums.slice(1);
-  if (nums.length === 11 && nums.startsWith('7')) return nums;
-  if (nums.length === 10) return '7' + nums;
-  return nums;
-}
+import { normalizePhone } from '../utils/phone';
+import { PICKUP_POINTS } from '../config/pickupPoints';
 
 /**
  * Формирует datetime строку для Frontpad (YYYY-MM-DD HH:MM:SS)

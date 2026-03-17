@@ -142,7 +142,9 @@ function ProfilePage() {
             <div className="shop-profile__section">
               <div className="shop-profile__row">
                 <span className="shop-profile__label">📋 Статус подписки:</span>
-                <span className="shop-profile__value" style={{ color: '#3CC8A1' }}>активно</span>
+                <span className="shop-profile__value" style={{ color: profile?.статусСписания === 'активно' ? '#3CC8A1' : '#999' }}>
+                  {profile?.статусСписания || 'неактивно'}
+                </span>
               </div>
               <div className="shop-profile__row">
                 <span className="shop-profile__label">🔒 Действует до:</span>
@@ -199,7 +201,15 @@ function ProfilePage() {
                         </div>
                         {!isUnlocked && (
                           <div className="amb-panel__progress-hint">
-                            Пригласите ещё {10 - ambCount} амбассадор{10 - ambCount === 1 ? 'а' : 'ов'} для открытия 5% с их рефералов
+                            Пригласите ещё {10 - ambCount} {(() => {
+                              const n = 10 - ambCount;
+                              const mod10 = n % 10;
+                              const mod100 = n % 100;
+                              if (mod100 >= 11 && mod100 <= 19) return 'амбассадоров';
+                              if (mod10 === 1) return 'амбассадора';
+                              if (mod10 >= 2 && mod10 <= 4) return 'амбассадора';
+                              return 'амбассадоров';
+                            })()} для открытия 5% с их рефералов
                           </div>
                         )}
                       </div>

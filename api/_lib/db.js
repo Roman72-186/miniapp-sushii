@@ -115,7 +115,7 @@ function upsertUser(data) {
     phone: data.phone || null,
     tariff: data.tariff || null,
     invited_by: data.invited_by || null,
-    is_ambassador: data.is_ambassador ? 1 : 0,
+    is_ambassador: data.is_ambassador != null ? (data.is_ambassador ? 1 : 0) : null,
     subscription_status: data.subscription_status || null,
     subscription_start: data.subscription_start || null,
     subscription_end: data.subscription_end || null,

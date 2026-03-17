@@ -30,10 +30,10 @@ function getTimeSlots() {
 
   const mins = minTime.getMinutes();
   const roundedMins = Math.ceil(mins / 15) * 15;
-  minTime.setMinutes(roundedMins, 0, 0);
   if (roundedMins >= 60) {
-    minTime.setHours(minTime.getHours() + 1);
-    minTime.setMinutes(0);
+    minTime.setHours(minTime.getHours() + 1, 0, 0, 0);
+  } else {
+    minTime.setMinutes(roundedMins, 0, 0);
   }
 
   let startHour = minTime.getHours();
