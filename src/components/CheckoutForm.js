@@ -4,14 +4,31 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useUser } from '../UserContext';
 
 const PICKUP_POINTS = [
-  { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–22:00', affiliate: '184' },
-  { id: '2', address: 'ул. Согласия, д. 46', hours: '10:00–22:00', affiliate: '435' },
-  { id: '3', address: 'ул. Автомобильная, д. 12Б', hours: '10:00–22:00', affiliate: '457' },
-  { id: '4', address: 'Гурьевск', hours: '10:00–22:00', affiliate: '396' },
+  { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–21:50', affiliate: '184' },
+  { id: '2', address: 'ул. Согласия, д. 46', hours: '10:00–21:50', affiliate: '435' },
+  { id: '3', address: 'ул. Автомобильная, д. 12Б', hours: '10:00–21:50', affiliate: '457' },
+  { id: '4', address: 'Гурьевск', hours: '10:00–21:50', affiliate: '396' },
 ];
 
-const CLOSE_HOUR = 22; // Закрытие в 22:00
+const CLOSE_HOUR = 21; // Последний заказ до 21:50
+const CLOSE_MIN = 50;
 const OPEN_HOUR = 10;  // Открытие в 10:00
+
+/** Текущее время в Калининграде (UTC+2) */
+function getNowKaliningrad() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kaliningrad' }));
+}
+
+/** Проверка: открыт ли приём заказов */
+function isShopOpen() {
+  const now = getNowKaliningrad();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  if (h < OPEN_HOUR) return false;
+  if (h > CLOSE_HOUR) return false;
+  if (h === CLOSE_HOUR && m >= CLOSE_MIN) return false;
+  return true;
+}
 
 function normalizePhone(raw) {
   const nums = raw.replace(/\D/g, '');
@@ -26,7 +43,7 @@ function normalizePhone(raw) {
  * Минимум: текущее время + 1 час (округлено вверх до 15 мин)
  */
 function getTimeSlots() {
-  const now = new Date();
+  const now = getNowKaliningrad();
   // +1 час от текущего момента
   const minTime = new Date(now.getTime() + 60 * 60 * 1000);
 
@@ -43,7 +60,7 @@ function getTimeSlots() {
   let startMin = minTime.getMinutes();
 
   // Если уже позже закрытия — нет слотов
-  if (startHour >= CLOSE_HOUR) return [];
+  if (startHour > CLOSE_HOUR || (startHour === CLOSE_HOUR && startMin > CLOSE_MIN)) return [];
 
   // Если раньше открытия — начинаем с открытия
   if (startHour < OPEN_HOUR) {
@@ -52,15 +69,14 @@ function getTimeSlots() {
   }
 
   const slots = [];
-  for (let h = startHour; h < CLOSE_HOUR; h++) {
-    for (let m = (h === startHour ? startMin : 0); m < 60; m += 15) {
+  for (let h = startHour; h <= CLOSE_HOUR; h++) {
+    const maxMin = (h === CLOSE_HOUR) ? CLOSE_MIN : 45;
+    for (let m = (h === startHour ? startMin : 0); m <= maxMin; m += 15) {
       const hh = String(h).padStart(2, '0');
       const mm = String(m).padStart(2, '0');
       slots.push({ value: `${hh}:${mm}`, label: `${hh}:${mm}` });
     }
   }
-  // Добавляем последний слот — к закрытию
-  slots.push({ value: `${CLOSE_HOUR}:00`, label: `${CLOSE_HOUR}:00` });
 
   return slots;
 }
@@ -101,6 +117,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const shopOpen = useMemo(() => isShopOpen(), []);
 
   // Автозаполнение имени и телефона из контекста пользователя
   useEffect(() => {
@@ -183,6 +200,24 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
       setSubmitting(false);
     }
   };
+
+  if (!shopOpen) {
+    return (
+      <div className="shop-checkout">
+        <div className="shop-checkout__inner">
+          <div className="shop-checkout__header">
+            <button type="button" className="shop-checkout__back" onClick={onBack}>←</button>
+            <h2 className="shop-checkout__title">Оформление заказа</h2>
+          </div>
+          <div className="shop-checkout__closed">
+            <div className="shop-checkout__closed-icon">🕐</div>
+            <div className="shop-checkout__closed-title">Приём заказов закрыт</div>
+            <div className="shop-checkout__closed-text">Заказы принимаются ежедневно с 10:00 до 21:50 (Калининград)</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="shop-checkout">

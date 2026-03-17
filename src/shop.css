@@ -892,6 +892,28 @@ body.shop-body {
   padding: 4px 0;
 }
 
+.shop-checkout__closed {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.shop-checkout__closed-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.shop-checkout__closed-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.shop-checkout__closed-text {
+  font-size: 14px;
+  color: #aaa;
+}
+
 .shop-radio-label input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
