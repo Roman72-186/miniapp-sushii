@@ -9,7 +9,7 @@ const DEFAULT_PRICING = {
   '290':  { price: 290,  months: { 1: 290,  3: 750,  5: 1200 } },
   '490':  { price: 490,  months: { 1: 490,  3: 1200, 5: 2150 } },
   '1190': { price: 1190, months: { 1: 1190, 3: 3300, 5: 5650 } },
-  '9990': { price: 9990, months: { 1: 9990 } },
+  '9990': { price: 3990, months: { 1: 3990 } },
 };
 
 function readPricing() {

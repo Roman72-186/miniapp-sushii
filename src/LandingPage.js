@@ -129,7 +129,10 @@ function LandingPage() {
           onClick={() => handleTariffClick('9990')}
         >
           <span className="shop-landing__ambassador-label">АМБАССАДОР</span>
-          <span className="shop-landing__ambassador-price">{ambaPrice} ₽</span>
+          <span className="shop-landing__ambassador-price">
+            <span style={{ textDecoration: 'line-through', opacity: 0.6, marginRight: 8, fontSize: '14px' }}>9 990 ₽</span>
+            {ambaPrice} ₽
+          </span>
           <span className="shop-landing__ambassador-desc">Реферальная программа + все привилегии</span>
         </button>
       </div>

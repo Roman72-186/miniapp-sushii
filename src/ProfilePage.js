@@ -358,7 +358,7 @@ function ProfilePage() {
                         window.location.href = `/pay/9990${tid}`;
                       }}
                     >
-                      Стать амбассадором — {ambaPrice} ₽
+                      Стать амбассадором — <span style={{ textDecoration: 'line-through', opacity: 0.6, marginRight: 6 }}>9 990 ₽</span> {ambaPrice} ₽
                     </button>
                   </div>
                 </div>

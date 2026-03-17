@@ -9,7 +9,7 @@ const DEFAULT_PRICE_TABLE = {
   '290':  { 1: 290,  3: 750,  5: 1200 },
   '490':  { 1: 490,  3: 1200, 5: 2150 },
   '1190': { 1: 1190, 3: 3300, 5: 5650 },
-  '9990': { 1: 9990 },
+  '9990': { 1: 3990 },
 };
 
 const TARIFF_DATA = {
@@ -45,8 +45,9 @@ const TARIFF_DATA = {
     ],
   },
   '9990': {
-    price: 9990,
-    label: '9 990 ₽',
+    price: 3990,
+    oldPrice: 9990,
+    label: '3 990 ₽',
     title: 'Амбассадор',
     oneTime: true,
     features: [
@@ -170,7 +171,14 @@ function PaymentPage() {
 
       <div className="shop-payment">
         <div className="shop-payment__card">
-          <div className="shop-payment__price">{tariff.label}</div>
+          <div className="shop-payment__price">
+            {tariff.oldPrice && (
+              <span className="shop-payment__old-price" style={{ marginRight: 10 }}>
+                {tariff.oldPrice.toLocaleString('ru-RU')} ₽
+              </span>
+            )}
+            {tariff.label}
+          </div>
           <h2 className="shop-payment__title">{tariff.title}</h2>
 
           {tarifKey === '9990' ? (
