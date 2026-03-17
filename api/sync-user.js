@@ -42,11 +42,15 @@ module.exports = async (req, res) => {
     // 2. SQLite — единственный источник данных
     const dbUser = getUser(telegram_id);
 
-    const tarif = dbUser?.tariff || null;
+    let tarif = dbUser?.tariff || null;
     const isAmbassador = !!dbUser?.is_ambassador;
     const tags = [];
     if (tarif) tags.push(tarif);
-    if (isAmbassador) tags.push('Амба');
+    if (isAmbassador) {
+      tags.push('амба');
+      // Амба без оплаченного тарифа получает привилегии 290
+      if (!tarif) tarif = '290';
+    }
 
     // Читаем датаПодарка из blob-store
     let giftDate = '';
@@ -98,8 +102,8 @@ module.exports = async (req, res) => {
             'датаНачала': dbUser.subscription_start || '',
             'датаОКОНЧАНИЯ': dbUser.subscription_end || '',
           },
-          tags: dbUser.is_ambassador ? ['Амба'] : [],
-          tarif: dbUser.tariff,
+          tags: dbUser.is_ambassador ? ['амба'] : [],
+          tarif: dbUser.tariff || (dbUser.is_ambassador ? '290' : null),
           listItem: { name: dbUser.name, telefon: dbUser.phone },
         };
         return res.status(200).json({ success: true, data: fallbackData, fromCache: false, source: 'sqlite' });

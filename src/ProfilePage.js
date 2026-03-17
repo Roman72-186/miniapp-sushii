@@ -12,7 +12,21 @@ function ProfilePage() {
   }, []);
 
   const { telegramId, loading: userLoading, profile, contactId, hasTag } = useUser();
+  const [ambaPrice, setAmbaPrice] = useState('9 990');
   const [referrals, setReferrals] = useState(null);
+
+  // Загружаем актуальную цену амбассадора из админки
+  useEffect(() => {
+    fetch('/api/admin/pricing')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.pricing?.['9990']) {
+          const p = data.pricing['9990'].months?.[1] || data.pricing['9990'].price;
+          if (p) setAmbaPrice(Number(p).toLocaleString('ru-RU'));
+        }
+      })
+      .catch(() => {});
+  }, []);
   const [showAllReferrals, setShowAllReferrals] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
   const [earnings, setEarnings] = useState(null);
@@ -128,7 +142,7 @@ function ProfilePage() {
             <div className="shop-profile__section">
               <div className="shop-profile__row">
                 <span className="shop-profile__label">📋 Статус подписки:</span>
-                <span className="shop-profile__value">{profile?.статусСписания || '—'}</span>
+                <span className="shop-profile__value" style={{ color: '#3CC8A1' }}>активно</span>
               </div>
               <div className="shop-profile__row">
                 <span className="shop-profile__label">🔒 Действует до:</span>
@@ -137,7 +151,7 @@ function ProfilePage() {
             </div>
 
             {/* Амбассадор */}
-            {hasTag('Амба') ? (
+            {hasTag('амба') ? (
               <>
                 <div className="shop-profile__section">
                   <div className="shop-profile__ambassador-badge">
@@ -334,7 +348,7 @@ function ProfilePage() {
                         window.location.href = `/pay/9990${tid}`;
                       }}
                     >
-                      Стать амбассадором — 9 990 ₽
+                      Стать амбассадором — {ambaPrice} ₽
                     </button>
                   </div>
                 </div>

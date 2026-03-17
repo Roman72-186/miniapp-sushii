@@ -32,6 +32,20 @@ function LandingPage() {
   const { telegramId, loading: userLoading, tarif, sync } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [ambaPrice, setAmbaPrice] = useState('9 990');
+
+  // Загружаем актуальную цену амбассадора из админки
+  useEffect(() => {
+    fetch('/api/admin/pricing')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.pricing?.['9990']) {
+          const p = data.pricing['9990'].months?.[1] || data.pricing['9990'].price;
+          if (p) setAmbaPrice(Number(p).toLocaleString('ru-RU'));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Тройной клик по логотипу → админка
   const logoClicksRef = React.useRef({ count: 0, timer: null });
@@ -41,7 +55,7 @@ function LandingPage() {
     clearTimeout(ref.timer);
     if (ref.count >= 3) {
       ref.count = 0;
-      window.location.href = '/admin';
+      window.location.href = telegramId ? `/admin?telegram_id=${telegramId}` : '/admin';
       return;
     }
     ref.timer = setTimeout(() => { ref.count = 0; }, 1000);
@@ -115,7 +129,7 @@ function LandingPage() {
           onClick={() => handleTariffClick('9990')}
         >
           <span className="shop-landing__ambassador-label">АМБАССАДОР</span>
-          <span className="shop-landing__ambassador-price">9 990 ₽</span>
+          <span className="shop-landing__ambassador-price">{ambaPrice} ₽</span>
           <span className="shop-landing__ambassador-desc">Реферальная программа + все привилегии</span>
         </button>
       </div>

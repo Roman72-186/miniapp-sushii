@@ -1,7 +1,8 @@
 // src/components/SubCheckoutModal.js — Модалка оформления заказа по подписке (только самовывоз)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useUser } from '../UserContext';
+import { isShopOpen } from '../utils/timeUtils';
 
 const PICKUP_POINTS = [
   { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–21:50', affiliate: '184' },
@@ -28,6 +29,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const shopOpen = useMemo(() => isShopOpen(), []);
 
   // Автозаполнение из контекста пользователя
   useEffect(() => {
@@ -36,6 +38,27 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
   }, [listItemName, userPhone]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedPickup = PICKUP_POINTS.find(p => p.id === pickupPoint);
+
+  if (!shopOpen) {
+    return (
+      <>
+        <div className="shop-cart-overlay" onClick={onClose} />
+        <div className="shop-checkout" style={{ zIndex: 202 }}>
+          <div className="shop-checkout__inner">
+            <div className="shop-checkout__header">
+              <button type="button" className="shop-checkout__back" onClick={onClose}>←</button>
+              <h2 className="shop-checkout__title">Оформление</h2>
+            </div>
+            <div className="shop-checkout__closed">
+              <div className="shop-checkout__closed-icon">🕐</div>
+              <div className="shop-checkout__closed-title">Приём заказов закрыт</div>
+              <div className="shop-checkout__closed-text">Заказы принимаются ежедневно с 10:00 до 21:50 (Калининград)</div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   const handleSubmit = async () => {
     setError(null);

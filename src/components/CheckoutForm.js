@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useUser } from '../UserContext';
+import { isShopOpen, getTimeSlots } from '../utils/timeUtils';
 
 const PICKUP_POINTS = [
   { id: '1', address: 'ул. Ю.Гагарина, д. 16Б', hours: '10:00–21:50', affiliate: '184' },
@@ -10,75 +11,12 @@ const PICKUP_POINTS = [
   { id: '4', address: 'Гурьевск', hours: '10:00–21:50', affiliate: '396' },
 ];
 
-const CLOSE_HOUR = 21; // Последний заказ до 21:50
-const CLOSE_MIN = 50;
-const OPEN_HOUR = 10;  // Открытие в 10:00
-
-/** Текущее время в Калининграде (UTC+2) */
-function getNowKaliningrad() {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kaliningrad' }));
-}
-
-/** Проверка: открыт ли приём заказов */
-function isShopOpen() {
-  const now = getNowKaliningrad();
-  const h = now.getHours();
-  const m = now.getMinutes();
-  if (h < OPEN_HOUR) return false;
-  if (h > CLOSE_HOUR) return false;
-  if (h === CLOSE_HOUR && m >= CLOSE_MIN) return false;
-  return true;
-}
-
 function normalizePhone(raw) {
   const nums = raw.replace(/\D/g, '');
   if (nums.length === 11 && nums.startsWith('8')) return '7' + nums.slice(1);
   if (nums.length === 11 && nums.startsWith('7')) return nums;
   if (nums.length === 10) return '7' + nums;
   return nums;
-}
-
-/**
- * Генерирует список доступных временных слотов (шаг 15 мин)
- * Минимум: текущее время + 1 час (округлено вверх до 15 мин)
- */
-function getTimeSlots() {
-  const now = getNowKaliningrad();
-  // +1 час от текущего момента
-  const minTime = new Date(now.getTime() + 60 * 60 * 1000);
-
-  // Округляем вверх до ближайших 15 мин
-  const mins = minTime.getMinutes();
-  const roundedMins = Math.ceil(mins / 15) * 15;
-  minTime.setMinutes(roundedMins, 0, 0);
-  if (roundedMins >= 60) {
-    minTime.setHours(minTime.getHours() + 1);
-    minTime.setMinutes(0);
-  }
-
-  let startHour = minTime.getHours();
-  let startMin = minTime.getMinutes();
-
-  // Если уже позже закрытия — нет слотов
-  if (startHour > CLOSE_HOUR || (startHour === CLOSE_HOUR && startMin > CLOSE_MIN)) return [];
-
-  // Если раньше открытия — начинаем с открытия
-  if (startHour < OPEN_HOUR) {
-    startHour = OPEN_HOUR;
-    startMin = 0;
-  }
-
-  const slots = [];
-  for (let h = startHour; h <= CLOSE_HOUR; h++) {
-    const maxMin = (h === CLOSE_HOUR) ? CLOSE_MIN : 45;
-    for (let m = (h === startHour ? startMin : 0); m <= maxMin; m += 15) {
-      const hh = String(h).padStart(2, '0');
-      const mm = String(m).padStart(2, '0');
-      slots.push({ value: `${hh}:${mm}`, label: `${hh}:${mm}` });
-    }
-  }
-
-  return slots;
 }
 
 /**

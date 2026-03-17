@@ -1,9 +1,10 @@
 // src/GiftRollsPage.js — Отдельная страница подарочных роллов (для кнопки в боте)
 // Без навигации, после заказа — автозакрытие мини-аппа
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from './UserContext';
 import { getProductImage } from './config/imageMap';
+import { isShopOpen } from './utils/timeUtils';
 import BrandLoader from './components/BrandLoader';
 import './shop.css';
 
@@ -33,6 +34,8 @@ function GiftRollsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const shopOpen = useMemo(() => isShopOpen(), []);
 
   // Выбранный товар → форма оформления
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -155,6 +158,30 @@ function GiftRollsPage() {
       setSubmitting(false);
     }
   };
+
+  // === Закрыто ===
+  if (selectedProduct && !shopOpen) {
+    return (
+      <div className="shop-page">
+        <header className="shop-header">
+          <button className="shop-header__back" onClick={() => setSelectedProduct(null)}>←</button>
+          <div className="shop-header__center">
+            <span className="shop-header__title">Оформление</span>
+          </div>
+          <div className="shop-header__spacer" />
+        </header>
+        <div className="shop-checkout" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="shop-checkout__inner">
+            <div className="shop-checkout__closed">
+              <div className="shop-checkout__closed-icon">🕐</div>
+              <div className="shop-checkout__closed-title">Приём заказов закрыт</div>
+              <div className="shop-checkout__closed-text">Заказы принимаются ежедневно с 10:00 до 21:50 (Калининград)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // === Форма оформления ===
   if (selectedProduct) {

@@ -162,15 +162,15 @@ module.exports = async (req, res) => {
     try {
       const updatedTags = cached?.tags ? [...cached.tags] : [];
       if (isOneTime) {
-        if (!updatedTags.includes('Амба')) updatedTags.push('Амба');
+        if (!updatedTags.includes('амба')) updatedTags.push('амба');
       } else {
         if (!updatedTags.includes(String(tarif))) updatedTags.push(String(tarif));
         if (!updatedTags.includes('подписка30')) updatedTags.push('подписка30');
       }
 
-      // Определяем тариф из тегов (Амба = 9990, далее 1190 > 490 > 290)
+      // Определяем тариф из тегов (амба = 9990, далее 1190 > 490 > 290)
       let resolvedTarif = null;
-      if (updatedTags.includes('Амба')) resolvedTarif = '9990';
+      if (updatedTags.includes('амба')) resolvedTarif = '9990';
       else if (updatedTags.includes('1190')) resolvedTarif = '1190';
       else if (updatedTags.includes('490')) resolvedTarif = '490';
       else if (updatedTags.includes('290')) resolvedTarif = '290';

@@ -70,20 +70,6 @@ function ShopPage() {
   const sectionRefs = useRef({});
   const isScrollingByClick = useRef(false);
 
-  // Тройной клик по логотипу → админка
-  const logoClicksRef = useRef({ count: 0, timer: null });
-  const handleLogoClick = () => {
-    const ref = logoClicksRef.current;
-    ref.count++;
-    clearTimeout(ref.timer);
-    if (ref.count >= 3) {
-      ref.count = 0;
-      window.location.href = '/admin';
-      return;
-    }
-    ref.timer = setTimeout(() => { ref.count = 0; }, 1000);
-  };
-
   // Telegram ID
   const telegramId = useMemo(() => {
     const tg = window.Telegram?.WebApp;
@@ -92,6 +78,20 @@ function ShopPage() {
     const params = new URLSearchParams(window.location.search);
     return params.get('telegram_id') || null;
   }, []);
+
+  // Тройной клик по логотипу → админка
+  const logoClicksRef = useRef({ count: 0, timer: null });
+  const handleLogoClick = () => {
+    const ref = logoClicksRef.current;
+    ref.count++;
+    clearTimeout(ref.timer);
+    if (ref.count >= 3) {
+      ref.count = 0;
+      window.location.href = telegramId ? `/admin?telegram_id=${telegramId}` : '/admin';
+      return;
+    }
+    ref.timer = setTimeout(() => { ref.count = 0; }, 1000);
+  };
 
   // IntersectionObserver — подсветка активного таба при скролле
   useEffect(() => {

@@ -273,6 +273,12 @@ function PaymentPage() {
           <div className="shop-payment__error">{error}</div>
         )}
 
+        {!telegramId && !userLoading && (
+          <div className="shop-payment__error">
+            Откройте эту страницу через Telegram, чтобы оплатить подписку
+          </div>
+        )}
+
         <button
           className="shop-payment__btn"
           disabled={submitting || !telegramId}

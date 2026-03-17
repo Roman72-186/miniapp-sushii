@@ -158,7 +158,7 @@ function DiscountShopPage() {
     clearTimeout(ref.timer);
     if (ref.count >= 3) {
       ref.count = 0;
-      window.location.href = '/admin';
+      window.location.href = telegramId ? `/admin?telegram_id=${telegramId}` : '/admin';
       return;
     }
     ref.timer = setTimeout(() => { ref.count = 0; }, 1000);

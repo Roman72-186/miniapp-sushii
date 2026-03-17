@@ -30,6 +30,17 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // Проверка времени работы (10:00–21:50 Калининград)
+    const nowKgd = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Kaliningrad' }));
+    const h = nowKgd.getHours();
+    const m = nowKgd.getMinutes();
+    if (h < 10 || h > 21 || (h === 21 && m >= 50)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Приём заказов закрыт. Заказы принимаются ежедневно с 10:00 до 21:50 (Калининград)',
+      });
+    }
+
     const body = parseJsonBody(req);
     const { products, client, payment, comment, delivery_type, affiliate, datetime, telegram_id } = body;
 
