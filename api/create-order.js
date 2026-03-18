@@ -3,6 +3,8 @@
 const { createOrder } = require('./_lib/frontpad');
 const { readUserCache } = require('./_lib/user-cache');
 const { getUser } = require('./_lib/db');
+const { geocode } = require('./_lib/geocoder');
+const { findNearestStore } = require('./_lib/nearest-store');
 
 function parseJsonBody(req) {
   try {
@@ -73,7 +75,27 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Не удалось определить телефон' });
     }
 
-    // 2. Создаём заказ в Frontpad
+    // 2. Определяем ближайший пункт для доставки
+    let orderAffiliate = affiliate || '';
+    let nearestStoreName = '';
+    if (delivery_type === 'delivery' && !orderAffiliate && client.street) {
+      try {
+        const addr = [client.street, client.home].filter(Boolean).join(', ');
+        const geo = await geocode(addr);
+        if (geo) {
+          const nearest = findNearestStore(geo.lat, geo.lon);
+          if (nearest) {
+            orderAffiliate = nearest.affiliate;
+            nearestStoreName = nearest.name;
+            console.log(`Nearest store for "${addr}": ${nearest.name} (${nearest.distanceText})`);
+          }
+        }
+      } catch (geoErr) {
+        console.error('Geocode in create-order:', geoErr.message);
+      }
+    }
+
+    // 3. Создаём заказ в Frontpad
     const orderResult = await createOrder({
       products: products.map(p => ({
         id: p.id,
@@ -90,7 +112,7 @@ module.exports = async (req, res) => {
         et: client.et || '',
       },
       payment: payment || 'cash',
-      affiliate: affiliate || '',
+      affiliate: orderAffiliate,
       datetime: datetime || '',
       comment: [
         comment || '',

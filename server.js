@@ -22,6 +22,7 @@ app.all('/api/get-transactions', require('./api/get-transactions'));
 app.all('/api/register-referral', require('./api/register-referral'));
 app.all('/api/send-bot-message', require('./api/send-bot-message'));
 app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
+app.all('/api/nearest-store', require('./api/nearest-store'));
 
 // Admin API
 app.all('/api/admin/login', require('./api/admin-login'));

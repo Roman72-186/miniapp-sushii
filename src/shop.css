@@ -914,6 +914,36 @@ body.shop-body {
   color: #aaa;
 }
 
+.shop-nearest-store {
+  background: rgba(60, 200, 161, 0.1);
+  border: 1px solid rgba(60, 200, 161, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.shop-nearest-store__loading {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.shop-nearest-store__label {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 2px;
+}
+
+.shop-nearest-store__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #3CC8A1;
+}
+
+.shop-nearest-store__distance {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
 .shop-radio-label input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;

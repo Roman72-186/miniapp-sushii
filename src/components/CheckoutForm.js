@@ -1,6 +1,6 @@
 // src/components/CheckoutForm.js — Форма оформления заказа (тёмная тема)
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '../UserContext';
 import { isShopOpen, getTimeSlots } from '../utils/timeUtils';
 import { normalizePhone } from '../utils/phone';
@@ -42,6 +42,8 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [nearestStore, setNearestStore] = useState(null);
+  const [nearestLoading, setNearestLoading] = useState(false);
   const shopOpen = useMemo(() => isShopOpen(), []);
 
   // Автозаполнение имени и телефона из контекста пользователя
@@ -55,6 +57,39 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [scheduledTime, setScheduledTime] = useState(timeSlots[0]?.value || '');
 
   const selectedPickup = PICKUP_POINTS.find(p => p.id === pickupPoint);
+
+  // Определение ближайшей точки при вводе адреса доставки
+  const nearestTimerRef = useRef(null);
+  const fetchNearestStore = useCallback(async (addr) => {
+    if (!addr || addr.length < 3) { setNearestStore(null); return; }
+    setNearestLoading(true);
+    try {
+      const res = await fetch('/api/nearest-store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addr }),
+      });
+      const data = await res.json();
+      if (data.success && data.nearest) {
+        setNearestStore(data.nearest);
+      } else {
+        setNearestStore(null);
+      }
+    } catch {
+      setNearestStore(null);
+    } finally {
+      setNearestLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (deliveryType !== 'delivery') { setNearestStore(null); return; }
+    const addr = [street.trim(), home.trim()].filter(Boolean).join(', ');
+    if (nearestTimerRef.current) clearTimeout(nearestTimerRef.current);
+    if (addr.length < 3) { setNearestStore(null); return; }
+    nearestTimerRef.current = setTimeout(() => fetchNearestStore(addr), 800);
+    return () => { if (nearestTimerRef.current) clearTimeout(nearestTimerRef.current); };
+  }, [street, home, deliveryType, fetchNearestStore]);
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -100,7 +135,9 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           },
           payment,
           delivery_type: deliveryType,
-          affiliate: deliveryType === 'pickup' ? selectedPickup?.affiliate || '' : '',
+          affiliate: deliveryType === 'pickup'
+            ? selectedPickup?.affiliate || ''
+            : nearestStore?.affiliate || '',
           datetime: timeType === 'scheduled' ? buildDatetime(scheduledTime) : '',
           comment: [
             comment.trim(),
@@ -368,6 +405,21 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
                     />
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Ближайший пункт (при доставке) */}
+            {deliveryType === 'delivery' && (nearestStore || nearestLoading) && (
+              <div className="shop-nearest-store" style={{ marginTop: 12 }}>
+                {nearestLoading ? (
+                  <div className="shop-nearest-store__loading">Определяем ближайший пункт...</div>
+                ) : nearestStore && (
+                  <div className="shop-nearest-store__info">
+                    <div className="shop-nearest-store__label">Ближайший пункт:</div>
+                    <div className="shop-nearest-store__name">{nearestStore.name}</div>
+                    <div className="shop-nearest-store__distance">{nearestStore.distanceText} от вас</div>
+                  </div>
+                )}
               </div>
             )}
 
