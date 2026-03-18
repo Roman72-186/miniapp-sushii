@@ -78,22 +78,36 @@ module.exports = async (req, res) => {
     // 2. Определяем ближайший пункт для доставки
     let orderAffiliate = affiliate || '';
     let nearestStoreName = '';
-    if (delivery_type === 'delivery' && !orderAffiliate && client.street) {
-      try {
-        const addr = [client.street, client.home].filter(Boolean).join(', ');
-        const geo = await geocode(addr);
-        if (geo) {
-          const nearest = findNearestStore(geo.lat, geo.lon);
-          if (nearest) {
-            orderAffiliate = nearest.affiliate;
-            nearestStoreName = nearest.name;
-            console.log(`Nearest store for "${addr}": ${nearest.name} (${nearest.distanceText})`);
+    console.log(`[ORDER] type=${delivery_type}, affiliate_from_frontend="${affiliate}", street="${client.street}"`);
+
+    if (delivery_type === 'delivery') {
+      if (orderAffiliate) {
+        console.log(`[ORDER] Using frontend affiliate: ${orderAffiliate}`);
+      } else if (client.street) {
+        try {
+          const addr = [client.street, client.home].filter(Boolean).join(', ');
+          console.log(`[ORDER] Geocoding address: "${addr}"`);
+          const geo = await geocode(addr);
+          if (geo) {
+            console.log(`[ORDER] Geocoded: lat=${geo.lat}, lon=${geo.lon}, formatted="${geo.formatted}"`);
+            const nearest = findNearestStore(geo.lat, geo.lon);
+            if (nearest) {
+              orderAffiliate = nearest.affiliate;
+              nearestStoreName = nearest.name;
+              console.log(`[ORDER] Nearest store: ${nearest.name} (${nearest.distanceText}), affiliate=${nearest.affiliate}`);
+            }
+          } else {
+            console.log(`[ORDER] Geocode returned null for "${addr}"`);
           }
+        } catch (geoErr) {
+          console.error('[ORDER] Geocode error:', geoErr.message);
         }
-      } catch (geoErr) {
-        console.error('Geocode in create-order:', geoErr.message);
+      } else {
+        console.log(`[ORDER] No street provided, skipping geocode`);
       }
     }
+
+    console.log(`[ORDER] Final affiliate: "${orderAffiliate}"`);
 
     // 3. Создаём заказ в Frontpad
     const orderResult = await createOrder({
