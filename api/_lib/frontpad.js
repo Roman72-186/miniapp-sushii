@@ -171,11 +171,17 @@ async function createOrder(orderData) {
     comment,
     datetime, // Время предзаказа (опционально)
     affiliate, // ID точки (stock_id)
+    sale,     // 'delivery' | 'pickup'
   } = orderData;
+
+  // Нормализация: +7/8 → 7, только цифры
+  let phone = (client.phone || '').replace(/[^\d]/g, '');
+  if (phone.length === 11 && phone.startsWith('8')) phone = '7' + phone.slice(1);
+  if (phone.length === 10) phone = '7' + phone;
 
   const params = {
     name: client.name || '',
-    phone: client.phone,
+    phone,
     street: client.street || '',
     home: client.home || '',
     apart: client.apart || '',
@@ -183,6 +189,11 @@ async function createOrder(orderData) {
     et: client.et || '',
     descr: comment || '',
   };
+
+  // Тип заказа: доставка / самовывоз
+  if (sale) {
+    params.sale = sale;
+  }
 
   // Точка/филиал
   if (affiliate) {

@@ -130,6 +130,7 @@ module.exports = async (req, res) => {
         et: client.et || '',
       },
       payment: payment || 'cash',
+      sale: delivery_type === 'pickup' ? 'pickup' : 'delivery',
       affiliate: orderAffiliate,
       datetime: datetime || '',
       comment: [
