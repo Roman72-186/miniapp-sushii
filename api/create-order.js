@@ -58,18 +58,22 @@ module.exports = async (req, res) => {
 
     // 1. Получаем телефон: из формы → кэш → SQLite
     let orderPhone = client.phone || '';
+    console.log(`[ORDER] phone_from_form="${client.phone}"`);
     if (telegram_id) {
       const cache = await readUserCache(telegram_id);
       const cachedPhone = cache?.listItem?.telefon;
       if (cachedPhone) {
+        console.log(`[ORDER] phone_from_cache="${cachedPhone}" (overrides form)`);
         orderPhone = cachedPhone;
       } else {
         const dbUser = getUser(telegram_id);
         if (dbUser?.phone) {
+          console.log(`[ORDER] phone_from_db="${dbUser.phone}" (overrides form)`);
           orderPhone = dbUser.phone;
         }
       }
     }
+    console.log(`[ORDER] final_phone="${orderPhone}"`);
 
     if (!orderPhone) {
       return res.status(400).json({ success: false, error: 'Не удалось определить телефон' });
