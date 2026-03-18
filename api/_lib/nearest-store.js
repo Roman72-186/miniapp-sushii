@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const storesPath = path.join(__dirname, '..', '..', 'data', 'stores.json');
+const storesPath = path.join(__dirname, '..', '..', 'config', 'stores.json');
 const stores = JSON.parse(fs.readFileSync(storesPath, 'utf8'));
 
 function haversine(lat1, lon1, lat2, lon2) {
