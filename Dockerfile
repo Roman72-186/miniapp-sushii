@@ -13,6 +13,7 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 COPY --from=build /app/build ./build
 COPY --from=build /app/api ./api
+COPY --from=build /app/config ./config
 COPY --from=build /app/server.js .
 COPY --from=build /app/package*.json ./
 RUN npm ci --omit=dev && apk del python3 make g++
