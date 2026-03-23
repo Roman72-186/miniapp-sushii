@@ -1,7 +1,4 @@
-// src/DiscountShopPage.js — Магазин по подписке /discount-shop
-// Основное меню (скидки) + отдельные экраны подарков
-
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useUser } from './UserContext';
 import { useCart } from './hooks/useFrontpad';
 import BrandLoader from './components/BrandLoader';
@@ -11,33 +8,59 @@ import ShopProductCard from './components/ShopProductCard';
 import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
-import SubCheckoutModal from './components/SubCheckoutModal';
 import PromoBanner from './components/PromoBanner';
 import './shop.css';
 
 const DISCOUNT_CATEGORIES = [
-  { id: 'sub-cold', name: 'Холодные роллы', tab: 'Холодные', icon: '🍣',
-    jsonUrl: '/подписка роллы/rolls-sub.json', discount: 0.30 },
-  { id: 'sub-hot', name: 'Запечённые роллы', tab: 'Запечённые', icon: '🔥',
-    jsonUrl: '/подписка запеченные/zaproll-sub.json', discount: 0.30 },
-  { id: 'sub-sets', name: 'Сеты', tab: 'Сеты', icon: '🍱',
-    jsonUrl: '/подписка сеты/sets-sub.json', discount: 0.20 },
+  {
+    id: 'sub-cold',
+    name: 'Холодные роллы',
+    tab: 'Холодные',
+    icon: '🍣',
+    jsonUrl: '/подписка роллы/rolls-sub.json',
+    discount: 0.30,
+  },
+  {
+    id: 'sub-hot',
+    name: 'Запечённые роллы',
+    tab: 'Запечённые',
+    icon: '🔥',
+    jsonUrl: '/подписка запеченные/zaproll-sub.json',
+    discount: 0.30,
+  },
+  {
+    id: 'sub-sets',
+    name: 'Сеты',
+    tab: 'Сеты',
+    icon: '🍱',
+    jsonUrl: '/подписка сеты/sets-sub.json',
+    discount: 0.20,
+  },
 ];
 
 const GIFT_CATEGORIES = [
-  { id: 'gift-rolls', name: 'Роллы в подарок', tab: 'Роллы', icon: '🎁',
-    jsonUrl: '/подписка 490/rolls-490.json', minTarif: '490' },
-  { id: 'gift-sets', name: 'Сеты в подарок', tab: 'Сеты', icon: '🎁',
-    jsonUrl: '/подписка 490/sets-490.json', minTarif: '1190' },
+  {
+    id: 'gift-rolls',
+    name: 'Роллы в подарок',
+    tab: 'Роллы',
+    icon: '🎁',
+    jsonUrl: '/подписка 490/rolls-490.json',
+    minTarif: '490',
+  },
+  {
+    id: 'gift-sets',
+    name: 'Сеты в подарок',
+    tab: 'Сеты',
+    icon: '🎁',
+    jsonUrl: '/подписка 490/sets-490.json',
+    minTarif: '1190',
+  },
 ];
 
-function isGiftLocked(cat, userTarif) {
+function isGiftLocked(category, userTarif) {
   if (!userTarif) return true;
-  // 9990 (амбассадор) — доступ ко всем подаркам
   if (userTarif === '9990') return false;
-  // Каждый тариф открывает только свою категорию подарков
-  // 490 → роллы (minTarif='490'), 1190 → сеты (minTarif='1190')
-  return userTarif !== cat.minTarif;
+  return userTarif !== category.minTarif;
 }
 
 function useDiscountMenu() {
@@ -48,43 +71,50 @@ function useDiscountMenu() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const allCats = [...DISCOUNT_CATEGORIES, ...GIFT_CATEGORIES];
+      const allCategories = [...DISCOUNT_CATEGORIES, ...GIFT_CATEGORIES];
       const results = await Promise.all(
-        allCats.map(async (cat) => {
-          const res = await fetch(cat.jsonUrl + '?v=' + Date.now());
-          if (!res.ok) throw new Error(`Ошибка загрузки ${cat.name}`);
+        allCategories.map(async category => {
+          const res = await fetch(`${category.jsonUrl}?v=${Date.now()}`);
+          if (!res.ok) throw new Error(`Ошибка загрузки ${category.name}`);
+
           const data = await res.json();
-          const isGift = GIFT_CATEGORIES.some(g => g.id === cat.id);
-          return data.items.filter(item => item.enabled !== false).map((item, idx) => {
-            if (isGift) {
+          const isGiftCategory = GIFT_CATEGORIES.some(item => item.id === category.id);
+
+          return data.items
+            .filter(item => item.enabled !== false)
+            .map((item, idx) => {
+              if (isGiftCategory) {
+                return {
+                  id: item.sku || `${category.id}-${idx}`,
+                  name: item.name,
+                  cleanName: item.name,
+                  price: 0,
+                  sku: item.sku,
+                  category: category.id,
+                  gift: true,
+                  image: getProductImage(item.name),
+                };
+              }
+
+              const oldPrice = item.price;
+              const discountPrice = Math.round(oldPrice * (1 - category.discount));
+
               return {
-                id: item.sku || `${cat.id}-${idx}`,
+                id: item.sku || `${category.id}-${idx}`,
                 name: item.name,
                 cleanName: item.name,
-                price: 0,
-                sku: item.sku,
-                category: cat.id,
-                gift: true,
+                oldPrice,
+                price: discountPrice,
+                savings: oldPrice - discountPrice,
+                category: category.id,
                 image: getProductImage(item.name),
               };
-            }
-            const oldPrice = item.price;
-            const discountPrice = Math.round(oldPrice * (1 - cat.discount));
-            const savings = oldPrice - discountPrice;
-            return {
-              id: item.sku || `${cat.id}-${idx}`,
-              name: item.name,
-              cleanName: item.name,
-              oldPrice,
-              price: discountPrice,
-              savings,
-              category: cat.id,
-              image: getProductImage(item.name),
-            };
-          });
+            });
         })
       );
+
       setProducts(results.flat());
     } catch (err) {
       setError(err.message || 'Не удалось загрузить меню');
@@ -93,12 +123,16 @@ function useDiscountMenu() {
     }
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
   return { products, loading, error, refetch: fetchAll };
 }
 
-function SubCard({ product, onSelect, onImageClick }) {
+function SubCard({ product, onSelect, onImageClick, disabled }) {
   const [imgError, setImgError] = useState(false);
+
   return (
     <div className="shop-card">
       <div
@@ -113,12 +147,13 @@ function SubCard({ product, onSelect, onImageClick }) {
           onError={() => setImgError(true)}
         />
       </div>
+
       <div className="shop-card__body">
         <h3 className="shop-card__name">{product.name}</h3>
         <div className="shop-card__bottom">
           <span className="shop-card__price" style={{ color: '#3CC8A1' }}>Подарок</span>
-          <button className="shop-card__add-btn" onClick={() => onSelect(product)}>
-            Выбрать
+          <button className="shop-card__add-btn" onClick={() => onSelect(product)} disabled={disabled}>
+            {disabled ? '...' : 'Выбрать'}
           </button>
         </div>
       </div>
@@ -132,20 +167,18 @@ function DiscountShopPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  // Уведомление об успешной оплате
   const [paymentSuccess, setPaymentSuccess] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('payment') === 'success';
   });
 
   useEffect(() => {
-    if (paymentSuccess) {
-      const timer = setTimeout(() => setPaymentSuccess(false), 5000);
-      return () => clearTimeout(timer);
-    }
+    if (!paymentSuccess) return undefined;
+    const timer = setTimeout(() => setPaymentSuccess(false), 5000);
+    return () => clearTimeout(timer);
   }, [paymentSuccess]);
 
-  const { telegramId, loading: userLoading, tarif: userTarif } = useUser();
+  const { telegramId, loading: userLoading, tarif: userTarif, profile } = useUser();
   const { products, loading, error, refetch } = useDiscountMenu();
   const cart = useCart();
 
@@ -155,44 +188,49 @@ function DiscountShopPage() {
   const [visibleCategory, setVisibleCategory] = useState(DISCOUNT_CATEGORIES[0]?.id);
   const sectionRefs = useRef({});
   const isScrollingByClick = useRef(false);
-
-  // Тройной клик по логотипу → админка
+  const [giftClaimingId, setGiftClaimingId] = useState(null);
+  const [giftNotice, setGiftNotice] = useState(null);
   const logoClicksRef = useRef({ count: 0, timer: null });
+
+  const initialView = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    return view === 'gift-rolls' || view === 'gift-sets' ? view : null;
+  }, []);
+
+  const [giftView, setGiftView] = useState(initialView);
+  const [modalProduct, setModalProduct] = useState(null);
+  const [lockedPopup, setLockedPopup] = useState(null);
+  const [giftStatus, setGiftStatus] = useState(null);
+  const [giftStatusLoading, setGiftStatusLoading] = useState(true);
+  const [adminGrants, setAdminGrants] = useState({ roll: false, set: false });
+
+  const pendingGiftItem = cart.items.find(item => item.product.gift) || null;
+  const pendingGiftCategory = pendingGiftItem?.product?.category || null;
+  const hasGiftInCart = Boolean(pendingGiftItem);
+
   const handleLogoClick = () => {
-    const ref = logoClicksRef.current;
-    ref.count++;
-    clearTimeout(ref.timer);
-    if (ref.count >= 3) {
-      ref.count = 0;
+    const state = logoClicksRef.current;
+    state.count += 1;
+    clearTimeout(state.timer);
+
+    if (state.count >= 3) {
+      state.count = 0;
       window.location.href = telegramId ? `/admin?telegram_id=${telegramId}` : '/admin';
       return;
     }
-    ref.timer = setTimeout(() => { ref.count = 0; }, 1000);
+
+    state.timer = setTimeout(() => {
+      state.count = 0;
+    }, 1000);
   };
 
-  // Gift view: null = основное меню, 'gift-rolls' | 'gift-sets' = подарочный экран
-  // Поддержка ?view=gift-rolls / ?view=gift-sets для прямой ссылки
-  const initialView = React.useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    const v = params.get('view');
-    return (v === 'gift-rolls' || v === 'gift-sets') ? v : null;
-  }, []);
-  const [giftView, setGiftView] = useState(initialView);
-  const [selectedGiftProduct, setSelectedGiftProduct] = useState(null);
-  const [giftOrderNumber, setGiftOrderNumber] = useState(null);
-
-  const [modalProduct, setModalProduct] = useState(null);
-  const [lockedPopup, setLockedPopup] = useState(null);
-
-  // Gift windows
-  const [giftStatus, setGiftStatus] = useState(null);
-  const [giftStatusLoading, setGiftStatusLoading] = useState(true);
-  const [contactId, setContactId] = useState(null);
-  const [adminGrants, setAdminGrants] = useState({ roll: false, set: false });
-
-  // Gift window status from server (Vercel Blob)
   const fetchGiftStatus = useCallback(() => {
-    if (!telegramId) { setGiftStatusLoading(false); return; }
+    if (!telegramId) {
+      setGiftStatusLoading(false);
+      return;
+    }
+
     setGiftStatusLoading(true);
     fetch('/api/get-gift-windows', {
       method: 'POST',
@@ -202,30 +240,83 @@ function DiscountShopPage() {
       .then(r => r.json())
       .then(resp => {
         if (!resp.success || !resp.data) return;
-        const d = resp.data;
-        if (d.contact_id) setContactId(d.contact_id);
-        if (d.adminGrants) setAdminGrants(d.adminGrants);
+        const data = resp.data;
+        if (data.adminGrants) setAdminGrants(data.adminGrants);
         setGiftStatus({
-          status: d.currentStatus,
-          daysLeft: d.daysLeft,
-          windowNum: d.currentWindow,
-          totalWindows: d.totalWindows,
+          status: data.currentStatus,
+          daysLeft: data.daysLeft,
+          windowNum: data.currentWindow,
+          totalWindows: data.totalWindows,
         });
       })
       .catch(() => {})
       .finally(() => setGiftStatusLoading(false));
   }, [telegramId]);
 
-  useEffect(() => { fetchGiftStatus(); }, [fetchGiftStatus]);
+  useEffect(() => {
+    fetchGiftStatus();
+  }, [fetchGiftStatus]);
 
-  // IntersectionObserver для скидочных табов
+  useEffect(() => {
+    if (!giftNotice) return undefined;
+    const timer = setTimeout(() => setGiftNotice(null), 5000);
+    return () => clearTimeout(timer);
+  }, [giftNotice]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (giftView) params.set('view', giftView);
+    else params.delete('view');
+
+    const nextSearch = params.toString();
+    const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState({}, '', nextUrl);
+    }
+  }, [giftView]);
+
+  useEffect(() => {
+    if (!giftView || userLoading || giftStatusLoading) return;
+
+    const category = GIFT_CATEGORIES.find(item => item.id === giftView);
+    if (!category) {
+      setGiftView(null);
+      return;
+    }
+
+    const hasAdminGrant =
+      (giftView === 'gift-rolls' && adminGrants.roll) ||
+      (giftView === 'gift-sets' && adminGrants.set);
+
+    const locked = !hasAdminGrant && isGiftLocked(category, userTarif);
+    const blockedByStatus =
+      !hasAdminGrant &&
+      giftStatus &&
+      (giftStatus.status === 'claimed' || giftStatus.status === 'waiting' || giftStatus.status === 'expired');
+
+    if (locked || blockedByStatus || hasGiftInCart) {
+      setGiftView(null);
+    }
+  }, [adminGrants.roll, adminGrants.set, giftStatus, giftStatusLoading, giftView, hasGiftInCart, userLoading, userTarif]);
+
+  useEffect(() => {
+    if (userLoading) return;
+    if (profile?.subscriptionStatus === 'активно') return;
+
+    const tid = telegramId ? `?telegram_id=${telegramId}` : '';
+    window.location.href = `/${tid}`;
+  }, [profile?.subscriptionStatus, telegramId, userLoading]);
+
   useEffect(() => {
     if (giftView) return;
+
     const sections = Object.values(sectionRefs.current).filter(Boolean);
-    if (sections.length === 0) return;
+    if (sections.length === 0) return undefined;
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         if (isScrollingByClick.current) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
@@ -237,43 +328,61 @@ function DiscountShopPage() {
       { rootMargin: '-120px 0px -60% 0px', threshold: 0 }
     );
 
-    sections.forEach((el) => observer.observe(el));
+    sections.forEach(section => observer.observe(section));
     return () => observer.disconnect();
-  }, [products, giftView]);
+  }, [giftView, products]);
 
-  const scrollToCategory = (categoryId) => {
-    const el = sectionRefs.current[categoryId];
-    if (!el) return;
+  const scrollToCategory = categoryId => {
+    const element = sectionRefs.current[categoryId];
+    if (!element) return;
+
     setVisibleCategory(categoryId);
     isScrollingByClick.current = true;
-    el.scrollIntoView({ behavior: 'smooth' });
-    setTimeout(() => { isScrollingByClick.current = false; }, 800);
+    element.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      isScrollingByClick.current = false;
+    }, 800);
   };
 
   const tarifLoading = userLoading;
 
-  const handleGiftClick = (catId) => {
+  if (userLoading || profile?.subscriptionStatus !== 'активно') {
+    return (
+      <div className="shop-page">
+        <BrandLoader text="Проверяем подписку" />
+      </div>
+    );
+  }
+
+  const handleGiftClick = categoryId => {
     if (tarifLoading || giftStatusLoading) return;
-    const cat = GIFT_CATEGORIES.find(c => c.id === catId);
-    if (!cat) return;
+    if (hasGiftInCart) {
+      setGiftNotice('Подарок уже в корзине. Зафиксируем его после отправки заказа в Frontpad.');
+      return;
+    }
 
-    // Admin-гранты обходят проверку тарифа
-    const hasAdminGrant = (catId === 'gift-rolls' && adminGrants.roll) || (catId === 'gift-sets' && adminGrants.set);
+    const category = GIFT_CATEGORIES.find(item => item.id === categoryId);
+    if (!category) return;
 
-    if (!hasAdminGrant && isGiftLocked(cat, userTarif)) {
-      const tarifLabel = cat.minTarif === '1190' ? '1190' : '490';
+    const hasAdminGrant =
+      (categoryId === 'gift-rolls' && adminGrants.roll) ||
+      (categoryId === 'gift-sets' && adminGrants.set);
+
+    if (!hasAdminGrant && isGiftLocked(category, userTarif)) {
+      const tarifLabel = category.minTarif === '1190' ? '1190' : '490';
       setLockedPopup(`Этот раздел доступен подписчикам тарифа от ${tarifLabel}₽`);
       return;
     }
-    // Block if gift already claimed or waiting (only for non-admin grants)
+
     if (!hasAdminGrant && giftStatus && giftStatus.status === 'claimed') return;
     if (!hasAdminGrant && giftStatus && giftStatus.status === 'waiting') return;
-    setGiftView(catId);
+
+    setGiftView(categoryId);
     window.scrollTo(0, 0);
   };
 
-  const getQuantity = (productId) => {
-    const item = cart.items.find(i => i.product.id === productId);
+  const getQuantity = productId => {
+    const item = cart.items.find(entry => (entry.product.cartId || entry.product.id) === productId);
     return item ? item.quantity : 0;
   };
 
@@ -282,13 +391,48 @@ function DiscountShopPage() {
     setShowCheckout(true);
   };
 
-  const handleOrderSuccess = (num) => {
+  const handleOrderSuccess = (num, orderData = null) => {
     setShowCheckout(false);
     setOrderNumber(num);
+
+    if (orderData?.giftClaim?.ok || orderData?.giftClaim?.reason === 'already_claimed') {
+      setGiftStatus(prev => (prev ? { ...prev, status: 'claimed' } : prev));
+      fetchGiftStatus();
+    } else if (hasGiftInCart) {
+      setGiftNotice('Заказ отправлен. Если подарок не обновится автоматически, проверим его вручную.');
+    }
+
     cart.clear();
   };
 
-  // Success screens
+  const handleGiftSelect = async product => {
+    if (giftClaimingId || hasGiftInCart) return;
+    
+    if (!telegramId) {
+      // Показываем пользователю сообщение о необходимости авторизации
+      setLockedPopup('Для выбора подарка необходимо авторизоваться через Telegram или указать telegram_id в параметрах.');
+      return;
+    }
+
+    setGiftClaimingId(product.id);
+
+    try {
+      cart.addItem({
+        ...product,
+        cartId: `gift:${giftView}:${product.id}`,
+        cleanName: product.name,
+        gift: true,
+      });
+      setGiftView(null);
+      setGiftNotice('Подарок добавлен в корзину. Зафиксируем его после отправки заказа в Frontpad.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setLockedPopup(err.message || 'Не удалось добавить подарок');
+    } finally {
+      setGiftClaimingId(null);
+    }
+  };
+
   if (orderNumber) {
     return (
       <div className="shop-page">
@@ -307,26 +451,9 @@ function DiscountShopPage() {
     );
   }
 
-  if (giftOrderNumber) {
-    return (
-      <div className="shop-page">
-        <div className="shop-success">
-          <div className="shop-success__icon">✅</div>
-          <h2 className="shop-success__title">Заказ принят!</h2>
-          <p className="shop-success__order-num">Номер заказа: {giftOrderNumber}</p>
-          <p className="shop-success__text">Мы уже готовим ваш заказ. Ожидайте!</p>
-          <button className="shop-success__btn" onClick={() => { setGiftOrderNumber(null); setGiftView(null); }}>
-            Вернуться в меню
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // === GIFT VIEW — отдельный экран подарков ===
   if (giftView) {
-    const giftCat = GIFT_CATEGORIES.find(c => c.id === giftView);
-    const giftProducts = products.filter(p => p.category === giftView);
+    const giftCategory = GIFT_CATEGORIES.find(item => item.id === giftView);
+    const giftProducts = products.filter(item => item.category === giftView);
 
     return (
       <div className="shop-page">
@@ -335,14 +462,14 @@ function DiscountShopPage() {
             ←
           </button>
           <div className="shop-header__center">
-            <span className="shop-header__title">{giftCat?.icon} {giftCat?.name}</span>
+            <span className="shop-header__title">{giftCategory?.icon} {giftCategory?.name}</span>
           </div>
           <div className="shop-header__spacer" />
         </header>
 
         <div className="shop-section">
           <p style={{ color: '#999', fontSize: 13, margin: '8px 16px 0', padding: 0 }}>
-            Выберите один — входит в вашу подписку
+            Выберите один подарок. Он добавится в корзину, а зафиксируем его только после отправки заказа в Frontpad.
           </p>
         </div>
 
@@ -354,8 +481,9 @@ function DiscountShopPage() {
               <SubCard
                 key={product.id}
                 product={product}
-                onSelect={setSelectedGiftProduct}
-                onImageClick={(p) => setModalProduct({ ...p, description: getProductDescription(p.name) })}
+                onSelect={handleGiftSelect}
+                onImageClick={item => setModalProduct({ ...item, description: getProductDescription(item.name) })}
+                disabled={giftClaimingId === product.id}
               />
             ))}
           </div>
@@ -364,25 +492,10 @@ function DiscountShopPage() {
         {modalProduct && (
           <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
         )}
-
-        {selectedGiftProduct && (
-          <SubCheckoutModal
-            product={selectedGiftProduct}
-            telegramId={telegramId}
-            contactId={contactId}
-            onClose={() => setSelectedGiftProduct(null)}
-            onSuccess={(num) => {
-              setSelectedGiftProduct(null);
-              setGiftOrderNumber(num);
-              fetchGiftStatus();
-            }}
-          />
-        )}
       </div>
     );
   }
 
-  // === MAIN VIEW — скидочное меню + кнопки подарков ===
   return (
     <div className="shop-page">
       <header className="shop-header">
@@ -390,6 +503,7 @@ function DiscountShopPage() {
           <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" onClick={handleLogoClick} />
           <span className="shop-header__title">Sushi House</span>
         </div>
+
         <div className="shop-header__actions">
           <button
             className="shop-header__profile"
@@ -400,6 +514,7 @@ function DiscountShopPage() {
           >
             👤
           </button>
+
           {cart.count > 0 && (
             <button className="shop-header__cart" onClick={() => setShowCart(true)}>
               <span className="shop-header__cart-icon">🛒</span>
@@ -415,19 +530,30 @@ function DiscountShopPage() {
         </div>
       )}
 
+      {giftNotice && (
+        <div className="payment-success-banner" onClick={() => setGiftNotice(null)}>
+          {giftNotice}
+        </div>
+      )}
+
       <div className="shop-gift-row">
-        {GIFT_CATEGORIES.map(cat => {
+        {GIFT_CATEGORIES.map(category => {
           const anyLoading = tarifLoading || giftStatusLoading;
-          const hasAdminGrant = (cat.id === 'gift-rolls' && adminGrants.roll) || (cat.id === 'gift-sets' && adminGrants.set);
-          const locked = anyLoading ? true : (!hasAdminGrant && isGiftLocked(cat, userTarif));
-          // Hide gift button if subscription expired (but not if admin granted)
+          const hasAdminGrant =
+            (category.id === 'gift-rolls' && adminGrants.roll) ||
+            (category.id === 'gift-sets' && adminGrants.set);
+
+          const locked = anyLoading ? true : (!hasAdminGrant && isGiftLocked(category, userTarif));
           if (!locked && !hasAdminGrant && giftStatus && giftStatus.status === 'expired') return null;
 
-          const isClaimed = !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'claimed';
-          const isWaiting = !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'waiting';
-          const isDisabled = locked || isClaimed || isWaiting;
+          const isClaimed =
+            !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'claimed';
+          const isWaiting =
+            !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'waiting';
+          const isSelectedGift = hasGiftInCart && pendingGiftCategory === category.id;
+          const isDisabled = locked || isClaimed || isWaiting || hasGiftInCart;
 
-          let label = `${cat.icon} ${cat.tab}`;
+          let label = `${category.icon} ${category.tab}`;
           let extraClass = '';
           let badge = null;
 
@@ -435,19 +561,25 @@ function DiscountShopPage() {
             badge = <span className="shop-gift-btn__lock">...</span>;
           } else if (locked) {
             badge = <span className="shop-gift-btn__lock">🔒</span>;
+          } else if (isSelectedGift) {
+            label = '✓ В корзине';
+            extraClass = 'shop-gift-btn--claimed';
+          } else if (hasGiftInCart) {
+            label = `${category.icon} Уже выбран`;
+            extraClass = 'shop-gift-btn--waiting';
           } else if (isClaimed) {
-            label = `✓ Получен`;
+            label = '✓ Получен';
             extraClass = 'shop-gift-btn--claimed';
           } else if (isWaiting) {
-            label = `${cat.icon} Через ${giftStatus.daysLeft} дн.`;
+            label = `${category.icon} Через ${giftStatus.daysLeft} дн.`;
             extraClass = 'shop-gift-btn--waiting';
           }
 
           return (
             <button
-              key={cat.id}
+              key={category.id}
               className={`shop-gift-btn ${isDisabled ? 'shop-gift-btn--locked' : ''} ${extraClass}`}
-              onClick={() => handleGiftClick(cat.id)}
+              onClick={() => handleGiftClick(category.id)}
               disabled={isDisabled}
             >
               <span>{label}</span>
@@ -460,14 +592,14 @@ function DiscountShopPage() {
       <PromoBanner />
 
       <nav className="shop-tabs">
-        {DISCOUNT_CATEGORIES.map(cat => (
+        {DISCOUNT_CATEGORIES.map(category => (
           <button
-            key={cat.id}
-            className={`shop-tabs__item ${visibleCategory === cat.id ? 'shop-tabs__item--active' : ''}`}
-            onClick={() => scrollToCategory(cat.id)}
+            key={category.id}
+            className={`shop-tabs__item ${visibleCategory === category.id ? 'shop-tabs__item--active' : ''}`}
+            onClick={() => scrollToCategory(category.id)}
           >
-            <span className="shop-tabs__icon">{cat.icon}</span>
-            <span className="shop-tabs__name">{cat.tab}</span>
+            <span className="shop-tabs__icon">{category.icon}</span>
+            <span className="shop-tabs__name">{category.tab}</span>
           </button>
         ))}
       </nav>
@@ -481,26 +613,29 @@ function DiscountShopPage() {
         </div>
       ) : (
         <div>
-          {DISCOUNT_CATEGORIES.map(cat => {
-            const catProducts = products.filter(p => p.category === cat.id);
-            if (catProducts.length === 0) return null;
+          {DISCOUNT_CATEGORIES.map(category => {
+            const categoryProducts = products.filter(item => item.category === category.id);
+            if (categoryProducts.length === 0) return null;
+
             return (
               <div
-                key={cat.id}
+                key={category.id}
                 className="shop-section"
-                data-category-id={cat.id}
-                ref={el => { sectionRefs.current[cat.id] = el; }}
+                data-category-id={category.id}
+                ref={element => {
+                  sectionRefs.current[category.id] = element;
+                }}
               >
-                <h2 className="shop-section__title">{cat.icon} {cat.name}</h2>
+                <h2 className="shop-section__title">{category.icon} {category.name}</h2>
                 <div className="shop-grid">
-                  {catProducts.map(product => (
+                  {categoryProducts.map(product => (
                     <ShopProductCard
                       key={product.id}
                       product={product}
                       quantity={getQuantity(product.id)}
                       onAdd={cart.addItem}
                       onUpdateQuantity={cart.updateQuantity}
-                      onImageClick={(p) => setModalProduct({ ...p, description: getProductDescription(p.name) })}
+                      onImageClick={item => setModalProduct({ ...item, description: getProductDescription(item.name) })}
                     />
                   ))}
                 </div>
@@ -520,7 +655,7 @@ function DiscountShopPage() {
           total={cart.total}
           onUpdateQuantity={cart.updateQuantity}
           onRemove={cart.removeItem}
-          onClear={cart.clear}
+          onClear={cart.clearNonGiftItems}
           onClose={() => setShowCart(false)}
           onCheckout={handleCheckout}
         />
