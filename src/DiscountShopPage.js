@@ -406,11 +406,17 @@ function DiscountShopPage() {
   };
 
   const handleGiftSelect = async product => {
-    if (giftClaimingId || hasGiftInCart) return;
+    if (giftClaimingId || hasGiftInCart) {
+      // Возвращаемся на основную страницу даже при наличии ошибок
+      setGiftView(null);
+      return;
+    }
     
     if (!telegramId) {
       // Показываем пользователю сообщение о необходимости авторизации
       setLockedPopup('Для выбора подарка необходимо авторизоваться через Telegram или указать telegram_id в параметрах.');
+      // Возвращаемся на основную страницу
+      setGiftView(null);
       return;
     }
 
