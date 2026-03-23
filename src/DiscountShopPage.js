@@ -132,6 +132,24 @@ function useDiscountMenu() {
 
 function SubCard({ product, onSelect, onImageClick, disabled }) {
   const [imgError, setImgError] = useState(false);
+  
+  // Обработчик кнопки "Выбрать"
+  const handleSelect = (e) => {
+    // Предотвращаем стандартное поведение и всплытие события
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (disabled) return;
+    
+    console.log('SubCard: Select button clicked for product:', product.name);
+    
+    // Вызываем обработчик выбора, передавая ему продукт
+    if (onSelect) {
+      onSelect(product);
+    }
+  };
 
   return (
     <div className="shop-card">
@@ -152,7 +170,11 @@ function SubCard({ product, onSelect, onImageClick, disabled }) {
         <h3 className="shop-card__name">{product.name}</h3>
         <div className="shop-card__bottom">
           <span className="shop-card__price" style={{ color: '#3CC8A1' }}>Подарок</span>
-          <button className="shop-card__add-btn" onClick={() => onSelect(product)} disabled={disabled}>
+          <button 
+            className="shop-card__add-btn" 
+            onClick={handleSelect} 
+            disabled={disabled}
+          >
             {disabled ? '...' : 'Выбрать'}
           </button>
         </div>
@@ -286,20 +308,44 @@ function DiscountShopPage() {
       return;
     }
 
-    const hasAdminGrant =
-      (giftView === 'gift-rolls' && adminGrants.roll) ||
-      (giftView === 'gift-sets' && adminGrants.set);
+    // Если это переход из URL параметра (т.е. initialView), 
+    // то проверяем доступность и показываем соответствующие сообщения
+    if (giftView === initialView) {
+      const hasAdminGrant =
+        (giftView === 'gift-rolls' && adminGrants.roll) ||
+        (giftView === 'gift-sets' && adminGrants.set);
 
-    const locked = !hasAdminGrant && isGiftLocked(category, userTarif);
-    const blockedByStatus =
-      !hasAdminGrant &&
-      giftStatus &&
-      (giftStatus.status === 'claimed' || giftStatus.status === 'waiting' || giftStatus.status === 'expired');
+      const locked = !hasAdminGrant && isGiftLocked(category, userTarif);
+      
+      if (locked) {
+        const tarifLabel = category.minTarif === '1190' ? '1190' : '490';
+        setLockedPopup(`Этот раздел доступен подписчикам тарифа от ${tarifLabel}₽`);
+        setGiftView(null);
+        return;
+      }
+      
+      const blockedByStatus =
+        !hasAdminGrant &&
+        giftStatus &&
+        (giftStatus.status === 'claimed' || giftStatus.status === 'waiting' || giftStatus.status === 'expired');
 
-    if (locked || blockedByStatus || hasGiftInCart) {
-      setGiftView(null);
+      if (blockedByStatus) {
+        if (giftStatus.status === 'claimed') {
+          setLockedPopup('Вы уже получили подарок в этом периоде.');
+        } else if (giftStatus.status === 'waiting') {
+          setLockedPopup(`Подарок будет доступен через ${giftStatus.daysLeft} дней.`);
+        }
+        setGiftView(null);
+        return;
+      }
+      
+      if (hasGiftInCart) {
+        setGiftNotice('Подарок уже в корзине. Зафиксируем его после отправки заказа в Frontpad.');
+        setGiftView(null);
+        return;
+      }
     }
-  }, [adminGrants.roll, adminGrants.set, giftStatus, giftStatusLoading, giftView, hasGiftInCart, userLoading, userTarif]);
+  }, [adminGrants.roll, adminGrants.set, giftStatus, giftStatusLoading, giftView, hasGiftInCart, initialView, userLoading, userTarif]);
 
   useEffect(() => {
     if (userLoading) return;
@@ -374,8 +420,15 @@ function DiscountShopPage() {
       return;
     }
 
-    if (!hasAdminGrant && giftStatus && giftStatus.status === 'claimed') return;
-    if (!hasAdminGrant && giftStatus && giftStatus.status === 'waiting') return;
+    if (!hasAdminGrant && giftStatus && giftStatus.status === 'claimed') {
+      setLockedPopup('Вы уже получили подарок в этом периоде. Следующий будет доступен позже.');
+      return;
+    }
+    
+    if (!hasAdminGrant && giftStatus && giftStatus.status === 'waiting') {
+      setLockedPopup(`Подарок будет доступен через ${giftStatus.daysLeft} дней.`);
+      return;
+    }
 
     setGiftView(categoryId);
     window.scrollTo(0, 0);
@@ -405,36 +458,55 @@ function DiscountShopPage() {
     cart.clear();
   };
 
-  const handleGiftSelect = async product => {
-    if (giftClaimingId || hasGiftInCart) {
-      // Возвращаемся на основную страницу даже при наличии ошибок
+  const handleGiftSelect = (product) => {
+    console.log('handleGiftSelect called with product:', product);
+    
+    // Проверяем, есть ли уже подарок в корзине
+    if (hasGiftInCart) {
+      console.log('Gift already in cart, showing notice');
+      setGiftNotice('Подарок уже в корзине. Зафиксируем его после отправки заказа в Frontpad.');
       setGiftView(null);
       return;
     }
     
+    // Проверяем, есть ли telegramId
     if (!telegramId) {
-      // Показываем пользователю сообщение о необходимости авторизации
+      console.log('No telegramId, showing popup');
       setLockedPopup('Для выбора подарка необходимо авторизоваться через Telegram или указать telegram_id в параметрах.');
-      // Возвращаемся на основную страницу
       setGiftView(null);
       return;
     }
-
+    
+    // Устанавливаем ID выбираемого подарка для блокировки повторного выбора
     setGiftClaimingId(product.id);
-
+    
     try {
-      cart.addItem({
+      // Создаем модифицированный продукт для корзины
+      const cartProduct = {
         ...product,
         cartId: `gift:${giftView}:${product.id}`,
         cleanName: product.name,
         gift: true,
-      });
-      setGiftView(null);
+      };
+      
+      // Добавляем подарок в корзину
+      cart.addItem(cartProduct);
+      
+      // Показываем уведомление о добавлении подарка
       setGiftNotice('Подарок добавлен в корзину. Зафиксируем его после отправки заказа в Frontpad.');
+      
+      // Возвращаемся на главную страницу магазина
+      setGiftView(null);
+      
+      // Прокручиваем страницу вверх
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
+      // В случае ошибки показываем сообщение
+      console.error('Error adding gift to cart:', err);
       setLockedPopup(err.message || 'Не удалось добавить подарок');
+      setGiftView(null);
     } finally {
+      // В любом случае сбрасываем ID выбираемого подарка
       setGiftClaimingId(null);
     }
   };
@@ -464,7 +536,13 @@ function DiscountShopPage() {
     return (
       <div className="shop-page">
         <header className="shop-header">
-          <button className="shop-header__back" onClick={() => setGiftView(null)}>
+          <button 
+            className="shop-header__back" 
+            onClick={() => {
+              // Просто возвращаемся на главную страницу
+              setGiftView(null);
+            }}
+          >
             ←
           </button>
           <div className="shop-header__center">
@@ -585,7 +663,7 @@ function DiscountShopPage() {
             <button
               key={category.id}
               className={`shop-gift-btn ${isDisabled ? 'shop-gift-btn--locked' : ''} ${extraClass}`}
-              onClick={() => handleGiftClick(category.id)}
+              onClick={() => isDisabled ? null : handleGiftClick(category.id)}
               disabled={isDisabled}
             >
               <span>{label}</span>
