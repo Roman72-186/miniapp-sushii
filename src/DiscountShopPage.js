@@ -59,7 +59,6 @@ const GIFT_CATEGORIES = [
 
 function isGiftLocked(category, userTarif) {
   if (!userTarif) return true;
-  if (userTarif === '9990') return false;
   return userTarif !== category.minTarif;
 }
 
