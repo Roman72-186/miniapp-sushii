@@ -1,4 +1,4 @@
-// src/LandingPage.js — Посадочная страница с тарифами
+// src/LandingPage.js — Главная страница с меню для подписчиков
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
@@ -8,18 +8,18 @@ import BrandLoader from './components/BrandLoader';
 const TARIFFS = [
   {
     price: '290',
-    label: '290 \u20BD / \u043C\u0435\u0441\u044F\u0446',
-    desc: '\u0421\u043A\u0438\u0434\u043A\u0438 \u043D\u0430 \u043C\u0435\u043D\u044E',
+    label: '290 ₽ / месяц',
+    desc: 'Скидки на меню',
   },
   {
     price: '490',
-    label: '490 \u20BD / \u043C\u0435\u0441\u044F\u0446',
-    desc: '\u0421\u043A\u0438\u0434\u043A\u0438 + \u043F\u043E\u0434\u0430\u0440\u043E\u0447\u043D\u044B\u0435 \u0440\u043E\u043B\u043B\u044B',
+    label: '490 ₽ / месяц',
+    desc: 'Скидки + подарочные роллы',
   },
   {
     price: '1190',
-    label: '1190 \u20BD / \u043C\u0435\u0441\u044F\u0446',
-    desc: '\u0421\u043A\u0438\u0434\u043A\u0438 + \u0440\u043E\u043B\u043B\u044B + \u0441\u0435\u0442\u044B + VIP-\u0434\u043E\u0441\u0442\u0443\u043F',
+    label: '1190 ₽ / месяц',
+    desc: 'Скидки + роллы + сеты + VIP-доступ',
   },
 ];
 
@@ -29,10 +29,17 @@ function LandingPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, tarif, sync } = useUser();
+  const { telegramId, loading: userLoading, tarif, profile, sync } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [ambaPrice, setAmbaPrice] = useState('9 990');
+
+  // Проверяем активную подписку
+  const hasActiveSubscription = React.useMemo(() => {
+    if (!profile) return false;
+    const status = profile.subscriptionStatus || profile.статусСписания;
+    return status === 'активно';
+  }, [profile]);
 
   // Загружаем актуальную цену амбассадора из админки
   useEffect(() => {
@@ -66,25 +73,22 @@ function LandingPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
       setPaymentSuccess(true);
-      // Убираем параметр из URL без перезагрузки
       params.delete('payment');
       const cleanUrl = params.toString()
         ? `${window.location.pathname}?${params.toString()}`
         : window.location.pathname + (params.get('telegram_id') ? `?telegram_id=${params.get('telegram_id')}` : '');
       window.history.replaceState({}, '', cleanUrl);
-      // Принудительно обновляем кэш — webhook мог уже добавить теги
       sync(true);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (userLoading || !telegramId) return;
-    // Есть активный тариф — редирект в магазин со скидками
-    if (tarif && ['290', '490', '1190', '9990'].includes(tarif)) {
+    if (hasActiveSubscription) {
       setRedirecting(true);
       window.location.href = `/discount-shop?telegram_id=${telegramId}`;
     }
-  }, [userLoading, telegramId, tarif]);
+  }, [userLoading, telegramId, hasActiveSubscription]);
 
   const handleTariffClick = (price) => {
     const tid = telegramId ? `?telegram_id=${telegramId}` : '';
@@ -99,6 +103,54 @@ function LandingPage() {
     );
   }
 
+  // Если есть активная подписка — показываем главное меню
+  if (hasActiveSubscription) {
+    return (
+      <div className="shop-page">
+        <div className="shop-landing">
+          <img src="/logo.jpg" alt="Суши-Хаус 39" className="shop-landing__logo" onClick={handleLogoClick} style={{ cursor: 'default' }} />
+          <h1 className="shop-landing__title">СУШИ-ХАУС 39</h1>
+          <p className="shop-landing__subtitle">Добро пожаловать!</p>
+
+          <div className="shop-landing__menu">
+            <a
+              href={`/discount-shop?telegram_id=${telegramId}`}
+              className="shop-landing__menu-btn shop-landing__menu-btn--primary"
+            >
+              <span className="shop-landing__menu-icon">🍱</span>
+              <span className="shop-landing__menu-label">Магазин со скидками</span>
+            </a>
+
+            <a
+              href={`/discount-shop?view=gift-rolls&telegram_id=${telegramId}`}
+              className="shop-landing__menu-btn"
+            >
+              <span className="shop-landing__menu-icon">🎁</span>
+              <span className="shop-landing__menu-label">Подарочные роллы</span>
+            </a>
+
+            <a
+              href={`/discount-shop?view=gift-sets&telegram_id=${telegramId}`}
+              className="shop-landing__menu-btn"
+            >
+              <span className="shop-landing__menu-icon">🍱</span>
+              <span className="shop-landing__menu-label">Подарочные сеты</span>
+            </a>
+
+            <a
+              href={`/profile?telegram_id=${telegramId}`}
+              className="shop-landing__menu-btn shop-landing__menu-btn--secondary"
+            >
+              <span className="shop-landing__menu-icon">👤</span>
+              <span className="shop-landing__menu-label">Личный кабинет</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Нет подписки — показываем тарифы
   return (
     <div className="shop-page">
       {paymentSuccess && (
@@ -107,9 +159,9 @@ function LandingPage() {
         </div>
       )}
       <div className="shop-landing">
-        <img src="/logo.jpg" alt="\u0421\u0443\u0448\u0438-\u0425\u0430\u0443\u0441 39" className="shop-landing__logo" onClick={handleLogoClick} style={{ cursor: 'default' }} />
-        <h1 className="shop-landing__title">{'\u0421\u0423\u0428\u0418-\u0425\u0410\u0423\u0421 39'}</h1>
-        <p className="shop-landing__subtitle">{'\u041F\u043E\u0434\u043F\u0438\u0441\u043A\u0430 \u0441\u043E \u0441\u043A\u0438\u0434\u043A\u0430\u043C\u0438 \u0438 \u043F\u043E\u0434\u0430\u0440\u043A\u0430\u043C\u0438'}</p>
+        <img src="/logo.jpg" alt="Суши-Хаус 39" className="shop-landing__logo" onClick={handleLogoClick} style={{ cursor: 'default' }} />
+        <h1 className="shop-landing__title">СУШИ-ХАУС 39</h1>
+        <p className="shop-landing__subtitle">Подписка со скидками и подарками</p>
 
         <div className="shop-landing__cards">
           {TARIFFS.map(t => (

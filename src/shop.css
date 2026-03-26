@@ -1627,6 +1627,61 @@ body.shop-body {
   margin-top: 6px;
 }
 
+/* === Главное меню для подписчиков === */
+.shop-landing__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.shop-landing__menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #2a2a2e;
+  border: none;
+  border-radius: 16px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  text-decoration: none;
+  color: #fff;
+}
+
+.shop-landing__menu-btn:hover {
+  background: #333;
+}
+
+.shop-landing__menu-btn:active {
+  transform: scale(0.98);
+}
+
+.shop-landing__menu-btn--primary {
+  background: linear-gradient(135deg, #3CC8A1, #2aa885);
+  box-shadow: 0 4px 20px rgba(60, 200, 161, 0.3);
+}
+
+.shop-landing__menu-btn--primary:hover {
+  box-shadow: 0 6px 28px rgba(60, 200, 161, 0.45);
+}
+
+.shop-landing__menu-btn--secondary {
+  background: linear-gradient(135deg, #5c5c5c, #444);
+  box-shadow: 0 4px 20px rgba(92, 92, 92, 0.3);
+}
+
+.shop-landing__menu-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.shop-landing__menu-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
 /* === Амбассадор в профиле === */
 .shop-profile__ambassador-badge {
   text-align: center;
