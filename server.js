@@ -46,7 +46,10 @@ function noCacheHeaders(res, filePath) {
 // Serve product overrides from persistent volume (admin edits), then React build
 app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: noCacheHeaders }));
 app.use(express.static(path.join(__dirname, 'data', 'products'), { setHeaders: noCacheHeaders }));
-app.use('/admin', express.static(path.join(__dirname, 'public', 'admin'), { setHeaders: noCacheHeaders }));
+
+// Admin pages — serve BEFORE React build
+app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
+
 app.use(express.static(path.join(__dirname, 'build'), { setHeaders: noCacheHeaders }));
 
 // SPA fallback — all non-API routes serve index.html (no-cache для Telegram WebView)
