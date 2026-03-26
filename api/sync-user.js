@@ -22,14 +22,30 @@ module.exports = async (req, res) => {
   console.log('[sync-user] Запрос:', { telegram_id, force, tg_name: tg_name ? 'exists' : 'empty' });
 
   try {
-    // Обновляем имя из Telegram если в БД пусто
+    // Обновляем имя из Telegram только если в БД пусто И имя не тестовое
     if (tg_name) {
       const existing = getUser(telegram_id);
+      const isTestName = tg_name.toLowerCase().includes('test') || tg_name.toLowerCase().includes('user');
+      
+      // 🔍 DEBUG: Логируем проверку имени
+      console.log('[sync-user] Проверка имени:', {
+        telegram_id,
+        tg_name,
+        existing_name: existing?.name,
+        is_test_name: isTestName,
+        should_update: !existing || (!existing.name && !isTestName),
+      });
+      
       if (!existing) {
-        upsertUser({ telegram_id: String(telegram_id), name: tg_name });
+        // Создаём нового пользователя с именем из Telegram (если не тестовое)
+        upsertUser({ telegram_id: String(telegram_id), name: isTestName ? null : tg_name });
       } else if (!existing.name) {
-        upsertUser({ telegram_id: String(telegram_id), name: tg_name });
+        // Обновляем имя только если в БД пусто и имя не тестовое
+        if (!isTestName) {
+          upsertUser({ telegram_id: String(telegram_id), name: tg_name });
+        }
       }
+      // Если имя уже есть в БД — не перезаписываем!
     }
     // 1. Проверяем файловый кэш (TTL)
     if (!force) {
