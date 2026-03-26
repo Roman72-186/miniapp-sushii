@@ -238,7 +238,6 @@ function AdminPage() {
     const img = new Image();
     img.onload = () => {
       const targetW = img.width;
-      const targetH = Math.round(img.width / ratio);
       const canvas = document.createElement('canvas');
       canvas.width = Math.min(targetW, 1200);
       canvas.height = Math.round(canvas.width / ratio);

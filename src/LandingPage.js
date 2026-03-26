@@ -29,7 +29,7 @@ function LandingPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, tarif, profile, sync } = useUser();
+  const { telegramId, loading: userLoading, profile, sync } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [ambaPrice, setAmbaPrice] = useState('9 990');

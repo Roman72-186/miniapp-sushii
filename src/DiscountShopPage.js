@@ -349,11 +349,34 @@ function DiscountShopPage() {
 
   useEffect(() => {
     if (userLoading) return;
-    if (profile?.subscriptionStatus === 'активно') return;
 
+    // Защита от редиректа до загрузки профиля
+    if (!profile) {
+      console.warn('[DiscountShop] Профиль не загружен, ждём...');
+      return;
+    }
+    
+    // 🔍 DEBUG: Логируем данные для диагностики
+    console.log('[DiscountShop] Проверка подписки:', {
+      userLoading,
+      telegramId,
+      profile,
+      'profile?.статусСписания': profile?.статусСписания,
+      'profile?.subscriptionStatus': profile?.subscriptionStatus,
+      'profile?.датаНачала': profile?.датаНачала,
+      'profile?.датаОКОНЧАНИЯ': profile?.датаОКОНЧАНИЯ,
+    });
+
+    // ФИКС: Используем правильное поле статуса
+    if (profile?.статусСписания === 'активно') {
+      console.log('[DiscountShop] Подписка активна, показываем магазин');
+      return;
+    }
+
+    console.warn('[DiscountShop] Подписка неактивна, редирект на лендинг');
     const tid = telegramId ? `?telegram_id=${telegramId}` : '';
     window.location.href = `/${tid}`;
-  }, [profile?.subscriptionStatus, telegramId, userLoading]);
+  }, [profile?.статусСписания, telegramId, userLoading, profile]);
 
   useEffect(() => {
     if (giftView) return;
@@ -392,7 +415,17 @@ function DiscountShopPage() {
 
   const tarifLoading = userLoading;
 
-  if (userLoading || profile?.subscriptionStatus !== 'активно') {
+  // 🔍 DEBUG: Логируем проверку статуса подписки
+  console.log('[DiscountShop] Проверка статуса подписки:', {
+    userLoading,
+    tarifLoading,
+    profile,
+    'profile?.статусСписания': profile?.статусСписания,
+    'profile?.subscriptionStatus': profile?.subscriptionStatus,
+  });
+
+  // ФИКС: Используем правильное поле статуса и добавляем защиту от null
+  if (userLoading || !profile || profile?.статусСписания !== 'активно') {
     return (
       <div className="shop-page">
         <BrandLoader text="Проверяем подписку" />

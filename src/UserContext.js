@@ -25,24 +25,63 @@ export function UserProvider({ children }) {
 
   const sync = useCallback((force = false) => {
     if (!telegramId) {
+      console.log('[UserContext] telegramId отсутствует, пропускаем синхронизацию');
       setLoading(false);
       return Promise.resolve();
     }
     setLoading(true);
+
+    // 🔍 DEBUG: Логируем запрос синхронизации
+    console.log('[UserContext] Начинаем синхронизацию:', { telegramId, force, tgUser });
+
     return fetch('/api/sync-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ telegram_id: telegramId, force, tg_name: tgUser?.name || null }),
     })
-      .then(r => r.json())
+      .then(r => {
+        // 🔍 DEBUG: Логируем статус ответа
+        console.log('[UserContext] Статус ответа:', r.status);
+        return r.json();
+      })
       .then(resp => {
+        // 🔍 DEBUG: Логируем ответ сервера
+        console.log('[UserContext] Ответ sync-user:', {
+          success: resp.success,
+          fromCache: resp.fromCache,
+          source: resp.source,
+          stale: resp.stale,
+          hasData: !!resp.data,
+          tarif: resp.data?.tarif,
+          tags: resp.data?.tags,
+        });
+
         if (resp.success && resp.data) {
           setUserData(resp.data);
+
+          // 🔍 DEBUG: Логируем установленные данные
+          console.log('[UserContext] Данные пользователя обновлены:', {
+            telegram_id: resp.data.telegram_id,
+            tarif: resp.data.tarif,
+            tags: resp.data.tags,
+            variables: resp.data.variables,
+            fromCache: resp.fromCache,
+          });
+        } else {
+          console.warn('[UserContext] Не удалось получить данные пользователя:', resp);
         }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [telegramId]);
+      .catch((err) => {
+        console.error('[UserContext] Ошибка синхронизации:', {
+          message: err.message,
+          stack: err.stack,
+        });
+      })
+      .finally(() => {
+        console.log('[UserContext] Синхронизация завершена, loading=false');
+        setLoading(false);
+      });
+  }, [telegramId, tgUser?.name]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -76,9 +115,22 @@ export function UserProvider({ children }) {
   const listItemName = userData?.listItem?.name || null;
 
   const profile = useMemo(() => {
-    if (!userData) return null;
+    if (!userData) {
+      console.log('[UserContext] userData отсутствует, profile = null');
+      return null;
+    }
     const v = userData.variables || {};
-    return {
+
+    // 🔍 DEBUG: Логируем данные для формирования профиля
+    console.log('[UserContext] Формирование профиля:', {
+      hasUserData: !!userData,
+      hasVariables: !!userData.variables,
+      'variables.статусСписания': v['статусСписания'],
+      'variables.датаНачала': v['датаНачала'],
+      'variables.датаОКОНЧАНИЯ': v['датаОКОНЧАНИЯ'],
+    });
+
+    const profileData = {
       name: contactName,
       phone,
       статусСписания: v['статусСписания'] || null,
@@ -90,6 +142,16 @@ export function UserProvider({ children }) {
       has_payment_id: !!v['PaymentID'],
       contact_id: contactId,
     };
+
+    // 🔍 DEBUG: Логируем сформированный профиль
+    console.log('[UserContext] Профиль сформирован:', {
+      name: profileData.name,
+      'статусСписания': profileData.статусСписания,
+      'датаОКОНЧАНИЯ': profileData.датаОКОНЧАНИЯ,
+      has_payment_id: profileData.has_payment_id,
+    });
+
+    return profileData;
   }, [userData, contactName, phone, contactId]);
 
   const value = useMemo(() => ({
