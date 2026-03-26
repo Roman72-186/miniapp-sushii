@@ -5,10 +5,10 @@ services:
     env_file: .env
     volumes:
       - app-data:/app/data
-    ports:
-      - "3001:3001"
     networks:
       - sushii-network
+    expose:
+      - "3001"
 
   nginx:
     image: nginx:alpine
