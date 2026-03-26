@@ -1,0 +1,21 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "TestSprite": {
+      "type": "local",
+      "command": ["npx", "-y", "@testsprite/testsprite-mcp@latest"],
+      "enabled": true,
+      "environment": {
+        "API_KEY": "sk-user-3j371e8ZEpj7bftvF3VoKlIc4-zAAHTy2TZVwCLir9vE6GMTJT7TCN1wNT6QC05-PqCqjXNBULk6jp-xFFQ9pdybV_LFrQh6nrjkK1ZCFDUaJfMdBSX7yJr2Qz2SbgGa-Jc",
+      }
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "ctx7sk-6c4e34b1-1ae3-4ff1-a060-50369ba3d6ef"
+      },
+      "enabled": true
+    }
+  }
+}
