@@ -7,6 +7,8 @@ services:
       - app-data:/app/data
     ports:
       - "3001:3001"
+    networks:
+      - sushii-network
 
   nginx:
     image: nginx:alpine
@@ -20,7 +22,10 @@ services:
       - certbot-var:/var/lib/letsencrypt
       - ./nginx/webroot:/var/www/certbot
     depends_on:
-      - app
+      app:
+        condition: service_started
+    networks:
+      - sushii-network
 
   certbot:
     image: certbot/certbot
@@ -28,6 +33,12 @@ services:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
       - ./nginx/webroot:/var/www/certbot
+    networks:
+      - sushii-network
+
+networks:
+  sushii-network:
+    driver: bridge
 
 volumes:
   app-data:
