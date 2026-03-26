@@ -21,6 +21,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "fetch:products": "node scripts/fetchProducts.js",
+    "backup:db": "node scripts/backup-db.js",
     "migrate:supabase": "node scripts/migrate-from-supabase.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
