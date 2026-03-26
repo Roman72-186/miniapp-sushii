@@ -4,12 +4,39 @@
  * Парсит дату DD.MM.YYYY → Date (полночь UTC)
  */
 function parseDDMMYYYY(str) {
-  if (!str) return null;
+  // 🔍 DEBUG: Логируем входную строку
+  console.log('[gift-windows] parseDDMMYYYY вызван с:', str);
+
+  if (!str) {
+    console.log('[gift-windows] Пустая строка → null');
+    return null;
+  }
+
+  // Проверка формата DD.MM.YYYY
+  if (!/^\d{2}\.\d{2}\.\d{4}$/.test(str)) {
+    console.warn('[gift-windows] Неверный формат даты:', str);
+    return null;
+  }
+
   const parts = str.split('.');
-  if (parts.length !== 3) return null;
   const [dd, mm, yyyy] = parts.map(Number);
-  if (!dd || !mm || !yyyy) return null;
-  return new Date(Date.UTC(yyyy, mm - 1, dd));
+
+  // Валидация значений
+  if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 2020 || yyyy > 2030) {
+    console.warn('[gift-windows] Невалидные значения:', { dd, mm, yyyy });
+    return null;
+  }
+
+  // Проверка количества дней в месяце
+  const daysInMonth = new Date(Date.UTC(yyyy, mm, 0)).getUTCDate();
+  if (dd > daysInMonth) {
+    console.warn('[gift-windows] Невалидный день месяца:', { dd, mm, yyyy, daysInMonth });
+    return null;
+  }
+
+  const result = new Date(Date.UTC(yyyy, mm - 1, dd));
+  console.log('[gift-windows] Дата успешно распарсена:', result.toISOString());
+  return result;
 }
 
 /**

@@ -6,7 +6,13 @@ const tokens = new Map();
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 часа
 
 function getAdminPassword() {
-  return process.env.ADMIN_PASSWORD || 'admin2026';
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) {
+    console.error('SECURITY ISSUE: ADMIN_PASSWORD environment variable is required but not set');
+    console.error('Please set ADMIN_PASSWORD in your .env file before starting the server');
+    throw new Error('ADMIN_PASSWORD environment variable is required');
+  }
+  return password;
 }
 
 function generateToken() {

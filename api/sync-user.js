@@ -8,7 +8,7 @@ const { readGiftWindows } = require('./_lib/blob-store');
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 минут
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || 'https://sushii-miniapp.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -17,6 +17,9 @@ module.exports = async (req, res) => {
 
   const { telegram_id, force, tg_name } = req.body || {};
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
+
+  // 🔍 DEBUG: Логируем входящий запрос
+  console.log('[sync-user] Запрос:', { telegram_id, force, tg_name: tg_name ? 'exists' : 'empty' });
 
   try {
     // Обновляем имя из Telegram если в БД пусто
@@ -33,17 +36,64 @@ module.exports = async (req, res) => {
       const cached = await readUserCache(telegram_id);
       if (cached && cached.syncedAt) {
         const age = Date.now() - new Date(cached.syncedAt).getTime();
+        
+        // 🔍 DEBUG: Логируем проверку TTL
+        console.log('[sync-user] Проверка кэша:', {
+          telegram_id,
+          age_ms: age,
+          age_sec: Math.round(age / 1000),
+          ttl_ms: CACHE_TTL_MS,
+          ttl_min: CACHE_TTL_MS / 60000,
+          is_valid: age < CACHE_TTL_MS,
+        });
+        
         if (age < CACHE_TTL_MS) {
+          console.log('[sync-user] Кэш валиден, возвращаем из кэша');
           return res.status(200).json({ success: true, data: cached, fromCache: true });
+        } else {
+          console.log('[sync-user] Кэш устарел (age=%d сек), обновляем', Math.round(age / 1000));
         }
+      } else {
+        console.log('[sync-user] Кэш не найден или не имеет syncedAt');
       }
+    } else {
+      console.log('[sync-user] Принудительное обновление (force=true)');
     }
 
     // 2. SQLite — единственный источник данных
     const dbUser = getUser(telegram_id);
+    
+    // Проверка обязательных полей
+    if (!dbUser) {
+      console.error('[sync-user] Пользователь не найден в БД:', telegram_id);
+      return res.status(404).json({
+        error: 'Пользователь не найден',
+        details: 'Не удалось найти пользователя в базе данных'
+      });
+    }
+
+    // 🔍 DEBUG: Логируем данные из БД
+    console.log('[sync-user] Данные из БД для', telegram_id, ':', {
+      tariff: dbUser?.tariff,
+      subscription_status: dbUser?.subscription_status,
+      subscription_start: dbUser?.subscription_start,
+      subscription_end: dbUser?.subscription_end,
+      payment_method_id: dbUser?.payment_method_id,
+      is_ambassador: dbUser?.is_ambassador,
+    });
+
+    // Проверка корректности дат
+    if (dbUser.subscription_status === 'активно' && (!dbUser.subscription_start || !dbUser.subscription_end)) {
+      console.warn('[sync-user] Активная подписка без дат:', {
+        telegram_id,
+        subscription_start: dbUser.subscription_start,
+        subscription_end: dbUser.subscription_end
+      });
+    }
 
     let tarif = dbUser?.tariff || null;
     const isAmbassador = !!dbUser?.is_ambassador;
+    const hasActiveSubscription = dbUser?.subscription_status === 'активно' && dbUser?.tariff;
     const tags = [];
     if (tarif) tags.push(tarif);
     if (isAmbassador) {
@@ -51,6 +101,27 @@ module.exports = async (req, res) => {
       // Амба без оплаченного тарифа получает привилегии 290
       if (!tarif) tarif = '290';
     }
+    // Добавляем тег активной подписки
+    if (hasActiveSubscription) {
+      tags.push('подписка30');
+    }
+
+    // Проверка корректности тарифа
+    if (hasActiveSubscription && !['290', '490', '1190', '9990'].includes(tarif)) {
+      console.warn('[sync-user] Неизвестный тариф:', {
+        telegram_id,
+        tarif,
+        subscription_status: dbUser.subscription_status
+      });
+    }
+    
+    // 🔍 DEBUG: Логируем вычисленные значения
+    console.log('[sync-user] Вычисленные теги и тариф:', {
+      tarif,
+      tags,
+      hasActiveSubscription,
+      isAmbassador,
+    });
 
     // Читаем датаПодарка из blob-store
     let giftDate = '';
@@ -81,18 +152,34 @@ module.exports = async (req, res) => {
       tarif,
       listItem: dbUser ? { name: dbUser.name, telefon: dbUser.phone } : null,
     };
+    
+    // 🔍 DEBUG: Логируем итоговый объект кэша
+    console.log('[sync-user] Итоговые данные кэша:', {
+      telegram_id: cacheData.telegram_id,
+      tarif: cacheData.tarif,
+      tags: cacheData.tags,
+      'variables.статусСписания': cacheData.variables['статусСписания'],
+      'variables.датаНачала': cacheData.variables['датаНачала'],
+      'variables.датаОКОНЧАНИЯ': cacheData.variables['датаОКОНЧАНИЯ'],
+    });
 
     // 3. Записываем в файловый кэш
     await writeUserCache(telegram_id, cacheData);
 
     return res.status(200).json({ success: true, data: cacheData, fromCache: false });
   } catch (error) {
-    console.error('sync-user error:', error.message);
+    // 🔍 DEBUG: Логируем полную ошибку
+    console.error('[sync-user] Критическая ошибка:', {
+      message: error.message,
+      stack: error.stack,
+      telegram_id,
+    });
 
     // Fallback 1: SQLite данные напрямую
     try {
       const dbUser = getUser(telegram_id);
       if (dbUser && dbUser.tariff) {
+        console.log('[sync-user] Fallback: возвращаем данные из SQLite');
         const fallbackData = {
           telegram_id: String(telegram_id),
           syncedAt: new Date().toISOString(),
@@ -108,15 +195,20 @@ module.exports = async (req, res) => {
         };
         return res.status(200).json({ success: true, data: fallbackData, fromCache: false, source: 'sqlite' });
       }
-    } catch (_) {}
+    } catch (fallbackError) {
+      console.error('[sync-user] Fallback SQLite не удался:', fallbackError.message);
+    }
 
     // Fallback 2: файловый кэш
     try {
       const fallback = await readUserCache(telegram_id);
       if (fallback) {
+        console.log('[sync-user] Fallback: возвращаем данные из кэша (stale)');
         return res.status(200).json({ success: true, data: fallback, fromCache: true, stale: true });
       }
-    } catch (_) {}
+    } catch (cacheError) {
+      console.error('[sync-user] Fallback кэш не удался:', cacheError.message);
+    }
 
     return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
   }
