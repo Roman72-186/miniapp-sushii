@@ -4,6 +4,7 @@
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { getUser, upsertUser } = require('./_lib/db');
 const { readGiftWindows } = require('./_lib/blob-store');
+const { deriveFromDbUser } = require('./_lib/subscription-state');
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 минут
 
@@ -159,6 +160,10 @@ module.exports = async (req, res) => {
       'датаПодарка': giftDate,
     };
 
+    // 🔍 DEBUG: Вычисляем статус подписки через deriveFromDbUser
+    const derived = deriveFromDbUser(dbUser);
+    console.log('[sync-user] Derived subscription:', derived);
+
     const cacheData = {
       telegram_id: String(telegram_id),
       syncedAt: new Date().toISOString(),
@@ -166,6 +171,7 @@ module.exports = async (req, res) => {
       variables,
       tags,
       tarif,
+      derived, // Добавляем вычисленный статус подписки
       listItem: dbUser ? { name: dbUser.name, telefon: dbUser.phone } : null,
     };
     
