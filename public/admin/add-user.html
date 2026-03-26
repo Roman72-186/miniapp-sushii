@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Добавить пользователя | Sushi House Admin</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    input::placeholder {
+      color: #aaa;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .user-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 13px;
+    }
+
+    .user-info p {
+      margin-bottom: 5px;
+    }
+
+    .user-info strong {
+      color: #333;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍣 Добавить пользователя</h1>
+    <p class="subtitle">Sushi House 39 — Админ-панель</p>
+
+    <form id="addUserForm">
+      <div class="form-group">
+        <label for="telegram_id">Telegram ID *</label>
+        <input 
+          type="text" 
+          id="telegram_id" 
+          name="telegram_id" 
+          placeholder="Например: 123456789"
+          required
+        >
+        <div class="hint">Уникальный идентификатор пользователя в Telegram</div>
+      </div>
+
+      <div class="form-group">
+        <label for="name">Имя *</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          placeholder="Например: Иван Иванов"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          placeholder="@username (необязательно)"
+        >
+        <div class="hint">Никнейм в Telegram со знаком @</div>
+      </div>
+
+      <div class="form-group">
+        <label for="tariff">Тариф *</label>
+        <select id="tariff" name="tariff" required>
+          <option value="">Выберите тариф</option>
+          <option value="290">290₽ — Базовый</option>
+          <option value="490">490₽ — Стандарт</option>
+          <option value="1190">1190₽ — Премиум</option>
+          <option value="9990">9990₽ — Амбассадор</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subscription_start">Дата начала *</label>
+        <input 
+          type="date" 
+          id="subscription_start" 
+          name="subscription_start" 
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="subscription_end">Дата окончания *</label>
+        <input 
+          type="date" 
+          id="subscription_end" 
+          name="subscription_end" 
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">
+        💾 Сохранить
+      </button>
+    </form>
+
+    <div id="message" class="message"></div>
+
+    <a href="/admin" class="back-link">← Вернуться в админ-панель</a>
+  </div>
+
+  <script>
+    const form = document.getElementById('addUserForm');
+    const messageDiv = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Установка даты начала на сегодня
+    document.getElementById('subscription_start').valueAsDate = new Date();
+
+    // Установка даты окончания через месяц
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    document.getElementById('subscription_end').valueAsDate = nextMonth;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Сбор данных формы
+      const formData = {
+        telegram_id: document.getElementById('telegram_id').value.trim(),
+        name: document.getElementById('name').value.trim(),
+        username: document.getElementById('username').value.trim(),
+        tariff: document.getElementById('tariff').value,
+        subscription_start: formatDate(document.getElementById('subscription_start').value),
+        subscription_end: formatDate(document.getElementById('subscription_end').value),
+      };
+
+      // Блокировка кнопки
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Сохранение...';
+      messageDiv.className = 'message';
+      messageDiv.textContent = '';
+
+      try {
+        const response = await fetch('/api/admin/add-user-manual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          // Успех
+          messageDiv.className = 'message success';
+          messageDiv.innerHTML = `
+            <strong>✅ ${result.message}</strong>
+            <div class="user-info">
+              <p><strong>Telegram ID:</strong> ${result.user.telegram_id}</p>
+              <p><strong>Имя:</strong> ${result.user.name}</p>
+              <p><strong>Тариф:</strong> ${result.user.tariff}₽</p>
+              <p><strong>Статус:</strong> ${result.user.subscription_status}</p>
+              <p><strong>Период:</strong> ${result.user.subscription_start} — ${result.user.subscription_end}</p>
+            </div>
+          `;
+          form.reset();
+          document.getElementById('subscription_start').valueAsDate = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          document.getElementById('subscription_end').valueAsDate = nextMonth;
+        } else {
+          // Ошибка
+          messageDiv.className = 'message error';
+          messageDiv.textContent = `❌ Ошибка: ${result.error || 'Не удалось добавить пользователя'}`;
+        }
+      } catch (error) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = `❌ Ошибка соединения: ${error.message}`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 Сохранить';
+      }
+    });
+
+    // Форматирование даты в DD.MM.YYYY
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
+  </script>
+</body>
+</html>

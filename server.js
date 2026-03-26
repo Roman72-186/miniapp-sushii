@@ -32,6 +32,7 @@ app.all('/api/admin/grant-gift', require('./api/admin-grant-gift'));
 app.all('/api/admin/claim-gift', require('./api/admin-claim-gift'));
 app.all('/api/admin/banners', require('./api/admin-banners'));
 app.all('/api/admin/pricing', require('./api/admin-pricing'));
+app.all('/api/admin/add-user-manual', require('./api/admin/add-user-manual'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {
@@ -45,6 +46,7 @@ function noCacheHeaders(res, filePath) {
 // Serve product overrides from persistent volume (admin edits), then React build
 app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: noCacheHeaders }));
 app.use(express.static(path.join(__dirname, 'data', 'products'), { setHeaders: noCacheHeaders }));
+app.use('/admin', express.static(path.join(__dirname, 'public', 'admin'), { setHeaders: noCacheHeaders }));
 app.use(express.static(path.join(__dirname, 'build'), { setHeaders: noCacheHeaders }));
 
 // SPA fallback — all non-API routes serve index.html (no-cache для Telegram WebView)
