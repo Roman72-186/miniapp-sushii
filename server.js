@@ -24,6 +24,11 @@ app.all('/api/send-bot-message', require('./api/send-bot-message'));
 app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 app.all('/api/nearest-store', require('./api/nearest-store'));
 
+// Auth API (Supabase + JWT)
+app.all('/api/auth/login', require('./api/auth/login'));
+app.all('/api/auth/register', require('./api/auth/register'));
+app.all('/api/auth/refresh', require('./api/auth/refresh'));
+
 // Admin API
 app.all('/api/admin/login', require('./api/admin-login'));
 app.all('/api/admin/products', require('./api/admin-products'));
