@@ -112,8 +112,11 @@ CREATE INDEX IF NOT EXISTS idx_gift_windows_user ON gift_windows(user_id);
 -- ============================================
 -- 6. RLS (Row Level Security) — политики доступа
 -- ============================================
+-- ПРИМЕЧАНИЕ: RLS отключен для этой миграции, так как мы используем свой JWT
+-- Бэкенд использует service_role key, который обходит RLS
 
--- Включаем RLS для всех таблиц
+-- Если нужен RLS, включите эти политики:
+/*
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
@@ -124,26 +127,6 @@ ALTER TABLE gift_windows ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own data"
   ON users FOR SELECT
   USING (
-    auth.uid()::TEXT = telegram_id OR
-    auth.email() = email OR
-    current_setting('request.jwt.claims', true)::json->>'userId' = telegram_id
-  );
-
--- Пользователи могут обновлять только свои данные
-CREATE POLICY "Users can update own data"
-  ON users FOR UPDATE
-  USING (
-    auth.uid()::TEXT = telegram_id OR
-    auth.email() = email OR
-    current_setting('request.jwt.claims', true)::json->>'userId' = telegram_id
-  );
-
--- Пользователи могут вставлять свои данные
-CREATE POLICY "Users can insert own data"
-  ON users FOR INSERT
-  WITH CHECK (
-    auth.uid()::TEXT = telegram_id OR
-    auth.email() = email OR
     current_setting('request.jwt.claims', true)::json->>'userId' = telegram_id
   );
 
@@ -151,7 +134,6 @@ CREATE POLICY "Users can insert own data"
 CREATE POLICY "Users can view own payments"
   ON payments FOR SELECT
   USING (
-    auth.uid()::TEXT = user_id::TEXT OR
     current_setting('request.jwt.claims', true)::json->>'userId' = telegram_id
   );
 
@@ -159,25 +141,23 @@ CREATE POLICY "Users can view own payments"
 CREATE POLICY "Users can view own transactions"
   ON transactions FOR SELECT
   USING (
-    auth.uid()::TEXT = ambassador_id::TEXT OR
-    current_setting('request.jwt.claims', true)::json->>'userId' = ambassador_id
+    current_setting('request.jwt.claims', true)::json->>'userId' = ambassador_id::TEXT
   );
 
 -- Referral bonuses — только чтение своих данных
 CREATE POLICY "Users can view own bonuses"
   ON referral_bonuses FOR SELECT
   USING (
-    auth.uid()::TEXT = user_id::TEXT OR
-    current_setting('request.jwt.claims', true)::json->>'userId' = user_id
+    current_setting('request.jwt.claims', true)::json->>'userId' = user_id::TEXT
   );
 
 -- Gift windows — только чтение своих данных
 CREATE POLICY "Users can view own gift windows"
   ON gift_windows FOR SELECT
   USING (
-    auth.uid()::TEXT = user_id::TEXT OR
-    current_setting('request.jwt.claims', true)::json->>'userId' = user_id
+    current_setting('request.jwt.claims', true)::json->>'userId' = user_id::TEXT
   );
+*/
 
 -- ============================================
 -- 7. FUNCTIONS (хранимые функции)
@@ -256,5 +236,5 @@ COMMENT ON TABLE gift_windows IS 'Окна для получения подар�
 -- ============================================
 -- После выполнения SQL:
 -- 1. Проверьте, что все таблицы созданы
--- 2. Проверьте, что RLS политики активны
--- 3. Протестируйте подключение через API
+-- 2. Протестируйте подключение через API
+-- 3. RLS можно включить позже при необходимости
