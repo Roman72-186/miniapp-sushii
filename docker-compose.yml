@@ -9,6 +9,12 @@ services:
       - "3001"
     networks:
       - sushii-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   nginx:
     image: nginx:alpine
@@ -22,7 +28,8 @@ services:
       - certbot-var:/var/lib/letsencrypt
       - ./nginx/webroot:/var/www/certbot
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     networks:
       - sushii-network
 
