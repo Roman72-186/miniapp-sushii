@@ -26,6 +26,7 @@ app.all('/api/nearest-store', require('./api/nearest-store'));
 
 // Auth API
 app.all('/api/auth/login-by-phone', require('./api/auth/login-by-phone'));
+app.all('/api/auth/verify-otp', require('./api/auth/verify-otp'));
 // Supabase + JWT (email/пароль) — ВРЕМЕННО ОТКЛЮЧЕНО до пересборки контейнера
 // app.all('/api/auth/login', require('./api/auth/login'));
 // app.all('/api/auth/register', require('./api/auth/register'));
