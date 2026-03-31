@@ -22,6 +22,10 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 .vercel
 .env*.local
+
+# Archive of old scripts (kept locally but not in git)
+/_archive
