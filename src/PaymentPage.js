@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 import './shop.css';
 
+const PENDING_PAYMENT_KEY = 'pending_payment_check';
+
 // Дефолтные цены (перезаписываются из API)
 const DEFAULT_PRICE_TABLE = {
   '290':  { 1: 290,  3: 750,  5: 1200 },
@@ -150,7 +152,13 @@ function PaymentPage() {
       }
 
       // Редирект на страницу оплаты YooKassa
-      window.location.href = data.confirmation_url;
+      sessionStorage.setItem(PENDING_PAYMENT_KEY, String(Date.now()));
+      const tg = window.Telegram?.WebApp;
+      if (tg?.openLink) {
+        tg.openLink(data.confirmation_url);
+      } else {
+        window.location.href = data.confirmation_url;
+      }
     } catch (err) {
       setError('Ошибка сети. Проверьте подключение и попробуйте снова.');
       setSubmitting(false);
@@ -163,6 +171,9 @@ function PaymentPage() {
         <button className="shop-header__back" onClick={handleBack}>
           ←
         </button>
+        <div className="shop-payment__error" style={{ background: 'transparent', color: '#9fb0c3', marginTop: 12 }}>
+          После оплаты во внешнем браузере просто вернитесь в Telegram. Подписка обновится автоматически.
+        </div>
         <div className="shop-header__center">
           <span className="shop-header__title">Оформление подписки</span>
         </div>

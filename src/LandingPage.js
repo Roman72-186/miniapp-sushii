@@ -29,7 +29,7 @@ function LandingPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, profile, sync } = useUser();
+  const { telegramId, loading: userLoading, profile, sync, isWebUser, logout } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [ambaPrice, setAmbaPrice] = useState('9 990');
@@ -95,6 +95,30 @@ function LandingPage() {
     window.location.href = `/pay/${price}${tid}`;
   };
 
+  // Веб-пользователь не авторизован — показываем страницу входа
+  if (!userLoading && !telegramId) {
+    return (
+      <div className="shop-page">
+        <div className="shop-landing">
+          <img src="/logo.jpg" alt="Суши-Хаус 39" className="shop-landing__logo" onClick={handleLogoClick} style={{ cursor: 'default' }} />
+          <h1 className="shop-landing__title">СУШИ-ХАУС 39</h1>
+          <p className="shop-landing__subtitle">Подписка со скидками и подарками</p>
+          <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 320, margin: '32px auto 0' }}>
+            <button
+              className="shop-payment__btn"
+              onClick={() => { window.location.href = '/login'; }}
+            >
+              Войти по номеру телефона
+            </button>
+            <div style={{ textAlign: 'center', fontSize: 13, color: '#9fb0c3', lineHeight: 1.5 }}>
+              Введите номер телефона — если у вас уже есть подписка, она подтянется автоматически
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (userLoading || redirecting) {
     return (
       <div className="shop-page">
@@ -144,6 +168,17 @@ function LandingPage() {
               <span className="shop-landing__menu-icon">👤</span>
               <span className="shop-landing__menu-label">Личный кабинет</span>
             </a>
+
+            {isWebUser && (
+              <button
+                className="shop-landing__menu-btn"
+                style={{ background: 'none', border: '1px solid #444', color: '#9fb0c3', cursor: 'pointer', width: '100%' }}
+                onClick={logout}
+              >
+                <span className="shop-landing__menu-icon">🚪</span>
+                <span className="shop-landing__menu-label">Выйти</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

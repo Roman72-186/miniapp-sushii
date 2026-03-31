@@ -24,7 +24,9 @@ app.all('/api/send-bot-message', require('./api/send-bot-message'));
 app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 app.all('/api/nearest-store', require('./api/nearest-store'));
 
-// Auth API (Supabase + JWT) — ВРЕМЕННО ОТКЛЮЧЕНО до пересборки контейнера
+// Auth API
+app.all('/api/auth/login-by-phone', require('./api/auth/login-by-phone'));
+// Supabase + JWT (email/пароль) — ВРЕМЕННО ОТКЛЮЧЕНО до пересборки контейнера
 // app.all('/api/auth/login', require('./api/auth/login'));
 // app.all('/api/auth/register', require('./api/auth/register'));
 // app.all('/api/auth/refresh', require('./api/auth/refresh'));
@@ -38,6 +40,7 @@ app.all('/api/admin/claim-gift', require('./api/admin-claim-gift'));
 app.all('/api/admin/banners', require('./api/admin-banners'));
 app.all('/api/admin/pricing', require('./api/admin-pricing'));
 app.all('/api/admin/add-user-manual', require('./api/admin/add-user-manual'));
+app.all('/api/admin/user-tags', require('./api/admin-user-tags'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {

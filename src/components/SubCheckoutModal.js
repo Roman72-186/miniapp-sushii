@@ -63,7 +63,8 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           products: [{
-            id: product.sku,
+            id: product.frontpadId || product.sku || product.id,
+            product_id: product.id,
             quantity: 1,
             name: product.name,
             price: 0,
@@ -80,6 +81,8 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
           payment: 'cash',
           delivery_type: 'pickup',
           affiliate: selectedPickup.affiliate,
+          pickup_point_id: selectedPickup.id,
+          pickup_point_address: selectedPickup.address,
           datetime: '',
           comment: `Подписка — ${product.name} | Самовывоз: ${selectedPickup.address}`,
           telegram_id: telegramId || '',

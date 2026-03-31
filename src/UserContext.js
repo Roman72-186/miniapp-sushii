@@ -1,10 +1,45 @@
-// src/UserContext.js — Контекст пользователя (кэш из Vercel Blob)
+// src/UserContext.js — Контекст пользователя
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 const UserContext = createContext(null);
+const PENDING_PAYMENT_KEY = 'pending_payment_check';
+const WEB_TOKEN_KEY = 'web_token';
+const WEB_USER_ID_KEY = 'web_user_id';
+
+// Декодирует JWT без верификации (верификация на сервере)
+function decodeJwt(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
+
+function hasActivatedSubscription(resp) {
+  const data = resp?.data;
+  const status = data?.variables?.['статусСписания'] || data?.derived?.status || null;
+  return status === 'активно' && Boolean(data?.tarif);
+}
 
 export function UserProvider({ children }) {
+  // --- Источник 1: JWT из localStorage (веб-вход по телефону) ---
+  const webAuth = useMemo(() => {
+    const token = localStorage.getItem(WEB_TOKEN_KEY);
+    if (!token) return null;
+    const payload = decodeJwt(token);
+    if (!payload) return null;
+    // Проверяем срок действия токена
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem(WEB_TOKEN_KEY);
+      localStorage.removeItem(WEB_USER_ID_KEY);
+      return null;
+    }
+    return { id: payload.userId, name: payload.name || null };
+  }, []);
+
+  // --- Источник 2: Telegram WebApp ---
   const tgUser = useMemo(() => {
     const tg = window.Telegram?.WebApp;
     const user = tg?.initDataUnsafe?.user;
@@ -14,80 +49,75 @@ export function UserProvider({ children }) {
     } : null;
   }, []);
 
+  // --- Финальный telegramId: JWT > Telegram WebApp > URL param ---
   const telegramId = useMemo(() => {
+    if (webAuth?.id) return webAuth.id;
+    if (tgUser?.id) return tgUser.id;
     const params = new URLSearchParams(window.location.search);
-    const urlId = params.get('telegram_id');
-    return tgUser?.id || urlId || null;
-  }, [tgUser]);
+    return params.get('telegram_id') || null;
+  }, [webAuth, tgUser]);
+
+  // true если пользователь вошёл через веб (не Telegram)
+  const isWebUser = Boolean(webAuth?.id);
 
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
 
   const sync = useCallback((force = false) => {
     if (!telegramId) {
-      console.log('[UserContext] telegramId отсутствует, пропускаем синхронизацию');
       setLoading(false);
       return Promise.resolve();
     }
     setLoading(true);
-
-    // 🔍 DEBUG: Логируем запрос синхронизации
-    console.log('[UserContext] Начинаем синхронизацию:', { telegramId, force, tgUser });
-
     return fetch('/api/sync-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telegram_id: telegramId, force, tg_name: tgUser?.name || null }),
+      body: JSON.stringify({ telegram_id: telegramId, force, tg_name: tgUser?.name || webAuth?.name || null }),
     })
-      .then(r => {
-        // 🔍 DEBUG: Логируем статус ответа
-        console.log('[UserContext] Статус ответа:', r.status);
-        return r.json();
-      })
+      .then(r => r.json())
       .then(resp => {
-        // 🔍 DEBUG: Логируем ответ сервера
-        console.log('[UserContext] Ответ sync-user:', {
-          success: resp.success,
-          fromCache: resp.fromCache,
-          source: resp.source,
-          stale: resp.stale,
-          hasData: !!resp.data,
-          tarif: resp.data?.tarif,
-          tags: resp.data?.tags,
-        });
-
         if (resp.success && resp.data) {
           setUserData(resp.data);
-
-          // 🔍 DEBUG: Логируем установленные данные
-          console.log('[UserContext] Данные пользователя обновлены:', {
-            telegram_id: resp.data.telegram_id,
-            tarif: resp.data.tarif,
-            tags: resp.data.tags,
-            variables: resp.data.variables,
-            fromCache: resp.fromCache,
-          });
-        } else {
-          console.warn('[UserContext] Не удалось получить данные пользователя:', resp);
         }
+        return resp;
       })
       .catch((err) => {
-        console.error('[UserContext] Ошибка синхронизации:', {
-          message: err.message,
-          stack: err.stack,
-        });
+        console.error('[UserContext] Ошибка синхронизации:', err.message);
       })
       .finally(() => {
-        console.log('[UserContext] Синхронизация завершена, loading=false');
         setLoading(false);
       });
-  }, [telegramId, tgUser?.name]);
+  }, [telegramId, tgUser?.name, webAuth?.name]);
+
+  // Вход по телефону (веб-версия)
+  const loginByPhone = useCallback(async (phone, name) => {
+    const resp = await fetch('/api/auth/login-by-phone', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, name }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || !data.success) {
+      throw new Error(data.error || 'Ошибка входа');
+    }
+    localStorage.setItem(WEB_TOKEN_KEY, data.token);
+    localStorage.setItem(WEB_USER_ID_KEY, data.userId);
+    // Перезагружаем страницу чтобы UserContext пересчитал telegramId из нового токена
+    window.location.href = '/';
+    return data;
+  }, []);
+
+  // Выход из веб-версии
+  const logout = useCallback(() => {
+    localStorage.removeItem(WEB_TOKEN_KEY);
+    localStorage.removeItem(WEB_USER_ID_KEY);
+    window.location.href = '/login';
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const isPaymentReturn = params.get('payment') === 'success';
     sync(isPaymentReturn).then(() => {
-      // Очищаем payment=success из URL чтобы не было повторных sync при рефреше
       if (isPaymentReturn) {
         params.delete('payment');
         const clean = params.toString();
@@ -97,7 +127,45 @@ export function UserProvider({ children }) {
     });
   }, [sync]);
 
-  // Вычисляемые геттеры
+  useEffect(() => {
+    if (!sessionStorage.getItem(PENDING_PAYMENT_KEY)) return undefined;
+
+    let stopped = false;
+    const timers = [];
+
+    const runSync = (delay) => {
+      const timer = setTimeout(() => {
+        if (stopped) return;
+        sync(true).then((resp) => {
+          if (hasActivatedSubscription(resp)) {
+            sessionStorage.removeItem(PENDING_PAYMENT_KEY);
+            stopped = true;
+          }
+        });
+      }, delay);
+      timers.push(timer);
+    };
+
+    const handleReturnToApp = () => {
+      if (stopped || document.visibilityState === 'hidden') return;
+      runSync(0);
+      runSync(2500);
+      runSync(7000);
+      runSync(15000);
+    };
+
+    window.addEventListener('focus', handleReturnToApp);
+    document.addEventListener('visibilitychange', handleReturnToApp);
+    handleReturnToApp();
+
+    return () => {
+      stopped = true;
+      timers.forEach(clearTimeout);
+      window.removeEventListener('focus', handleReturnToApp);
+      document.removeEventListener('visibilitychange', handleReturnToApp);
+    };
+  }, [sync]);
+
   const tarif = userData?.tarif || null;
 
   const hasTag = useCallback((tagName) => {
@@ -115,22 +183,9 @@ export function UserProvider({ children }) {
   const listItemName = userData?.listItem?.name || null;
 
   const profile = useMemo(() => {
-    if (!userData) {
-      console.log('[UserContext] userData отсутствует, profile = null');
-      return null;
-    }
+    if (!userData) return null;
     const v = userData.variables || {};
-
-    // 🔍 DEBUG: Логируем данные для формирования профиля
-    console.log('[UserContext] Формирование профиля:', {
-      hasUserData: !!userData,
-      hasVariables: !!userData.variables,
-      'variables.статусСписания': v['статусСписания'],
-      'variables.датаНачала': v['датаНачала'],
-      'variables.датаОКОНЧАНИЯ': v['датаОКОНЧАНИЯ'],
-    });
-
-    const profileData = {
+    return {
       name: contactName,
       phone,
       статусСписания: v['статусСписания'] || null,
@@ -142,16 +197,6 @@ export function UserProvider({ children }) {
       has_payment_id: !!v['PaymentID'],
       contact_id: contactId,
     };
-
-    // 🔍 DEBUG: Логируем сформированный профиль
-    console.log('[UserContext] Профиль сформирован:', {
-      name: profileData.name,
-      'статусСписания': profileData.статусСписания,
-      'датаОКОНЧАНИЯ': profileData.датаОКОНЧАНИЯ,
-      has_payment_id: profileData.has_payment_id,
-    });
-
-    return profileData;
   }, [userData, contactName, phone, contactId]);
 
   const value = useMemo(() => ({
@@ -166,7 +211,10 @@ export function UserProvider({ children }) {
     phone,
     listItemName,
     profile,
-  }), [telegramId, loading, userData, sync, tarif, hasTag, contactId, contactName, phone, listItemName, profile]);
+    isWebUser,
+    loginByPhone,
+    logout,
+  }), [telegramId, loading, userData, sync, tarif, hasTag, contactId, contactName, phone, listItemName, profile, isWebUser, loginByPhone, logout]);
 
   return (
     <UserContext.Provider value={value}>

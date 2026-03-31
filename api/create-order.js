@@ -1,4 +1,4 @@
-// api/create-order.js — Endpoint для создания заказа (SQLite phone lookup + Frontpad + Telegram)
+// api/create-order.js - создание заказа (SQLite phone lookup + Frontpad + Telegram)
 
 const { createOrder } = require('./_lib/frontpad');
 const { readUserCache } = require('./_lib/user-cache');
@@ -9,13 +9,30 @@ const { findNearestStore } = require('./_lib/nearest-store');
 function parseJsonBody(req) {
   try {
     if (!req.body) return {};
-    if (typeof req.body === "string") return JSON.parse(req.body);
-    if (Buffer.isBuffer(req.body)) return JSON.parse(req.body.toString("utf8"));
-    if (typeof req.body === "object") return req.body;
+    if (typeof req.body === 'string') return JSON.parse(req.body);
+    if (Buffer.isBuffer(req.body)) return JSON.parse(req.body.toString('utf8'));
+    if (typeof req.body === 'object') return req.body;
     return {};
-  } catch (e) {
+  } catch (error) {
     return {};
   }
+}
+
+function normalizePhone(raw) {
+  const nums = String(raw || '').replace(/\D/g, '');
+  if (nums.length === 11 && nums.startsWith('8')) return '7' + nums.slice(1);
+  if (nums.length === 11 && nums.startsWith('7')) return nums;
+  if (nums.length === 10) return '7' + nums;
+  return nums;
+}
+function sanitizePickupComment(comment) {
+  return String(comment || '')
+    .split(' | ')
+    .filter(part => {
+      if (!part) return false;
+      return !part.startsWith('Самовывоз:') && !part.startsWith('[pickup_point_address:');
+    })
+    .join(' | ');
 }
 
 module.exports = async (req, res) => {
@@ -36,7 +53,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Проверка времени работы (10:00–21:50 Калининград)
     const { isShopOpenServer } = require('./_lib/time-utils');
     if (!isShopOpenServer()) {
       return res.status(400).json({
@@ -46,22 +62,35 @@ module.exports = async (req, res) => {
     }
 
     const body = parseJsonBody(req);
-    const { products, client, payment, comment, delivery_type, affiliate, datetime, telegram_id } = body;
+    const {
+      products,
+      client,
+      payment,
+      comment,
+      delivery_type,
+      affiliate,
+      datetime,
+      telegram_id,
+      pickup_point_id,
+    } = body;
 
-    // Валидация
     if (!products || !products.length) {
       return res.status(400).json({ success: false, error: 'Корзина пуста' });
     }
+
     if (!client || !client.name) {
       return res.status(400).json({ success: false, error: 'Укажите имя' });
     }
 
-    // 1. Получаем телефон: из формы → кэш → SQLite
+    const isPickup = delivery_type === 'pickup';
+
     let orderPhone = client.phone || '';
     console.log(`[ORDER] phone_from_form="${client.phone}"`);
+
     if (telegram_id) {
       const cache = await readUserCache(telegram_id);
       const cachedPhone = cache?.listItem?.telefon;
+
       if (cachedPhone) {
         console.log(`[ORDER] phone_from_cache="${cachedPhone}" (overrides form)`);
         orderPhone = cachedPhone;
@@ -73,18 +102,27 @@ module.exports = async (req, res) => {
         }
       }
     }
+
     console.log(`[ORDER] final_phone="${orderPhone}"`);
+
+    // Серверная нормализация и валидация телефона
+    orderPhone = normalizePhone(orderPhone);
+    console.log(`[ORDER] normalized_phone="${orderPhone}"`);
 
     if (!orderPhone) {
       return res.status(400).json({ success: false, error: 'Не удалось определить телефон' });
     }
 
-    // 2. Определяем ближайший пункт для доставки
-    let orderAffiliate = affiliate || '';
-    let nearestStoreName = '';
-    console.log(`[ORDER] type=${delivery_type}, affiliate_from_frontend="${affiliate}", street="${client.street}"`);
+    if (!/^7\d{10}$/.test(orderPhone)) {
+      return res.status(400).json({ success: false, error: 'Некорректный номер телефона. Формат: +7XXXXXXXXXX' });
+    }
 
-    if (delivery_type === 'delivery') {
+    let orderAffiliate = affiliate || '';
+    console.log(
+      `[ORDER] type=${delivery_type}, affiliate_from_frontend="${affiliate}", pickup_point_id="${pickup_point_id || ''}", street="${client.street || ''}"`
+    );
+
+    if (!isPickup) {
       if (orderAffiliate) {
         console.log(`[ORDER] Using frontend affiliate: ${orderAffiliate}`);
       } else if (client.street) {
@@ -97,7 +135,6 @@ module.exports = async (req, res) => {
             const nearest = findNearestStore(geo.lat, geo.lon);
             if (nearest) {
               orderAffiliate = nearest.affiliate;
-              nearestStoreName = nearest.name;
               console.log(`[ORDER] Nearest store: ${nearest.name} (${nearest.distanceText}), affiliate=${nearest.affiliate}`);
             }
           } else {
@@ -107,37 +144,51 @@ module.exports = async (req, res) => {
           console.error('[ORDER] Geocode error:', geoErr.message);
         }
       } else {
-        console.log(`[ORDER] No street provided, skipping geocode`);
+        console.log('[ORDER] No street provided, skipping geocode');
       }
     }
 
     console.log(`[ORDER] Final affiliate: "${orderAffiliate}"`);
 
-    // 3. Создаём заказ в Frontpad
+    const orderClient = isPickup
+      ? {
+          name: client.name,
+          phone: orderPhone,
+          street: '',
+          home: '',
+          apart: '',
+          pod: '',
+          et: '',
+        }
+      : {
+          name: client.name,
+          phone: orderPhone,
+          street: client.street || '',
+          home: client.home || '',
+          apart: client.apart || '',
+          pod: client.pod || '',
+          et: client.et || '',
+        };
+
+    const orderComment = [
+      isPickup ? sanitizePickupComment(comment) : (comment || ''),
+      pickup_point_id ? `[pickup_point_id:${pickup_point_id}]` : '',
+      isPickup ? '[Самовывоз]' : '[Доставка]',
+      payment === 'card' ? '[Оплата картой]' : '[Оплата наличными]',
+    ].filter(Boolean).join(' | ');
+
     const orderResult = await createOrder({
-      products: products.map(p => ({
-        id: p.id,
-        quantity: p.quantity,
-        price: p.price,
+      products: products.map(product => ({
+        id: product.frontpad_id || product.frontpadId || product.sku || product.product_id || product.id,
+        quantity: product.quantity,
+        price: product.price,
       })),
-      client: {
-        name: client.name,
-        phone: orderPhone,
-        street: client.street || '',
-        home: client.home || '',
-        apart: client.apart || '',
-        pod: client.pod || '',
-        et: client.et || '',
-      },
+      client: orderClient,
       payment: payment || 'cash',
-      sale: delivery_type === 'pickup' ? 'pickup' : 'delivery',
+      sale: isPickup ? 'pickup' : 'delivery',
       affiliate: orderAffiliate,
       datetime: datetime || '',
-      comment: [
-        comment || '',
-        delivery_type === 'pickup' ? '[Самовывоз]' : '[Доставка]',
-        payment === 'card' ? '[Оплата картой]' : '[Оплата наличными]',
-      ].filter(Boolean).join(' | '),
+      comment: orderComment,
     });
 
     if (!orderResult.success) {
@@ -152,8 +203,8 @@ module.exports = async (req, res) => {
       orderId: orderResult.data.orderId,
       orderNumber: orderResult.data.orderNumber,
     });
-  } catch (err) {
-    console.error('Create order error:', err);
+  } catch (error) {
+    console.error('Create order error:', error);
     return res.status(500).json({
       success: false,
       error: 'Не удалось создать заказ',
