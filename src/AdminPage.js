@@ -38,6 +38,14 @@ function AdminPage() {
   const [pricingLoading, setPricingLoading] = useState(false);
   const [pricingSaving, setPricingSaving] = useState(false);
 
+  // Add user state
+  const [addName, setAddName] = useState('');
+  const [addPhone, setAddPhone] = useState('');
+  const [addTariff, setAddTariff] = useState('290');
+  const [addMonths, setAddMonths] = useState('1');
+  const [addLoading, setAddLoading] = useState(false);
+  const [addResult, setAddResult] = useState(null);
+
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
@@ -328,6 +336,35 @@ function AdminPage() {
     localStorage.removeItem('admin_token');
   };
 
+  const addUser = async (e) => {
+    e.preventDefault();
+    setAddLoading(true);
+    setAddResult(null);
+    try {
+      const res = await fetch(`${API}/api/admin/add-user-manual`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          name: addName.trim() || undefined,
+          phone: addPhone.trim(),
+          tariff: addTariff,
+          months: Number(addMonths),
+        }),
+      });
+      const data = await res.json();
+      setAddResult(data);
+      if (data.success) {
+        setAddPhone('');
+        setAddName('');
+        setAddTariff('290');
+        setAddMonths('1');
+      }
+    } catch {
+      setAddResult({ success: false, error: 'Ошибка соединения' });
+    }
+    setAddLoading(false);
+  };
+
   // ─── Login screen ────────────────────────────────────
   if (!loggedIn) {
     return (
@@ -406,6 +443,12 @@ function AdminPage() {
           onClick={() => setTab('pricing')}
         >
           Цены
+        </button>
+        <button
+          style={tab === 'add' ? styles.tabActive : styles.tab}
+          onClick={() => setTab('add')}
+        >
+          + Добавить
         </button>
       </div>
 
@@ -743,6 +786,92 @@ function AdminPage() {
           >
             {pricingSaving ? 'Сохранение...' : 'Сохранить цены'}
           </button>
+        </div>
+      )}
+
+      {/* ─── Add User Tab ─── */}
+      {tab === 'add' && (
+        <div>
+          <div style={styles.addCard}>
+            <h3 style={styles.addTitle}>Добавить пользователя</h3>
+            <form onSubmit={addUser}>
+              <label style={styles.fieldLabel}>Имя (необязательно)</label>
+              <input
+                type="text"
+                placeholder="Имя клиента"
+                value={addName}
+                onChange={e => setAddName(e.target.value)}
+                style={styles.input}
+              />
+
+              <label style={styles.fieldLabel}>Телефон *</label>
+              <input
+                type="tel"
+                placeholder="+7 900 000 00 00"
+                value={addPhone}
+                onChange={e => setAddPhone(e.target.value)}
+                style={styles.input}
+                required
+              />
+
+              <label style={styles.fieldLabel}>Тариф *</label>
+              <select
+                value={addTariff}
+                onChange={e => setAddTariff(e.target.value)}
+                style={styles.input}
+              >
+                <option value="290">290 ₽ — Скидки 30/20%</option>
+                <option value="490">490 ₽ — Скидки + бесплатные роллы</option>
+                <option value="1190">1190 ₽ — Скидки + сеты + кофе</option>
+                <option value="9990">9990 ₽ — Амбассадор</option>
+              </select>
+
+              <label style={styles.fieldLabel}>Период подписки *</label>
+              <select
+                value={addMonths}
+                onChange={e => setAddMonths(e.target.value)}
+                style={{ ...styles.input, marginBottom: 18 }}
+              >
+                <option value="1">1 месяц</option>
+                <option value="2">2 месяца</option>
+                <option value="3">3 месяца</option>
+                <option value="6">6 месяцев</option>
+                <option value="12">12 месяцев</option>
+              </select>
+
+              <button
+                type="submit"
+                style={styles.btnPrimary}
+                disabled={addLoading || !addPhone.trim()}
+              >
+                {addLoading ? 'Добавление...' : 'Добавить пользователя'}
+              </button>
+            </form>
+
+            {addResult && (
+              <div style={{
+                marginTop: 14,
+                padding: '12px 14px',
+                borderRadius: 10,
+                background: addResult.success ? '#e8f5e9' : '#fce8e8',
+                color: addResult.success ? '#2e7d32' : '#c62828',
+                fontSize: 13,
+              }}>
+                <div style={{ fontWeight: 700, marginBottom: addResult.success ? 8 : 0 }}>
+                  {addResult.success ? '✓ ' : '✗ '}{addResult.message || addResult.error}
+                </div>
+                {addResult.success && addResult.user && (
+                  <div style={{ fontSize: 12, color: '#555', lineHeight: 1.7 }}>
+                    <div><b>Имя:</b> {addResult.user.name}</div>
+                    <div><b>Телефон:</b> {addResult.user.phone}</div>
+                    <div><b>Тариф:</b> {addResult.user.tariff} ₽</div>
+                    <div><b>Период:</b> {addResult.user.subscription_start} — {addResult.user.subscription_end}</div>
+                    <div style={{ color: '#999', marginTop: 2 }}>ID: {addResult.user.telegram_id}</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1145,6 +1274,28 @@ const styles = {
     textAlign: 'center',
     width: '100%',
     boxSizing: 'border-box',
+  },
+  // Add User
+  addCard: {
+    background: '#fff',
+    borderRadius: 14,
+    padding: 18,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
+  },
+  addTitle: {
+    margin: '0 0 16px',
+    fontSize: 15,
+    fontWeight: 700,
+    color: '#222',
+  },
+  fieldLabel: {
+    display: 'block',
+    fontSize: 11,
+    fontWeight: 600,
+    color: '#888',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: '0.03em',
   },
 };
 
