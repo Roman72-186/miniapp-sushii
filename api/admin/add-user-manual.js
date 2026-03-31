@@ -1,80 +1,78 @@
-// API для добавления пользователя через админ-панель
 // POST /api/admin/add-user-manual
+// Добавление или обновление пользователя через админку
 
 const { checkAuth } = require('../_lib/admin-auth');
-const { getUser, upsertUser } = require('../_lib/db');
+const { getDb, upsertUser } = require('../_lib/db');
+
+function normalizePhone(raw) {
+  if (!raw) return null;
+  const digits = String(raw).replace(/\D/g, '');
+  if (digits.length === 10) return '7' + digits;
+  if (digits.length === 11 && digits[0] === '8') return '7' + digits.slice(1);
+  return digits;
+}
+
+function formatDate(date) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${d}.${m}.${date.getFullYear()}`;
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Метод не поддерживается' });
-  }
-
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
   if (!checkAuth(req, res)) return;
 
-  const {
-    telegram_id,
-    name,
-    username,
-    tariff,
-    subscription_start,
-    subscription_end,
-  } = req.body || {};
+  const { name, phone, tariff, months } = req.body || {};
 
-  // Валидация обязательных полей
-  if (!telegram_id) {
-    return res.status(400).json({ error: 'Telegram ID обязателен' });
+  if (!phone) return res.status(400).json({ error: 'Номер телефона обязателен' });
+  if (!tariff) return res.status(400).json({ error: 'Тариф обязателен' });
+  if (!months || Number(months) < 1) return res.status(400).json({ error: 'Период подписки обязателен' });
+
+  const normalizedPhone = normalizePhone(phone);
+  if (!normalizedPhone || normalizedPhone.length < 10) {
+    return res.status(400).json({ error: 'Неверный формат телефона' });
   }
 
-  if (!tariff) {
-    return res.status(400).json({ error: 'Тариф обязателен' });
-  }
+  const today = new Date();
+  const endDate = new Date(today);
+  endDate.setMonth(endDate.getMonth() + Number(months));
 
-  if (!subscription_start || !subscription_end) {
-    return res.status(400).json({ error: 'Даты начала и окончания обязательны' });
-  }
+  const subscription_start = formatDate(today);
+  const subscription_end = formatDate(endDate);
 
   try {
-    const existingUser = getUser(telegram_id);
-    const finalName = name || username || `Пользователь ${telegram_id}`;
+    const db = getDb();
 
-    if (existingUser) {
-      console.log('[admin/add-user-manual] Обновление пользователя:', telegram_id);
-      upsertUser({
-        telegram_id,
-        name: finalName,
-        tariff,
-        subscription_status: 'активно',
-        subscription_start,
-        subscription_end,
-      });
-    } else {
-      console.log('[admin/add-user-manual] Создание пользователя:', telegram_id);
-      upsertUser({
-        telegram_id,
-        name: finalName,
-        tariff,
-        subscription_status: 'активно',
-        subscription_start,
-        subscription_end,
-      });
-    }
+    const existingUser = db.prepare('SELECT * FROM users WHERE phone = ?').get(normalizedPhone);
+    const telegram_id = existingUser ? existingUser.telegram_id : `web_${normalizedPhone}`;
+    const isNew = !existingUser;
 
-    const user = getUser(telegram_id);
+    const finalName = (name && name.trim()) || existingUser?.name || `Клиент ${normalizedPhone}`;
+
+    upsertUser({
+      telegram_id,
+      name: finalName,
+      phone: normalizedPhone,
+      tariff: String(tariff),
+      subscription_status: 'активно',
+      subscription_start,
+      subscription_end,
+    });
+
+    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(telegram_id);
 
     return res.status(200).json({
       success: true,
-      message: existingUser ? 'Пользователь обновлён' : 'Пользователь создан',
+      message: isNew ? 'Пользователь создан' : 'Подписка обновлена',
       user: {
         telegram_id: user.telegram_id,
         name: user.name,
+        phone: user.phone,
         tariff: user.tariff,
         subscription_status: user.subscription_status,
         subscription_start: user.subscription_start,
