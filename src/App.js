@@ -14,36 +14,47 @@ import PaymentPage from "./PaymentPage"; // страница оплаты под
 import AdminPage from "./AdminPage"; // админка
 import GiftRollsPage from "./GiftRollsPage"; // подарочные роллы (отдельная страница для бота)
 import GiftSetsPage from "./GiftSetsPage"; // подарочные сеты (отдельная страница для бота)
+import LoginPage from "./LoginPage"; // веб-вход по телефону
 
 function App() {
+  const pathname =
+    typeof window !== "undefined"
+      ? (window.location.pathname.replace(/\/+$/, "") || "/")
+      : "";
+
   // без условных хуков — просто флаги страниц
   const isSuccessPage =
-    typeof window !== "undefined" && window.location.pathname === "/success";
+    pathname === "/success";
   const isSetsPage =
-    typeof window !== "undefined" && window.location.pathname === "/sets";
+    pathname === "/sets";
   const isSetsReceivedPage =
-    typeof window !== "undefined" && window.location.pathname === "/sets-received";
+    pathname === "/sets-received";
   const isRollsPage =
-    typeof window !== "undefined" && window.location.pathname === "/rolls";
+    pathname === "/rolls";
   const isShopPage =
-    typeof window !== "undefined" && window.location.pathname === "/shop";
+    pathname === "/shop";
   const isDiscountShopPage =
-    typeof window !== "undefined" && window.location.pathname === "/discount-shop";
+    pathname === "/discount-shop";
   const isProfilePage =
-    typeof window !== "undefined" && window.location.pathname === "/profile";
+    pathname === "/profile";
   const isSettingsPage =
-    typeof window !== "undefined" && window.location.pathname === "/settings";
+    pathname === "/settings";
   const isAdminPage =
-    typeof window !== "undefined" && window.location.pathname === "/admin";
+    pathname === "/admin";
   const isGiftRollsPage =
-    typeof window !== "undefined" && window.location.pathname === "/gift-rolls";
+    pathname === "/gift-rolls";
   const isGiftSetsPage =
-    typeof window !== "undefined" && window.location.pathname === "/gift-sets";
+    pathname === "/gift-sets";
   const isPaymentPage =
-    typeof window !== "undefined" && window.location.pathname.startsWith("/pay/");
+    pathname.startsWith("/pay/");
+  const isLoginPage =
+    pathname === "/login";
   const isLandingPage =
-    typeof window !== "undefined" &&
-    (window.location.pathname === "/" || window.location.pathname === "");
+    pathname === "/";
+
+  if (isLoginPage) {
+    return <LoginPage />;
+  }
 
   if (isGiftRollsPage) {
     return <GiftRollsPage />;

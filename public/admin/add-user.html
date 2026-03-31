@@ -246,6 +246,11 @@
     const form = document.getElementById('addUserForm');
     const messageDiv = document.getElementById('message');
     const submitBtn = document.getElementById('submitBtn');
+    const adminToken = localStorage.getItem('admin_token');
+
+    if (!adminToken) {
+      window.location.href = '/admin';
+    }
 
     // Установка даты начала на сегодня
     document.getElementById('subscription_start').valueAsDate = new Date();
@@ -277,7 +282,10 @@
       try {
         const response = await fetch('/api/admin/add-user-manual', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`,
+          },
           body: JSON.stringify(formData),
         });
 

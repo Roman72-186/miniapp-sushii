@@ -28,7 +28,9 @@ function buildDatetime(timeStr) {
 
 function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const { listItemName, phone: userPhone } = useUser();
-  const [deliveryType, setDeliveryType] = useState('delivery');
+  const [deliveryType, setDeliveryType] = useState(() =>
+    items.some(item => item?.product?.gift) ? 'pickup' : 'delivery'
+  );
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [timeType, setTimeType] = useState('asap');
   const [payment, setPayment] = useState('cash');
@@ -57,6 +59,16 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [scheduledTime, setScheduledTime] = useState(timeSlots[0]?.value || '');
 
   const selectedPickup = PICKUP_POINTS.find(p => p.id === pickupPoint);
+  const hasGiftItems = useMemo(
+    () => items.some(item => item?.product?.gift),
+    [items]
+  );
+
+  useEffect(() => {
+    if (hasGiftItems && deliveryType !== 'pickup') {
+      setDeliveryType('pickup');
+    }
+  }, [deliveryType, hasGiftItems]);
 
   // Определение ближайшей точки при вводе адреса доставки
   const nearestTimerRef = useRef(null);
@@ -119,7 +131,8 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           products: items.map(item => ({
-            id: item.product.id,
+            id: item.product.sku || item.product.frontpadId || item.product.id,
+            product_id: item.product.id,
             quantity: item.quantity,
             name: item.product.cleanName || item.product.name,
             price: item.product.price,
@@ -138,6 +151,8 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           affiliate: deliveryType === 'pickup'
             ? selectedPickup?.affiliate || ''
             : nearestStore?.affiliate || '',
+          pickup_point_id: deliveryType === 'pickup' ? selectedPickup?.id || '' : '',
+          pickup_point_address: deliveryType === 'pickup' ? pickupAddress : '',
           datetime: timeType === 'scheduled' ? buildDatetime(scheduledTime) : '',
           comment: [
             comment.trim(),
@@ -195,12 +210,18 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         <div className="shop-form-section">
           <h3 className="shop-form-section__title">Способ получения заказа</h3>
           <div className="shop-form-section__block">
+            {hasGiftItems && (
+              <div className="shop-radio-hint" style={{ marginBottom: 12 }}>
+                Подарки по подписке доступны только на самовывоз.
+              </div>
+            )}
             <div className="shop-radio-group">
               <label className="shop-radio-label">
                 <input
                   type="radio"
                   name="delivery"
                   checked={deliveryType === 'delivery'}
+                  disabled={hasGiftItems}
                   onChange={() => setDeliveryType('delivery')}
                 />
                 Доставка
