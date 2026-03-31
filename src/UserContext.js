@@ -11,7 +11,9 @@ const WEB_USER_ID_KEY = 'web_user_id';
 function decodeJwt(token) {
   try {
     const payload = token.split('.')[1];
-    return JSON.parse(atob(payload));
+    // JWT использует URL-safe base64 (- и _), atob() требует стандартный (+, /)
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
   } catch {
     return null;
   }
