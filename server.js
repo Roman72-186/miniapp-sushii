@@ -29,6 +29,7 @@ app.all('/api/auth/login-by-phone', require('./api/auth/login-by-phone'));
 app.all('/api/auth/verify-otp', require('./api/auth/verify-otp'));
 app.all('/api/auth/login-with-password', require('./api/auth/login-with-password'));
 app.all('/api/auth/set-password', require('./api/auth/set-password'));
+app.all('/api/auth/send-email-otp', require('./api/auth/send-email-otp'));
 
 // Admin API
 app.all('/api/admin/login', require('./api/admin-login'));

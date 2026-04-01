@@ -1,4 +1,4 @@
-// src/LoginPage.js — Вход в веб-версию: телефон + пароль, сброс через Telegram OTP
+// src/LoginPage.js — Вход в веб-версию: телефон + пароль, сброс через Email OTP
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from './UserContext';
@@ -23,9 +23,10 @@ function LoginPage() {
 
   const { loginByPhone } = useUser();
 
-  // 'phone' | 'password' | 'otp' | 'set-password' | 'name'
+  // 'phone' | 'password' | 'email' | 'otp' | 'set-password' | 'name'
   const [step, setStep] = useState('phone');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -33,7 +34,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // OTP resend countdown (seconds)
+  // OTP resend countdown
   const [resendIn, setResendIn] = useState(0);
   const timerRef = useRef(null);
 
@@ -70,25 +71,79 @@ function LoginPage() {
       if (!resp.ok || !data.success) { setError(data.error || 'Ошибка входа'); return; }
 
       if (data.hasPassword) {
-        // Пароль установлен → вводим пароль
         setPassword('');
         setStep('password');
-      } else if (data.requiresOtp) {
-        // Telegram-пользователь без пароля → OTP → создать пароль
-        setCode('');
-        setStep('otp');
-        startResendCountdown(60);
+      } else if (data.requiresEmail) {
+        setEmail('');
+        setStep('email');
       } else if (data.isExistingUser === false) {
-        // Новый пользователь → запрашиваем имя
         setStep('name');
       } else {
-        // Веб-пользователь без Telegram → JWT уже в ответе
         localStorage.setItem(WEB_TOKEN_KEY, data.token);
         localStorage.setItem(WEB_USER_ID_KEY, data.userId);
         window.location.href = '/';
       }
     } catch {
       setError('Ошибка соединения. Проверьте подключение к интернету.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Шаг 2: отправка OTP на email
+  const handleSendEmail = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Введите корректный email');
+      return;
+    }
+    setLoading(true);
+    try {
+      const resp = await fetch('/api/auth/send-email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: normalizePhone(phone), email }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) { setError(data.error || 'Ошибка отправки'); return; }
+      setCode('');
+      setStep('otp');
+      startResendCountdown(60);
+    } catch {
+      setError('Ошибка соединения.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Шаг 3: подтверждение OTP кода
+  const handleOtpNext = (e) => {
+    e.preventDefault();
+    setError('');
+    if (code.length < 4) { setError('Введите 4-значный код'); return; }
+    setPassword('');
+    setPasswordConfirm('');
+    setStep('set-password');
+  };
+
+  // Повторная отправка OTP
+  const handleResendOtp = async () => {
+    if (resendIn > 0) return;
+    setError('');
+    setCode('');
+    setLoading(true);
+    try {
+      const resp = await fetch('/api/auth/send-email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: normalizePhone(phone), email }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) { setError(data.error || 'Ошибка отправки'); return; }
+      startResendCountdown(60);
+    } catch {
+      setError('Ошибка соединения.');
     } finally {
       setLoading(false);
     }
@@ -118,65 +173,14 @@ function LoginPage() {
     }
   };
 
-  // "Забыли пароль?" — запрашиваем OTP для сброса
-  const handleForgotPassword = async () => {
+  // "Забыли пароль?" → шаг email
+  const handleForgotPassword = () => {
     setError('');
-    setLoading(true);
-    try {
-      const resp = await fetch('/api/auth/login-by-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: normalizePhone(phone) }),
-      });
-      const data = await resp.json();
-      if (!resp.ok || !data.success) { setError(data.error || 'Ошибка отправки кода'); return; }
-      if (data.requiresOtp) {
-        setCode('');
-        setStep('otp');
-        startResendCountdown(60);
-      } else {
-        setError('Сброс пароля через Telegram недоступен для этого аккаунта');
-      }
-    } catch {
-      setError('Ошибка соединения.');
-    } finally {
-      setLoading(false);
-    }
+    setEmail('');
+    setStep('email');
   };
 
-  // Шаг 2b: OTP введён → переходим к созданию пароля
-  const handleOtpNext = (e) => {
-    e.preventDefault();
-    setError('');
-    if (code.length < 4) { setError('Введите 4-значный код'); return; }
-    setPassword('');
-    setPasswordConfirm('');
-    setStep('set-password');
-  };
-
-  // Повторная отправка OTP
-  const handleResendOtp = async () => {
-    if (resendIn > 0) return;
-    setError('');
-    setCode('');
-    setLoading(true);
-    try {
-      const resp = await fetch('/api/auth/login-by-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: normalizePhone(phone) }),
-      });
-      const data = await resp.json();
-      if (!resp.ok || !data.success) { setError(data.error || 'Ошибка отправки'); return; }
-      startResendCountdown(60);
-    } catch {
-      setError('Ошибка соединения.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Шаг 3: установить новый пароль (используем сохранённый code)
+  // Шаг 4: установить новый пароль
   const handleSetPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -201,7 +205,7 @@ function LoginPage() {
     }
   };
 
-  // Шаг 4: регистрация нового пользователя
+  // Шаг 5: регистрация нового пользователя
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
@@ -219,7 +223,8 @@ function LoginPage() {
   const subtitle = {
     phone: 'Введите номер телефона для входа',
     password: 'Введите пароль',
-    otp: 'Введите код из SMS',
+    email: 'Введите email для получения кода',
+    otp: 'Введите код из письма',
     'set-password': 'Создайте пароль для входа',
     name: 'Как вас зовут?',
   }[step];
@@ -268,9 +273,6 @@ function LoginPage() {
             >
               {loading ? 'Проверяем...' : 'Продолжить'}
             </button>
-            <div style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#9fb0c3', lineHeight: 1.5 }}>
-              Если вы оформляли подписку через Telegram — введите тот же номер.
-            </div>
           </form>
         )}
 
@@ -323,16 +325,55 @@ function LoginPage() {
           </form>
         )}
 
-        {/* ШАГ 2b: OTP код */}
+        {/* ШАГ 2b: Email */}
+        {step === 'email' && (
+          <form onSubmit={handleSendEmail}>
+            <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
+              <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14, lineHeight: 1.5 }}>
+                Введите email — мы отправим код подтверждения
+              </div>
+              <div className="shop-form-field" style={{ marginBottom: 0 }}>
+                <label className="shop-form-field__label">Email</label>
+                <input
+                  className="shop-form-field__input"
+                  type="email"
+                  placeholder="example@mail.ru"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  autoFocus
+                  disabled={loading}
+                />
+              </div>
+            </div>
+            {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
+            <button
+              type="submit"
+              className="shop-payment__btn"
+              style={{ marginTop: 16 }}
+              disabled={loading || !email.trim()}
+            >
+              {loading ? 'Отправляем...' : 'Отправить код'}
+            </button>
+            <button
+              type="button"
+              style={{ background: 'none', border: 'none', color: '#9fb0c3', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
+              onClick={() => { setStep('phone'); setError(''); }}
+            >
+              ← Изменить номер
+            </button>
+          </form>
+        )}
+
+        {/* ШАГ 3: OTP код из письма */}
         {step === 'otp' && (
           <form onSubmit={handleOtpNext}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
               <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14, lineHeight: 1.5 }}>
-                Мы отправили 4-значный код по SMS на номер{' '}
-                <span style={{ color: '#fff', fontWeight: 600 }}>+{normalizePhone(phone)}</span>
+                Мы отправили 4-значный код на{' '}
+                <span style={{ color: '#fff', fontWeight: 600 }}>{email}</span>
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Код из SMS</label>
+                <label className="shop-form-field__label">Код из письма</label>
                 <input
                   className="shop-form-field__input"
                   type="text"
@@ -360,7 +401,6 @@ function LoginPage() {
               Продолжить
             </button>
 
-            {/* Повторная отправка */}
             <div style={{ textAlign: 'center', marginTop: 14 }}>
               {resendIn > 0 ? (
                 <span style={{ fontSize: 13, color: '#9fb0c3' }}>
@@ -381,14 +421,14 @@ function LoginPage() {
             <button
               type="button"
               style={{ background: 'none', border: 'none', color: '#9fb0c3', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
-              onClick={() => { setStep('phone'); setError(''); setCode(''); }}
+              onClick={() => { setStep('email'); setError(''); setCode(''); }}
             >
-              ← Изменить номер
+              ← Изменить email
             </button>
           </form>
         )}
 
-        {/* ШАГ 3: Создать/сменить пароль */}
+        {/* ШАГ 4: Создать/сменить пароль */}
         {step === 'set-password' && (
           <form onSubmit={handleSetPassword}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
@@ -431,7 +471,7 @@ function LoginPage() {
           </form>
         )}
 
-        {/* ШАГ 4: Имя (новый пользователь) */}
+        {/* ШАГ 5: Имя (новый пользователь) */}
         {step === 'name' && (
           <form onSubmit={handleRegister}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>

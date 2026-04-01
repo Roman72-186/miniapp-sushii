@@ -232,6 +232,16 @@ COMMENT ON TABLE referral_bonuses IS 'Бонусы за приглашённых
 COMMENT ON TABLE gift_windows IS 'Окна для получения подарков по подписке';
 
 -- ============================================
+-- 11. ТАБЛИЦА: web_credentials (пароли веб-пользователей)
+-- ============================================
+CREATE TABLE IF NOT EXISTS web_credentials (
+  phone         TEXT PRIMARY KEY,          -- 7XXXXXXXXXX
+  password_hash TEXT NOT NULL,
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  updated_at    TIMESTAMPTZ DEFAULT now()
+);
+
+-- ============================================
 -- ГОТОВО!
 -- ============================================
 -- После выполнения SQL:
