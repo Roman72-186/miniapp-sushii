@@ -27,7 +27,10 @@ function buildDatetime(timeStr) {
 }
 
 function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
-  const { listItemName, phone: userPhone } = useUser();
+  const { listItemName, phone: userPhone, profile } = useUser();
+  const shcBalance = profile?.balance_shc || 0;
+  const [shcApplied, setShcApplied] = useState(0);
+  const effectiveTotal = Math.max(0, total - shcApplied);
   const [deliveryType, setDeliveryType] = useState(() =>
     items.some(item => item?.product?.gift) ? 'pickup' : 'delivery'
   );
@@ -161,6 +164,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
             paymentLabel,
           ].filter(Boolean).join(' | '),
           telegram_id: telegramId || '',
+          shc_used: shcApplied > 0 ? shcApplied : undefined,
         }),
       });
 
@@ -479,11 +483,44 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         )}
       </form>
 
+      {/* SHC баллы */}
+      {shcBalance > 0 && (
+        <div className="shop-shc-block">
+          <div className="shop-shc-block__header">
+            <span className="shop-shc-block__label">Баланс SHC: <strong>{shcBalance}</strong> баллов = {shcBalance}₽</span>
+          </div>
+          <div className="shop-shc-block__row">
+            <span>Применить баллы:</span>
+            <input
+              className="shop-shc-block__input"
+              type="number"
+              min={0}
+              max={Math.min(shcBalance, total)}
+              value={shcApplied}
+              onChange={e => setShcApplied(Math.min(Math.max(0, Number(e.target.value) || 0), Math.min(shcBalance, total)))}
+            />
+            <button
+              type="button"
+              className="shop-shc-block__max-btn"
+              onClick={() => setShcApplied(Math.min(shcBalance, total))}
+            >
+              Всё
+            </button>
+          </div>
+          {shcApplied > 0 && (
+            <div className="shop-shc-block__discount">Скидка: −{shcApplied}₽ → итого {effectiveTotal}₽</div>
+          )}
+        </div>
+      )}
+
       {/* Фиксированный футер */}
       <div className="shop-checkout__footer">
         <div className="shop-checkout__footer-inner">
           <div className="shop-checkout__summary">
             <div>Сумма заказа: <span className="shop-checkout__summary-total">{total}₽</span></div>
+            {shcApplied > 0 && (
+              <div>SHC скидка: <span className="shop-checkout__summary-total" style={{ color: '#3CC8A1' }}>−{shcApplied}₽</span></div>
+            )}
             {deliveryType === 'delivery' ? (
               <div>Доставка: <span className="shop-checkout__summary-total">бесплатно</span></div>
             ) : (
@@ -495,7 +532,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
             disabled={submitting}
             onClick={handleSubmit}
           >
-            {submitting ? 'Отправка...' : `ЗАКАЗАТЬ: ${total} ₽`}
+            {submitting ? 'Отправка...' : `ЗАКАЗАТЬ: ${effectiveTotal} ₽`}
           </button>
         </div>
       </div>

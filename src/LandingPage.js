@@ -13,12 +13,12 @@ const TARIFFS = [
   },
   {
     price: '490',
-    label: '490 ₽ / месяц',
+    label: '690 ₽ / месяц',
     desc: 'Скидки + подарочные роллы',
   },
   {
     price: '1190',
-    label: '1190 ₽ / месяц',
+    label: '1390 ₽ / месяц',
     desc: 'Скидки + роллы + сеты + VIP-доступ',
   },
 ];
@@ -32,7 +32,6 @@ function LandingPage() {
   const { telegramId, loading: userLoading, profile, sync, isWebUser, logout } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [ambaPrice, setAmbaPrice] = useState('9 990');
 
   // Проверяем активную подписку
   const hasActiveSubscription = React.useMemo(() => {
@@ -40,19 +39,6 @@ function LandingPage() {
     const status = profile.subscriptionStatus || profile.статусСписания;
     return status === 'активно';
   }, [profile]);
-
-  // Загружаем актуальную цену амбассадора из админки
-  useEffect(() => {
-    fetch('/api/admin/pricing')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.pricing?.['9990']) {
-          const p = data.pricing['9990'].months?.[1] || data.pricing['9990'].price;
-          if (p) setAmbaPrice(Number(p).toLocaleString('ru-RU'));
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   // Тройной клик по логотипу → админка
   const logoClicksRef = React.useRef({ count: 0, timer: null });
@@ -211,17 +197,6 @@ function LandingPage() {
           ))}
         </div>
 
-        <button
-          className="shop-landing__ambassador"
-          onClick={() => handleTariffClick('9990')}
-        >
-          <span className="shop-landing__ambassador-label">АМБАССАДОР</span>
-          <span className="shop-landing__ambassador-price">
-            <span style={{ textDecoration: 'line-through', opacity: 0.6, marginRight: 8, fontSize: '14px' }}>9 990 ₽</span>
-            {ambaPrice} ₽
-          </span>
-          <span className="shop-landing__ambassador-desc">Реферальная программа + все привилегии</span>
-        </button>
       </div>
     </div>
   );

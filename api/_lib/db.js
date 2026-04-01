@@ -287,6 +287,24 @@ function processCommissions(referralTelegramId, paymentAmount, paymentId) {
   return results;
 }
 
+// ─── Реферальная комиссия 20% → SHC ─────────────────────
+
+/**
+ * Начисляет пригласившему 20% от суммы подписки реферала в SHC.
+ * Вызывается из webhook при каждом успешном платеже.
+ */
+function processReferralSHC(referralTelegramId, subscriptionAmount) {
+  const referral = getUser(referralTelegramId);
+  if (!referral || !referral.invited_by) return null;
+
+  const inviter = getUser(referral.invited_by);
+  if (!inviter) return null;
+
+  const shcAmount = Math.round(subscriptionAmount * 0.20);
+  updateBalance(inviter.telegram_id, shcAmount);
+  return { inviter_id: inviter.telegram_id, shc: shcAmount };
+}
+
 // ─── SHC бонусы за рефералов (обычные пользователи) ──────
 
 const SHC_BASE = 50; // базовое начисление за каждого друга
@@ -474,6 +492,7 @@ module.exports = {
   getTransactions,
   getTotalEarnings,
   processCommissions,
+  processReferralSHC,
   processReferralBonus,
   getReferralBonuses,
   getExpiringSubscriptions,

@@ -2,7 +2,7 @@
 
 const { createOrder } = require('./_lib/frontpad');
 const { readUserCache } = require('./_lib/user-cache');
-const { getUser } = require('./_lib/db');
+const { getUser, updateBalance } = require('./_lib/db');
 const { geocode } = require('./_lib/geocoder');
 const { findNearestStore } = require('./_lib/nearest-store');
 
@@ -72,6 +72,7 @@ module.exports = async (req, res) => {
       datetime,
       telegram_id,
       pickup_point_id,
+      shc_used,
     } = body;
 
     if (!products || !products.length) {
@@ -170,8 +171,20 @@ module.exports = async (req, res) => {
           et: client.et || '',
         };
 
+    // Списание SHC баллов
+    const shcToUse = Number(shc_used) || 0;
+    if (shcToUse > 0 && telegram_id) {
+      const dbUser = getUser(telegram_id);
+      const userBalance = dbUser?.balance_shc || 0;
+      if (shcToUse > userBalance) {
+        return res.status(400).json({ success: false, error: 'Недостаточно SHC баллов' });
+      }
+      updateBalance(telegram_id, -shcToUse);
+    }
+
     const orderComment = [
       isPickup ? sanitizePickupComment(comment) : (comment || ''),
+      shcToUse > 0 ? `SHC скидка: -${shcToUse}₽` : '',
       pickup_point_id ? `[pickup_point_id:${pickup_point_id}]` : '',
       isPickup ? '[Самовывоз]' : '[Доставка]',
       payment === 'card' ? '[Оплата картой]' : '[Оплата наличными]',

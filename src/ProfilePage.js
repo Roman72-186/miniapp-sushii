@@ -12,21 +12,7 @@ function ProfilePage() {
   }, []);
 
   const { telegramId, loading: userLoading, profile, contactId, hasTag } = useUser();
-  const [ambaPrice, setAmbaPrice] = useState('9 990');
   const [referrals, setReferrals] = useState(null);
-
-  // Загружаем актуальную цену амбассадора из админки
-  useEffect(() => {
-    fetch('/api/admin/pricing')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.pricing?.['9990']) {
-          const p = data.pricing['9990'].months?.[1] || data.pricing['9990'].price;
-          if (p) setAmbaPrice(Number(p).toLocaleString('ru-RU'));
-        }
-      })
-      .catch(() => {});
-  }, []);
   const [showAllReferrals, setShowAllReferrals] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
   const [earnings, setEarnings] = useState(null);
@@ -345,26 +331,16 @@ function ProfilePage() {
               </>
             ) : (
               <>
-                {/* Блок приглашения для не-амбассадоров */}
-                <div className="shop-profile__section">
-                  <div className="amb-invite">
-                    <div className="amb-invite__text">
-                      Зарабатывайте <strong>30%</strong> с каждого платежа приглашённых друзей
-                    </div>
-                    <button
-                      className="amb-invite__btn"
-                      onClick={() => {
-                        const tid = telegramId ? `?telegram_id=${telegramId}` : '';
-                        window.location.href = `/pay/9990${tid}`;
-                      }}
-                    >
-                      Стать амбассадором — <span style={{ textDecoration: 'line-through', opacity: 0.6, marginRight: 6 }}>9 990 ₽</span> {ambaPrice} ₽
-                    </button>
-                  </div>
-                </div>
-
                 {/* Рефералы + баланс SHC */}
                 <div className="shop-profile__section">
+                  <div className="shop-profile__referral-desc">
+                    Приглашай друзей → получай <strong>20% от их подписки</strong> в SHC баллах → оплачивай до <strong>100%</strong> своего заказа
+                  </div>
+                  {profile?.balance_shc > 0 && (
+                    <div className="shop-profile__shc-balance">
+                      {profile.balance_shc} SHC = {profile.balance_shc}₽ скидки на следующий заказ
+                    </div>
+                  )}
                   <div className="amb-panel__counters">
                     <div className="amb-panel__counter">
                       <span className="amb-panel__counter-value">

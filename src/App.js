@@ -15,6 +15,7 @@ import AdminPage from "./AdminPage"; // админка
 import GiftRollsPage from "./GiftRollsPage"; // подарочные роллы (отдельная страница для бота)
 import GiftSetsPage from "./GiftSetsPage"; // подарочные сеты (отдельная страница для бота)
 import LoginPage from "./LoginPage"; // веб-вход по телефону
+import BenefitsPage from "./BenefitsPage"; // страница выгоды подписки
 
 function App() {
   const pathname =
@@ -49,11 +50,17 @@ function App() {
     pathname.startsWith("/pay/");
   const isLoginPage =
     pathname === "/login";
+  const isBenefitsPage =
+    pathname === "/benefits";
   const isLandingPage =
     pathname === "/";
 
   if (isLoginPage) {
     return <LoginPage />;
+  }
+
+  if (isBenefitsPage) {
+    return <BenefitsPage />;
   }
 
   if (isGiftRollsPage) {
