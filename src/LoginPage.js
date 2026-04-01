@@ -219,7 +219,7 @@ function LoginPage() {
   const subtitle = {
     phone: 'Введите номер телефона для входа',
     password: 'Введите пароль',
-    otp: 'Введите код из Telegram',
+    otp: 'Введите код из SMS',
     'set-password': 'Создайте пароль для входа',
     name: 'Как вас зовут?',
   }[step];
@@ -328,11 +328,11 @@ function LoginPage() {
           <form onSubmit={handleOtpNext}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
               <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14, lineHeight: 1.5 }}>
-                Мы отправили 4-значный код в Telegram на аккаунт, привязанный к номеру{' '}
+                Мы отправили 4-значный код по SMS на номер{' '}
                 <span style={{ color: '#fff', fontWeight: 600 }}>+{normalizePhone(phone)}</span>
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Код из Telegram</label>
+                <label className="shop-form-field__label">Код из SMS</label>
                 <input
                   className="shop-form-field__input"
                   type="text"

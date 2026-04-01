@@ -1,11 +1,10 @@
-// api/auth/login-by-phone.js — Шаг 1: проверка телефона, отправка OTP
+// api/auth/login-by-phone.js — Шаг 1: проверка телефона, отправка SMS OTP
 
 const { getDb, upsertUser, getUser } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
 const otpStore = require('./_otp-store');
-
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const { sendOtpViaSms } = require('./_sms-sender');
 
 function normalizePhone(raw) {
   const nums = String(raw || '').replace(/\D/g, '');
@@ -13,24 +12,6 @@ function normalizePhone(raw) {
   if (nums.length === 11 && nums.startsWith('7')) return nums;
   if (nums.length === 10) return '7' + nums;
   return nums;
-}
-
-async function sendOtpViaTelegram(telegramId, code) {
-  if (!BOT_TOKEN) return false;
-  try {
-    const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: telegramId,
-        text: `🔐 Ваш код для входа на сайт Суши-Хаус 39:\n\n*${code}*\n\nКод действителен 5 минут. Никому не сообщайте его.`,
-        parse_mode: 'Markdown',
-      }),
-    });
-    return resp.ok;
-  } catch {
-    return false;
-  }
 }
 
 module.exports = async (req, res) => {
@@ -79,28 +60,18 @@ module.exports = async (req, res) => {
         return res.status(200).json({ success: true, hasPassword: true, phone });
       }
 
-      const hasTelegram = /^\d+$/.test(existingUser.telegram_id);
-
-      if (hasTelegram) {
-        // Пользователь с Telegram — отправляем OTP для создания пароля
-        if (!otpStore.canResend(phone)) {
-          const wait = otpStore.timeUntilResend(phone);
-          return res.status(429).json({ error: `Подождите ${wait} сек. перед повторной отправкой кода` });
-        }
-        const code = otpStore.set(phone);
-        const sent = await sendOtpViaTelegram(existingUser.telegram_id, code);
-        if (!sent) {
-          return res.status(500).json({ error: 'Не удалось отправить код. Убедитесь, что вы писали нашему боту в Telegram.' });
-        }
-        console.log('[login-by-phone] OTP отправлен пользователю:', existingUser.telegram_id);
-        return res.status(200).json({ success: true, hasPassword: false, requiresOtp: true, phone });
+      // Пароля нет — отправляем SMS OTP
+      if (!otpStore.canResend(phone)) {
+        const wait = otpStore.timeUntilResend(phone);
+        return res.status(429).json({ error: `Подождите ${wait} сек. перед повторной отправкой кода` });
       }
-
-      // Веб-пользователь без Telegram (создан через админку) — выдаём JWT без пароля/OTP
-      const token = generateToken(existingUser);
-      const refreshToken = generateRefreshToken(existingUser);
-      console.log('[login-by-phone] Веб-пользователь (без Telegram):', existingUser.telegram_id);
-      return res.status(200).json({ success: true, userId: existingUser.telegram_id, name: existingUser.name || null, phone, tarif: existingUser.tariff || null, isExistingUser: true, token, refreshToken });
+      const code = otpStore.set(phone);
+      const sent = await sendOtpViaSms(phone, code);
+      if (!sent) {
+        return res.status(500).json({ error: 'Не удалось отправить SMS. Попробуйте позже.' });
+      }
+      console.log('[login-by-phone] SMS OTP отправлен:', phone);
+      return res.status(200).json({ success: true, hasPassword: false, requiresOtp: true, phone });
     }
 
     // === НОВЫЙ пользователь — предлагаем ввести имя ===
