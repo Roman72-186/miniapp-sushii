@@ -1,10 +1,8 @@
-// api/auth/login-by-phone.js — Шаг 1: проверка телефона, отправка SMS OTP
+// api/auth/login-by-phone.js — Шаг 1: проверка телефона
 
 const { getDb, upsertUser, getUser } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
-const otpStore = require('./_otp-store');
-const { sendOtpViaSms } = require('./_sms-sender');
 
 function normalizePhone(raw) {
   const nums = String(raw || '').replace(/\D/g, '');
@@ -60,18 +58,8 @@ module.exports = async (req, res) => {
         return res.status(200).json({ success: true, hasPassword: true, phone });
       }
 
-      // Пароля нет — отправляем SMS OTP
-      if (!otpStore.canResend(phone)) {
-        const wait = otpStore.timeUntilResend(phone);
-        return res.status(429).json({ error: `Подождите ${wait} сек. перед повторной отправкой кода` });
-      }
-      const code = otpStore.set(phone);
-      const sent = await sendOtpViaSms(phone, code);
-      if (!sent) {
-        return res.status(500).json({ error: 'Не удалось отправить SMS. Попробуйте позже.' });
-      }
-      console.log('[login-by-phone] SMS OTP отправлен:', phone);
-      return res.status(200).json({ success: true, hasPassword: false, requiresOtp: true, phone });
+      // Пароля нет — нужен email для OTP
+      return res.status(200).json({ success: true, hasPassword: false, requiresEmail: true, phone });
     }
 
     // === НОВЫЙ пользователь — предлагаем ввести имя ===
