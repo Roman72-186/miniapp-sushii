@@ -135,30 +135,9 @@ async function runSubscriptionCron() {
   const startTime = Date.now();
   console.log('cron: starting subscription check at', new Date().toISOString());
 
-  const results = { reminded3: 0, reminded1: 0, renewed: 0, deactivated: 0, errors: 0 };
+  const results = { reminded1: 0, renewed: 0, deactivated: 0, errors: 0 };
 
-  // 1. Напоминание за 3 дня
-  try {
-    const expiring3 = getExpiringSubscriptions(3);
-    for (const user of expiring3) {
-      await sendMessage(
-        user.telegram_id,
-        `⏰ <b>Подписка заканчивается через 3 дня</b>\n\nВаша подписка (${user.tariff}₽) истекает ${user.subscription_end}.\n\n${user.payment_method_id ? '💳 Автопродление включено — средства спишутся автоматически.' : '💡 Продлите подписку, чтобы не потерять скидки и подарки!'}`,
-        {
-          inline_keyboard: [
-            user.payment_method_id ? [] : [{ text: '🔄 Продлить подписку', url: `https://sushi-house-39.ru/pay/${user.tariff}?telegram_id=${user.telegram_id}` }],
-            [{ text: '🏠 Главное меню', callback_data: '/start' }],
-          ].filter(row => row.length > 0),
-        }
-      );
-      results.reminded3++;
-    }
-  } catch (err) {
-    console.error('cron: error in 3-day reminder:', err.message);
-    results.errors++;
-  }
-
-  // 2. Напоминание за 1 день
+  // 1. Напоминание за 1 день
   try {
     const expiring1 = getExpiringSubscriptions(1);
     for (const user of expiring1) {
