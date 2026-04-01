@@ -170,7 +170,21 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         throw new Error(data.error || 'Ошибка создания заказа');
       }
 
-      onSuccess(data.orderNumber || data.orderId);
+      // Если в заказе есть подарок — фиксируем его получение
+      const giftItem = items.find(item => item?.product?.gift);
+      let giftClaim = null;
+      if (giftItem && telegramId) {
+        try {
+          const claimRes = await fetch('/api/claim-gift', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telegram_id: telegramId }),
+          });
+          giftClaim = await claimRes.json();
+        } catch (_) { /* не блокируем успех заказа */ }
+      }
+
+      onSuccess(data.orderNumber || data.orderId, { giftClaim });
     } catch (err) {
       setError(err.message || 'Не удалось отправить заказ');
     } finally {
