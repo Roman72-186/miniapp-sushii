@@ -231,6 +231,8 @@ function DiscountShopPage() {
   const [visibleCategory, setVisibleCategory] = useState(DISCOUNT_CATEGORIES[0]?.id);
   const sectionRefs = useRef({});
   const isScrollingByClick = useRef(false);
+  const tabsNavRef = useRef(null);
+  const tabsItemRefs = useRef({});
   const [giftClaimingId, setGiftClaimingId] = useState(null);
   const [giftNotice, setGiftNotice] = useState(null);
   const logoClicksRef = useRef({ count: 0, timer: null });
@@ -398,6 +400,19 @@ function DiscountShopPage() {
     const tid = telegramId ? `?telegram_id=${telegramId}` : '';
     window.location.href = `/${tid}`;
   }, [profile?.статусСписания, telegramId, userLoading, profile]);
+
+  useEffect(() => {
+    const nav = tabsNavRef.current;
+    const activeBtn = tabsItemRefs.current[visibleCategory];
+    if (!nav || !activeBtn) return;
+    const navLeft = nav.scrollLeft;
+    const navRight = navLeft + nav.offsetWidth;
+    const btnLeft = activeBtn.offsetLeft;
+    const btnRight = btnLeft + activeBtn.offsetWidth;
+    if (btnLeft < navLeft || btnRight > navRight) {
+      nav.scrollTo({ left: btnLeft - nav.offsetWidth / 2 + activeBtn.offsetWidth / 2, behavior: 'smooth' });
+    }
+  }, [visibleCategory]);
 
   useEffect(() => {
     if (giftView) return;
@@ -729,10 +744,11 @@ function DiscountShopPage() {
 
       <PromoBanner />
 
-      <nav className="shop-tabs">
+      <nav className="shop-tabs" ref={tabsNavRef}>
         {DISCOUNT_CATEGORIES.map(category => (
           <button
             key={category.id}
+            ref={el => { tabsItemRefs.current[category.id] = el; }}
             className={`shop-tabs__item ${visibleCategory === category.id ? 'shop-tabs__item--active' : ''}`}
             onClick={() => scrollToCategory(category.id)}
           >
