@@ -2,6 +2,7 @@
 
 const { getDb, upsertUser, getUser } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
+const { supabase } = require('../_lib/supabase');
 const otpStore = require('./_otp-store');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -66,10 +67,22 @@ module.exports = async (req, res) => {
 
     // === СУЩЕСТВУЮЩИЙ пользователь ===
     if (existingUser) {
+      // Проверяем наличие пароля в Supabase
+      const { data: cred } = await supabase
+        .from('web_credentials')
+        .select('phone')
+        .eq('phone', phone)
+        .maybeSingle();
+
+      if (cred) {
+        // Пароль установлен — переходим к вводу пароля
+        return res.status(200).json({ success: true, hasPassword: true, phone });
+      }
+
       const hasTelegram = /^\d+$/.test(existingUser.telegram_id);
 
       if (hasTelegram) {
-        // Пользователь с Telegram — отправляем OTP
+        // Пользователь с Telegram — отправляем OTP для создания пароля
         if (!otpStore.canResend(phone)) {
           const wait = otpStore.timeUntilResend(phone);
           return res.status(429).json({ error: `Подождите ${wait} сек. перед повторной отправкой кода` });
@@ -80,10 +93,10 @@ module.exports = async (req, res) => {
           return res.status(500).json({ error: 'Не удалось отправить код. Убедитесь, что вы писали нашему боту в Telegram.' });
         }
         console.log('[login-by-phone] OTP отправлен пользователю:', existingUser.telegram_id);
-        return res.status(200).json({ success: true, requiresOtp: true, phone });
+        return res.status(200).json({ success: true, hasPassword: false, requiresOtp: true, phone });
       }
 
-      // Веб-пользователь без Telegram (создан через админку) — выдаём JWT без OTP
+      // Веб-пользователь без Telegram (создан через админку) — выдаём JWT без пароля/OTP
       const token = generateToken(existingUser);
       const refreshToken = generateRefreshToken(existingUser);
       console.log('[login-by-phone] Веб-пользователь (без Telegram):', existingUser.telegram_id);
