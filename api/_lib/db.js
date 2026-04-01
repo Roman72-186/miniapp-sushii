@@ -412,6 +412,19 @@ function getExpiredToday() {
 }
 
 /**
+ * Отменить автопродление (payment_method_id = NULL, статус не меняем)
+ */
+function cancelAutoRenew(telegramId) {
+  const db = getDb();
+  db.prepare(`
+    UPDATE users
+    SET payment_method_id = NULL,
+        updated_at = datetime('now')
+    WHERE telegram_id = ?
+  `).run(String(telegramId));
+}
+
+/**
  * Деактивировать подписку пользователя
  */
 function deactivateSubscription(telegramId) {
@@ -465,6 +478,7 @@ module.exports = {
   getReferralBonuses,
   getExpiringSubscriptions,
   getExpiredToday,
+  cancelAutoRenew,
   deactivateSubscription,
   renewSubscription,
 };
