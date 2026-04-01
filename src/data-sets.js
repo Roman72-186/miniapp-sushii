@@ -4,7 +4,7 @@ export const subscriptionSets = [
     "name": "сет Брюс Ли **",
     "description": "Горячий Дон жуан, Калифорния, Розовый, Кани гриль",
     "price": 0,
-    "image": "/img/sets/set_bruce_lee.png",
+    "image": "/img/sets/set_bruce_lee.jpg",
     "code": 1168
   },
   {
@@ -12,7 +12,7 @@ export const subscriptionSets = [
     "name": "сет Гармония классики **",
     "description": "Филадельфия сливочная, Калифорния, Кани гриль, Сяке кунсей гриль",
     "price": 0,
-    "image": "/img/sets/set_garmoniya.png",
+    "image": "/img/sets/set_garmoniya.jpg",
     "code": 430
   },
   {
@@ -20,7 +20,7 @@ export const subscriptionSets = [
     "name": "сет Дамский угодник **",
     "description": "Филадельфия сливочная, Сырные маки, Чикен лав, Краб дуэт гриль",
     "price": 0,
-    "image": "/img/sets/set_damskiy_ugodnik.png",
+    "image": "/img/sets/set_damskiy_ugodnik.jpg",
     "code": 1169
   },
   {
@@ -28,7 +28,7 @@ export const subscriptionSets = [
     "name": "сет Домино **",
     "description": "Филадельфия сливочная, Манхеттен, Кани гриль, Запеченный мистер Грин",
     "price": 0,
-    "image": "/img/sets/set_domino.png",
+    "image": "/img/sets/set_domino.jpg",
     "code": 1170
   },
   {
@@ -36,7 +36,7 @@ export const subscriptionSets = [
     "name": "сет Игра престолов **",
     "description": "Дракон лайт, Филадельфия сливочная, Эби гриль, Бруклин",
     "price": 0,
-    "image": "/img/sets/set_igra_prestolov.png",
+    "image": "/img/sets/set_igra_prestolov.jpg",
     "code": 1172
   },
   {
@@ -44,7 +44,7 @@ export const subscriptionSets = [
     "name": "сет Олимпия **",
     "description": "Филадельфия дуэт, Калифорния дуэт, Запеченный ролл с беконом, Чикен гриль",
     "price": 0,
-    "image": "/img/sets/set_olimpiya.png",
+    "image": "/img/sets/set_olimpiya.jpg",
     "code": 56
   },
   {
@@ -52,7 +52,7 @@ export const subscriptionSets = [
     "name": "сет Жаркая осень **",
     "description": "Фила кани гриль, Сяке кани гриль, Сяке кунсей гриль",
     "price": 0,
-    "image": "/img/sets/set_zharkaya_osen.png",
+    "image": "/img/sets/set_zharkaya_osen.jpg",
     "code": 1171
   },
   {
@@ -60,7 +60,7 @@ export const subscriptionSets = [
     "name": "сет Сливочный **",
     "description": "Красная Москва лайт, Манхеттен блэк, Чезария, Филадельфия лайт с огурцом",
     "price": 0,
-    "image": "/img/sets/set_slivochniy.png",
+    "image": "/img/sets/set_slivochniy.jpg",
     "code": 1173
   },
   {
@@ -68,7 +68,7 @@ export const subscriptionSets = [
     "name": "Тёплый лосось микс **",
     "description": "Яки сяке, Сяке хот, Сяке ясай",
     "price": 0,
-    "image": "/img/sets/set_tepliy_losos.png",
+    "image": "/img/sets/set_tepliy_losos.jpg",
     "code": 1175
   },
   {
@@ -76,7 +76,7 @@ export const subscriptionSets = [
     "name": "Трипл сет **",
     "description": "Краб дуэт гриль, Сяке кани гриль, Запеченный Мидуэй",
     "price": 0,
-    "image": "/img/sets/set_tripl.png",
+    "image": "/img/sets/set_tripl.jpg",
     "code": 1176
   }
 ];
