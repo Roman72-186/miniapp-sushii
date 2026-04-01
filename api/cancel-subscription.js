@@ -1,7 +1,7 @@
 // api/cancel-subscription.js — Отмена автосписания подписки
 // Работает через SQLite: очищает payment_method_id, ставит статус «неактивно»
 
-const { getUser, deactivateSubscription, getDb } = require('./_lib/db');
+const { getUser, cancelAutoRenew } = require('./_lib/db');
 const { writeUserCache } = require('./_lib/user-cache');
 
 module.exports = async (req, res) => {
@@ -25,31 +25,25 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
 
-    // Проверка: была ли активная подписка
-    if (user.subscription_status !== 'активно' || !user.payment_method_id) {
-      console.log('[cancel-subscription] Подписка уже неактивна:', {
-        telegram_id,
-        subscription_status: user.subscription_status,
-        payment_method_id: user.payment_method_id,
-      });
-      return res.status(200).json({ 
-        success: true, 
+    // Проверка: есть ли что отменять
+    if (!user.payment_method_id) {
+      return res.status(200).json({
+        success: true,
         already_inactive: true,
-        message: 'Автосписание уже было отменено ранее'
+        message: 'Автопродление уже было отменено ранее'
       });
     }
 
     // Логируем отмену
-    console.log('[cancel-subscription] Отмена автосписания:', {
+    console.log('[cancel-subscription] Отмена автопродления:', {
       telegram_id,
-      contact_id,
       name: user.name,
       tariff: user.tariff,
       subscription_end: user.subscription_end,
     });
 
-    // Деактивируем в SQLite (status = неактивно, payment_method_id = null)
-    deactivateSubscription(telegram_id);
+    // Только убираем payment_method_id — подписка остаётся активной до конца срока
+    cancelAutoRenew(telegram_id);
 
     // Очищаем кэш пользователя (чтобы изменения применились сразу)
     try {
