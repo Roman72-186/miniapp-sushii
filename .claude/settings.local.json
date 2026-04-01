@@ -25,7 +25,8 @@
       "Bash(ssh root@64.188.63.249 \"cd miniapp-sushii && mv data/all-users-export.csv data/all-users-export.csv.bak && git pull && docker compose up -d --build app 2>&1 | tail -6\")",
       "Bash(ssh root@64.188.63.249 \"cd miniapp-sushii && grep TELEGRAM_BOT_TOKEN .env | cut -c1-40\")",
       "Bash(ssh root@64.188.63.249 \"grep -E ''SUPABASE'' miniapp-sushii/.env\")",
-      "Bash(ssh root@64.188.63.249:*)"
+      "Bash(ssh root@64.188.63.249:*)",
+      "Bash(ssh -o StrictHostKeyChecking=no root@64.188.63.249 \"cd miniapp-sushii && git pull && docker compose up -d --build 2>&1 | tail -20\")"
     ]
   }
 }

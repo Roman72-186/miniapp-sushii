@@ -170,6 +170,9 @@ function SubCard({ product, onSelect, onImageClick, disabled }) {
 
       <div className="shop-card__body">
         <h3 className="shop-card__name">{product.name}</h3>
+        {product.description && (
+          <p className="shop-card__desc">{product.description}</p>
+        )}
         <div className="shop-card__bottom">
           <span className="shop-card__price" style={{ color: '#3CC8A1' }}>Подарок</span>
           <button 
