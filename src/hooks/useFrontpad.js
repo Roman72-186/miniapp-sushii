@@ -13,6 +13,7 @@ export function useCart() {
     setItems(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
+        if (existing.product.gift) return prev; // подарок не дублируем
         return prev.map(item =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + quantity }
@@ -28,19 +29,20 @@ export function useCart() {
   }, []);
 
   const updateQuantity = useCallback((productId, quantity) => {
-    if (quantity <= 0) {
-      removeItem(productId);
-      return;
-    }
-    setItems(prev =>
-      prev.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
-    );
-  }, [removeItem]);
+    setItems(prev => {
+      const item = prev.find(i => i.product.id === productId);
+      if (!item || item.product.gift) return prev; // подарки нельзя менять
+      if (quantity <= 0) return prev.filter(i => i.product.id !== productId);
+      return prev.map(i => i.product.id === productId ? { ...i, quantity } : i);
+    });
+  }, []);
 
   const clear = useCallback(() => {
     setItems([]);
+  }, []);
+
+  const clearNonGiftItems = useCallback(() => {
+    setItems(prev => prev.filter(item => item.product.gift));
   }, []);
 
   const total = useMemo(() => {
@@ -57,6 +59,7 @@ export function useCart() {
     removeItem,
     updateQuantity,
     clear,
+    clearNonGiftItems,
     total,
     count,
   };
