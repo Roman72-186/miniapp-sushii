@@ -95,6 +95,7 @@ function useDiscountMenu() {
                   category: category.id,
                   gift: true,
                   image: getProductImage(item.name),
+                  description: item.description || null,
                 };
               }
 
@@ -110,6 +111,7 @@ function useDiscountMenu() {
                 savings: oldPrice - discountPrice,
                 category: category.id,
                 image: getProductImage(item.name),
+                description: item.description || null,
               };
             });
         })
@@ -599,7 +601,7 @@ function DiscountShopPage() {
                 key={product.id}
                 product={product}
                 onSelect={handleGiftSelect}
-                onImageClick={item => setModalProduct({ ...item, description: getProductDescription(item.name) })}
+                onImageClick={item => setModalProduct({ ...item, description: item.description || getProductDescription(item.name) })}
                 disabled={giftClaimingId === product.id}
               />
             ))}
@@ -752,7 +754,7 @@ function DiscountShopPage() {
                       quantity={getQuantity(product.id)}
                       onAdd={cart.addItem}
                       onUpdateQuantity={cart.updateQuantity}
-                      onImageClick={item => setModalProduct({ ...item, description: getProductDescription(item.name) })}
+                      onImageClick={item => setModalProduct({ ...item, description: item.description || getProductDescription(item.name) })}
                     />
                   ))}
                 </div>
