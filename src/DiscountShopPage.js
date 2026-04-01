@@ -689,57 +689,65 @@ function DiscountShopPage() {
         </div>
       )}
 
-      <div className="shop-gift-row">
-        {GIFT_CATEGORIES.map(category => {
-          const anyLoading = tarifLoading || giftStatusLoading;
-          const hasAdminGrant =
-            (category.id === 'gift-rolls' && adminGrants.roll) ||
-            (category.id === 'gift-sets' && adminGrants.set);
+      <div className="shop-gift-section">
+        <p className="shop-gift-section__title">🎁 Подарки по подписке</p>
+        <div className="shop-gift-row">
+          {GIFT_CATEGORIES.map(category => {
+            const anyLoading = tarifLoading || giftStatusLoading;
+            const hasAdminGrant =
+              (category.id === 'gift-rolls' && adminGrants.roll) ||
+              (category.id === 'gift-sets' && adminGrants.set);
 
-          const locked = anyLoading ? true : (!hasAdminGrant && isGiftLocked(category, userTarif));
-          if (!locked && !hasAdminGrant && giftStatus && giftStatus.status === 'expired') return null;
+            const locked = anyLoading ? true : (!hasAdminGrant && isGiftLocked(category, userTarif));
+            if (!locked && !hasAdminGrant && giftStatus && giftStatus.status === 'expired') return null;
 
-          const isClaimed =
-            !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'claimed';
-          const isWaiting =
-            !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'waiting';
-          const isSelectedGift = hasGiftInCart && pendingGiftCategory === category.id;
-          const isDisabled = locked || isClaimed || isWaiting || hasGiftInCart;
+            const isClaimed =
+              !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'claimed';
+            const isWaiting =
+              !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'waiting';
+            const isSelectedGift = hasGiftInCart && pendingGiftCategory === category.id;
+            const isDisabled = locked || isClaimed || isWaiting || hasGiftInCart;
+            const isAvailable = !isDisabled;
 
-          let label = `${category.icon} ${category.tab}`;
-          let extraClass = '';
-          let badge = null;
+            let icon = category.icon;
+            let text = category.tab;
+            let extraClass = '';
+            let badge = null;
 
-          if (anyLoading) {
-            badge = <span className="shop-gift-btn__lock">...</span>;
-          } else if (locked) {
-            badge = <span className="shop-gift-btn__lock">🔒</span>;
-          } else if (isSelectedGift) {
-            label = '✓ В корзине';
-            extraClass = 'shop-gift-btn--claimed';
-          } else if (hasGiftInCart) {
-            label = `${category.icon} Уже выбран`;
-            extraClass = 'shop-gift-btn--waiting';
-          } else if (isClaimed) {
-            label = '✓ Получен';
-            extraClass = 'shop-gift-btn--claimed';
-          } else if (isWaiting) {
-            label = `${category.icon} Через ${giftStatus.daysLeft} дн.`;
-            extraClass = 'shop-gift-btn--waiting';
-          }
+            if (anyLoading) {
+              badge = <span className="shop-gift-btn__lock">...</span>;
+            } else if (locked) {
+              badge = <span className="shop-gift-btn__lock">🔒</span>;
+            } else if (isSelectedGift) {
+              icon = '✓';
+              text = 'В корзине';
+              extraClass = 'shop-gift-btn--claimed';
+            } else if (hasGiftInCart) {
+              text = 'Уже выбран';
+              extraClass = 'shop-gift-btn--waiting';
+            } else if (isClaimed) {
+              icon = '✓';
+              text = 'Получен';
+              extraClass = 'shop-gift-btn--claimed';
+            } else if (isWaiting) {
+              text = `Через ${giftStatus.daysLeft} дн.`;
+              extraClass = 'shop-gift-btn--waiting';
+            }
 
-          return (
-            <button
-              key={category.id}
-              className={`shop-gift-btn ${isDisabled ? 'shop-gift-btn--locked' : ''} ${extraClass}`}
-              onClick={() => isDisabled ? null : handleGiftClick(category.id)}
-              disabled={isDisabled}
-            >
-              <span>{label}</span>
-              {badge}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={category.id}
+                className={`shop-gift-btn ${isDisabled ? 'shop-gift-btn--locked' : ''} ${isAvailable ? 'shop-gift-btn--available' : ''} ${extraClass}`}
+                onClick={() => isDisabled ? null : handleGiftClick(category.id)}
+                disabled={isDisabled}
+              >
+                <span className="shop-gift-btn__icon">{icon}</span>
+                <span className="shop-gift-btn__text">{text}</span>
+                {badge}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <PromoBanner />

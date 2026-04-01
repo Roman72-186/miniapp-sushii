@@ -128,43 +128,83 @@ body.shop-body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* === Подарочные кнопки (под хедером) === */
+/* === Подарочная секция === */
+.shop-gift-section {
+  background: linear-gradient(135deg, #2b1500 0%, #1a2018 100%);
+  border-bottom: 2px solid #f5923a66;
+  padding: 10px 0 12px;
+}
+
+.shop-gift-section__title {
+  margin: 0 0 8px;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #f5923a;
+  text-align: center;
+}
+
 .shop-gift-row {
   display: flex;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #222;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+@keyframes gift-glow {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(245, 146, 58, 0.45); }
+  50%       { box-shadow: 0 0 18px 5px rgba(245, 146, 58, 0.85); }
 }
 
 .shop-gift-btn {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 3px;
+  padding: 14px 10px;
   background: #f5923a;
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   color: #fff;
-  font-size: 14px;
-  font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, transform 0.15s;
+  min-height: 72px;
+}
+
+.shop-gift-btn__icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.shop-gift-btn__text {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.shop-gift-btn--available {
+  animation: gift-glow 2s ease-in-out infinite;
+}
+
+.shop-gift-btn--available:active {
+  transform: scale(0.96);
 }
 
 .shop-gift-btn:hover {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .shop-gift-btn--locked {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 
 .shop-gift-btn--claimed {
-  background: #555;
-  opacity: 0.7;
+  background: #4a4a4a;
+  opacity: 0.75;
   cursor: default;
 }
 
@@ -176,32 +216,28 @@ body.shop-body {
 
 .shop-gift-btn__lock {
   font-size: 12px;
+  margin-top: 2px;
 }
 
-/* === Sticky-табы категорий === */
+/* === Sticky-табы категорий (2 ряда) === */
 .shop-tabs {
   display: flex;
+  flex-wrap: wrap;
   position: sticky;
   top: 52px;
   z-index: 99;
   background: #222;
   border-bottom: 1px solid #333;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.shop-tabs::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
 }
 
 .shop-tabs__item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
+  gap: 5px;
+  flex: 1 0 33.33%;
   justify-content: center;
-  padding: 10px 14px;
+  padding: 9px 8px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -219,7 +255,7 @@ body.shop-body {
 }
 
 .shop-tabs__icon {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .shop-tabs__name {
