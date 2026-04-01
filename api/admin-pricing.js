@@ -7,8 +7,8 @@ const PRICING_PATH = path.join(__dirname, '..', 'data', 'products', 'pricing.jso
 
 const DEFAULT_PRICING = {
   '290':  { price: 290,  months: { 1: 290,  3: 750,  5: 1200 } },
-  '490':  { price: 490,  months: { 1: 490,  3: 1200, 5: 2150 } },
-  '1190': { price: 1190, months: { 1: 1190, 3: 3300, 5: 5650 } },
+  '490':  { price: 690,  months: { 1: 690,  3: 1650, 5: 2950 } },
+  '1190': { price: 1390, months: { 1: 1390, 3: 3800, 5: 6450 } },
   '9990': { price: 3990, months: { 1: 3990 } },
 };
 

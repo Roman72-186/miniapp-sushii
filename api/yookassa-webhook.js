@@ -2,7 +2,7 @@
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { frontpadRequest } = require('./_lib/frontpad');
-const { getUser, upsertUser, recordPayment, processCommissions } = require('./_lib/db');
+const { getUser, upsertUser, recordPayment, processReferralSHC } = require('./_lib/db');
 
 // ID подписок во Frontpad
 const TARIF_PRODUCT_ID = {
@@ -147,11 +147,11 @@ module.exports = async (req, res) => {
         yookassa_payment_id: payment.id || null,
       });
 
-      // Начисляем комиссии амбассадорам (если плательщик — чей-то реферал)
+      // Начисляем 20% SHC пригласившему (если плательщик — чей-то реферал)
       if (!isOneTime && paymentAmount > 0) {
-        const commissions = processCommissions(String(telegramId), paymentAmount, paymentDbId);
-        if (commissions.length > 0) {
-          console.log('webhook: commissions processed', commissions);
+        const referralResult = processReferralSHC(String(telegramId), paymentAmount);
+        if (referralResult) {
+          console.log('webhook: referral SHC processed', referralResult);
         }
       }
     } catch (dbErr) {

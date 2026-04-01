@@ -107,7 +107,7 @@ function SettingsPage() {
           </button>
           {expandedSection === 'rules' && (
             <div className="shop-settings__content">
-              <p><b>✅ Преимущества тарифа за 1190₽:</b></p>
+              <p><b>✅ Преимущества тарифа за 1390₽:</b></p>
               <ul>
                 <li><b>Скидка</b> на ВСЕ роллы 30%</li>
                 <li><b>Скидка</b> на сеты 20% <b>весь день</b></li>

@@ -11,7 +11,7 @@ const {
   deactivateSubscription,
   renewSubscription,
   recordPayment,
-  processCommissions,
+  processReferralSHC,
 } = require('./_lib/db');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -21,8 +21,8 @@ const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
 // Цены рекуррентного списания (1 месяц)
 const RECURRING_PRICES = {
   '290': 290,
-  '490': 490,
-  '1190': 1190,
+  '490': 690,
+  '1190': 1390,
 };
 
 function formatDate(date) {
@@ -183,8 +183,8 @@ async function runSubscriptionCron() {
             yookassa_payment_id: result.paymentId,
           });
 
-          // Комиссии амбассадорам
-          processCommissions(user.telegram_id, result.amount, paymentDbId);
+          // Начисляем 20% SHC пригласившему
+          processReferralSHC(String(user.telegram_id), result.amount);
 
           await sendMessage(
             user.telegram_id,
