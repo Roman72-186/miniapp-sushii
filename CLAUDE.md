@@ -96,3 +96,7 @@ CRON_SECRET                             # Subscription cron endpoint
 Docker Compose: `app` (Node 20-alpine, port 3001) + `nginx` (reverse proxy, SSL) + `certbot`. Persistent volume `app-data` → `/app/data` (SQLite, caches, admin overrides, banners).
 
 Domain: `https://sushi-house-39.ru`
+
+Рефактори auth middleware, чтобы использовать JWT вместо session tokens.
+Запусти существующий набор тестов после внесения изменений.
+Исправь все ошибки, прежде чем считать работу завершённой.

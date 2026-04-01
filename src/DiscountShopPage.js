@@ -36,6 +36,22 @@ const DISCOUNT_CATEGORIES = [
     jsonUrl: '/подписка сеты/sets-sub.json',
     discount: 0.20,
   },
+  {
+    id: 'sub-gunkan',
+    name: 'Гунканы',
+    tab: 'Гунканы',
+    icon: '🍣',
+    jsonUrl: '/гунканы/gunkan.json',
+    discount: 0.30,
+  },
+  {
+    id: 'sub-sauces',
+    name: 'Добавки',
+    tab: 'Добавки',
+    icon: '🥄',
+    jsonUrl: '/добавки/sauces.json',
+    discount: 0,
+  },
 ];
 
 const GIFT_CATEGORIES = [
