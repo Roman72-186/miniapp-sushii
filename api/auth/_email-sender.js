@@ -15,7 +15,7 @@ async function sendOtpViaEmail(email, code) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Суши-Хаус 39 <onboarding@resend.dev>',
+        from: 'Суши-Хаус 39 <noreply@sushi-house-39.ru>',
         to: email,
         subject: `Код входа: ${code}`,
         html: `
