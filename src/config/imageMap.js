@@ -79,6 +79,34 @@ const IMAGE_MAP = {
   'ролл сузуки': '/img/samurai.PNG',
   'ролл филадельфия с чукой': '/img/Филадельфия лайт с огурцом.jpg',
   'ролл филадельфия ред': '/img/Филадельфия лайт с огурцом.jpg',
+
+  // === Добавки и соусы ===
+  'васаби': '/img/wasabi.jpg',
+  'васаби (20 г)': '/img/wasabi.jpg',
+  'имбирь': '/img/ginger-pickled.jpg',
+  'имбирь (30 г)': '/img/ginger-pickled.jpg',
+  'соевый соус': '/img/soy-sauce.jpg',
+  'соевый соус (40 мл)': '/img/soy-sauce.jpg',
+  'соус спайси': '/img/sauce-spicy.jpg',
+  'соус спайси 50г': '/img/sauce-spicy.jpg',
+  'соус масаго': '/img/sauce-masago.jpg',
+  'соус масаго 50г': '/img/sauce-masago.jpg',
+  'соус унаги': '/img/sauce-unagi.jpg',
+  'соус унаги 50г': '/img/sauce-unagi.jpg',
+  'соус ореховый': '/img/sauce-peanut.jpg',
+  'соус ореховый 50г': '/img/sauce-peanut.jpg',
+  'соус свит чилли': '/img/sauce-sweet-chili.jpg',
+  'соус свит чилли 50г': '/img/sauce-sweet-chili.jpg',
+  'соус свит чили': '/img/sauce-sweet-chili.jpg',
+  'свит чилли': '/img/sauce-sweet-chili.jpg',
+  'свит чили': '/img/sauce-sweet-chili.jpg',
+
+  // === Гунканы ===
+  'гункан с жареным лососем': '/img/gunkan-salmon.jpg',
+  'гункан с икрой масаго': '/img/gunkan-masago.jpg',
+  'гункан с чукой': '/img/gunkan-chuka.jpg',
+  'гункан спайси кани': '/img/gunkan-kani.jpg',
+  'гункан унаги авокадо': '/img/gunkan-unagi.jpg',
 };
 
 /**
