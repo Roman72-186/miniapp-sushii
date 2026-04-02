@@ -105,68 +105,10 @@ function LandingPage() {
     );
   }
 
-  if (userLoading || redirecting) {
+  if (userLoading || redirecting || hasActiveSubscription) {
     return (
       <div className="shop-page">
         <BrandLoader text="Проверяем подписку" />
-      </div>
-    );
-  }
-
-  // Если есть активная подписка — показываем главное меню
-  if (hasActiveSubscription) {
-    return (
-      <div className="shop-page">
-        <div className="shop-landing">
-          <img src="/logo.jpg" alt="Суши-Хаус 39" className="shop-landing__logo" onClick={handleLogoClick} style={{ cursor: 'default' }} />
-          <h1 className="shop-landing__title">СУШИ-ХАУС 39</h1>
-          <p className="shop-landing__subtitle">Добро пожаловать!</p>
-
-          <div className="shop-landing__menu">
-            <a
-              href={`/discount-shop?telegram_id=${telegramId}`}
-              className="shop-landing__menu-btn shop-landing__menu-btn--primary"
-            >
-              <span className="shop-landing__menu-icon">🍱</span>
-              <span className="shop-landing__menu-label">Магазин со скидками</span>
-            </a>
-
-            <a
-              href={`/discount-shop?view=gift-rolls&telegram_id=${telegramId}`}
-              className="shop-landing__menu-btn"
-            >
-              <span className="shop-landing__menu-icon">🎁</span>
-              <span className="shop-landing__menu-label">Подарочные роллы</span>
-            </a>
-
-            <a
-              href={`/discount-shop?view=gift-sets&telegram_id=${telegramId}`}
-              className="shop-landing__menu-btn"
-            >
-              <span className="shop-landing__menu-icon">🍱</span>
-              <span className="shop-landing__menu-label">Подарочные сеты</span>
-            </a>
-
-            <a
-              href={`/profile?telegram_id=${telegramId}`}
-              className="shop-landing__menu-btn shop-landing__menu-btn--secondary"
-            >
-              <span className="shop-landing__menu-icon">👤</span>
-              <span className="shop-landing__menu-label">Личный кабинет</span>
-            </a>
-
-            {isWebUser && (
-              <button
-                className="shop-landing__menu-btn"
-                style={{ background: 'none', border: '1px solid #444', color: '#9fb0c3', cursor: 'pointer', width: '100%' }}
-                onClick={logout}
-              >
-                <span className="shop-landing__menu-icon">🚪</span>
-                <span className="shop-landing__menu-label">Выйти</span>
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     );
   }
