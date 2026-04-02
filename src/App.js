@@ -17,6 +17,7 @@ import GiftSetsPage from "./GiftSetsPage"; // подарочные сеты (о�
 import LoginPage from "./LoginPage"; // веб-вход по телефону
 import BenefitsPage from "./BenefitsPage"; // страница выгоды подписки
 import PartnerCodePage from "./PartnerCodePage"; // ввод кода партнёра после оплаты
+import NotFoundPage from "./NotFoundPage"; // страница 404
 
 function App() {
   const pathname =
@@ -106,19 +107,12 @@ function App() {
     return <LandingPage />;
   }
 
-  return (
-    <div className="app">
-      {isSetsReceivedPage ? (
-        <SetsReceivedPage />
-      ) : isSetsPage ? (
-        <SetsPage />
-      ) : isRollsPage ? (
-        <RollsPage />
-      ) : isSuccessPage ? (
-        <Success />
-      ) : null}
-    </div>
-  );
+  if (isSetsReceivedPage) return <SetsReceivedPage />;
+  if (isSetsPage) return <SetsPage />;
+  if (isRollsPage) return <RollsPage />;
+  if (isSuccessPage) return <Success />;
+
+  return <NotFoundPage />;
 }
 
 export default App;

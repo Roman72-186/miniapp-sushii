@@ -34,6 +34,8 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [pdnConsent, setPdnConsent] = useState(false);
+
   // OTP resend countdown
   const [resendIn, setResendIn] = useState(0);
   const timerRef = useRef(null);
@@ -264,12 +266,31 @@ function LoginPage() {
                 />
               </div>
             </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '14px 0 2px' }}>
+              <input
+                type="checkbox"
+                id="pdn-consent"
+                checked={pdnConsent}
+                onChange={e => setPdnConsent(e.target.checked)}
+                style={{ marginTop: 2, accentColor: '#3CC8A1', width: 16, height: 16, flexShrink: 0, cursor: 'pointer' }}
+              />
+              <label htmlFor="pdn-consent" style={{ fontSize: 12, color: '#9fb0c3', lineHeight: '1.5', cursor: 'pointer' }}>
+                Я согласен(а) с{' '}
+                <a href="https://sushi-house.zenky.app/legal/personal-data-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#3CC8A1' }}>
+                  политикой обработки персональных данных
+                </a>
+                {' '}и{' '}
+                <a href="https://sushi-house.zenky.app/legal/privacy-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#3CC8A1' }}>
+                  политикой конфиденциальности
+                </a>
+              </label>
+            </div>
             {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
             <button
               type="submit"
               className="shop-payment__btn"
               style={{ marginTop: 16 }}
-              disabled={loading || !phone.trim()}
+              disabled={loading || !phone.trim() || !pdnConsent}
             >
               {loading ? 'Проверяем...' : 'Продолжить'}
             </button>

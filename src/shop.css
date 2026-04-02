@@ -20,6 +20,7 @@ body.shop-body {
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   padding-bottom: 80px;
+  animation: shop-page-enter 0.35s ease-out both;
 }
 
 .shop-page * {
@@ -406,6 +407,9 @@ body.shop-body {
 .shop-card__add-btn:hover {
   opacity: 0.85;
 }
+.shop-card__add-btn:active {
+  transform: scale(0.94);
+}
 
 /* Счётчик в карточке */
 .shop-card__counter {
@@ -596,6 +600,11 @@ body.shop-body {
 @keyframes shop-slide-in {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+
+@keyframes shop-page-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .shop-cart__header {
@@ -811,6 +820,11 @@ body.shop-body {
 }
 
 .shop-cart__checkout-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.shop-cart__checkout-btn:active {
+  transform: scale(0.97);
   opacity: 0.85;
 }
 
@@ -1145,6 +1159,7 @@ body.shop-body {
   color: #fff;
   border: none;
   border-radius: 12px;
+  transition: opacity 0.2s, transform 0.15s;
   padding: 14px 20px;
   font-size: 16px;
   font-weight: 700;
@@ -1155,7 +1170,12 @@ body.shop-body {
   text-align: center;
 }
 
-.shop-checkout__submit:hover {
+.shop-checkout__submit:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.shop-checkout__submit:active:not(:disabled) {
+  transform: scale(0.97);
   opacity: 0.85;
 }
 
@@ -1237,6 +1257,14 @@ body.shop-body {
   padding: 4px 10px;
   font-size: 12px;
   cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+.shop-shc-block__max-btn:hover {
+  background: #3CC8A133;
+  border-color: #3CC8A1;
+}
+.shop-shc-block__max-btn:active {
+  transform: scale(0.94);
 }
 
 .shop-shc-block__discount {
@@ -1291,6 +1319,15 @@ body.shop-body {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.shop-success__btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.shop-success__btn:active {
+  transform: scale(0.97);
+  opacity: 0.85;
 }
 
 /* === Секции категорий === */
@@ -1911,6 +1948,7 @@ body.shop-body {
   display: block;
   width: 100%;
   padding: 16px;
+  transition: opacity 0.2s, transform 0.15s;
   border: none;
   border-radius: 14px;
   background: #3CC8A1;
@@ -1921,6 +1959,14 @@ body.shop-body {
   text-align: center;
 }
 
+.shop-payment__btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.shop-payment__btn:active:not(:disabled) {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
 .shop-payment__btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
