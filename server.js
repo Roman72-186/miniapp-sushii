@@ -20,6 +20,7 @@ app.all('/api/get-gift-windows', require('./api/get-gift-windows'));
 app.all('/api/export-contacts', require('./api/export-contacts'));
 app.all('/api/get-transactions', require('./api/get-transactions'));
 app.all('/api/register-referral', require('./api/register-referral'));
+app.all('/api/apply-partner-code', require('./api/apply-partner-code'));
 app.all('/api/send-bot-message', require('./api/send-bot-message'));
 app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 app.all('/api/nearest-store', require('./api/nearest-store'));

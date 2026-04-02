@@ -16,6 +16,7 @@ import GiftRollsPage from "./GiftRollsPage"; // подарочные роллы 
 import GiftSetsPage from "./GiftSetsPage"; // подарочные сеты (отдельная страница для бота)
 import LoginPage from "./LoginPage"; // веб-вход по телефону
 import BenefitsPage from "./BenefitsPage"; // страница выгоды подписки
+import PartnerCodePage from "./PartnerCodePage"; // ввод кода партнёра после оплаты
 
 function App() {
   const pathname =
@@ -52,6 +53,8 @@ function App() {
     pathname === "/login";
   const isBenefitsPage =
     pathname === "/benefits";
+  const isPartnerCodePage =
+    pathname === "/partner-code";
   const isLandingPage =
     pathname === "/";
 
@@ -61,6 +64,10 @@ function App() {
 
   if (isBenefitsPage) {
     return <BenefitsPage />;
+  }
+
+  if (isPartnerCodePage) {
+    return <PartnerCodePage />;
   }
 
   if (isGiftRollsPage) {

@@ -216,6 +216,8 @@ export function UserProvider({ children }) {
       датаНачала: v['датаНачала'] || null,
       датаПодарка: v['датаПодарка'] || null,
       ref_url: v['ref_url'] || null,
+      partner_code: v['partner_code'] || null,
+      payment_method_id: v['PaymentID'] || null,
       has_payment_id: !!v['PaymentID'],
       contact_id: contactId,
     };

@@ -81,7 +81,21 @@ function getDb() {
     CREATE INDEX IF NOT EXISTS idx_transactions_referral ON transactions(referral_id);
   `);
 
+  // Миграция: добавить partner_code если нет
+  try { _db.exec('ALTER TABLE users ADD COLUMN partner_code TEXT'); } catch {}
+
   return _db;
+}
+
+function generatePartnerCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function getPartnerByCode(code) {
+  return getDb().prepare('SELECT * FROM users WHERE partner_code = ?').get(String(code).toUpperCase()) || null;
 }
 
 // ─── Users ───────────────────────────────────────────────
@@ -91,10 +105,10 @@ function upsertUser(data) {
   const stmt = db.prepare(`
     INSERT INTO users (telegram_id, name, phone, tariff, invited_by, is_ambassador,
                        subscription_status, subscription_start, subscription_end,
-                       payment_method_id, ref_url, watbot_contact_id, updated_at)
+                       payment_method_id, ref_url, partner_code, watbot_contact_id, updated_at)
     VALUES (@telegram_id, @name, @phone, @tariff, @invited_by, @is_ambassador,
             @subscription_status, @subscription_start, @subscription_end,
-            @payment_method_id, @ref_url, @watbot_contact_id, datetime('now'))
+            @payment_method_id, @ref_url, @partner_code, @watbot_contact_id, datetime('now'))
     ON CONFLICT(telegram_id) DO UPDATE SET
       name = COALESCE(@name, users.name),
       phone = COALESCE(@phone, users.phone),
@@ -106,6 +120,7 @@ function upsertUser(data) {
       subscription_end = COALESCE(@subscription_end, users.subscription_end),
       payment_method_id = COALESCE(@payment_method_id, users.payment_method_id),
       ref_url = COALESCE(@ref_url, users.ref_url),
+      partner_code = COALESCE(users.partner_code, @partner_code),
       watbot_contact_id = COALESCE(@watbot_contact_id, users.watbot_contact_id),
       updated_at = datetime('now')
   `);
@@ -121,6 +136,7 @@ function upsertUser(data) {
     subscription_end: data.subscription_end || null,
     payment_method_id: data.payment_method_id || null,
     ref_url: data.ref_url || null,
+    partner_code: data.partner_code || null,
     watbot_contact_id: data.watbot_contact_id || null,
   });
 }
@@ -494,6 +510,8 @@ module.exports = {
   processCommissions,
   processReferralSHC,
   processReferralBonus,
+  generatePartnerCode,
+  getPartnerByCode,
   getReferralBonuses,
   getExpiringSubscriptions,
   getExpiredToday,

@@ -234,24 +234,34 @@ function ProfilePage() {
                   )}
                 </div>
 
-                {/* Поделиться ссылкой */}
-                {profile?.ref_url && (
+                {/* Партнёрский код */}
+                {profile?.partner_code && (
                   <div className="shop-profile__section">
-                    <button
-                      className="shop-profile__invite-btn"
-                      onClick={() => {
-                        const text = 'Привет! Присоединяйся к Суши-Хаус 39 — вкусные роллы со скидкой по подписке 🍣';
-                        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(profile.ref_url)}&text=${encodeURIComponent(text)}`;
-                        const tg = window.Telegram?.WebApp;
-                        if (tg?.openTelegramLink) {
-                          tg.openTelegramLink(shareUrl);
-                        } else {
-                          window.open(shareUrl, '_blank');
-                        }
-                      }}
-                    >
-                      Поделиться ссылкой
-                    </button>
+                    <div className="shop-profile__partner-code-label">Ваш код партнёра</div>
+                    <div className="shop-profile__partner-code">{profile.partner_code}</div>
+                    <div className="shop-profile__partner-code-actions">
+                      <button
+                        className="shop-profile__invite-btn"
+                        onClick={() => navigator.clipboard?.writeText(profile.partner_code)}
+                      >
+                        Скопировать
+                      </button>
+                      <button
+                        className="shop-profile__invite-btn"
+                        onClick={() => {
+                          const text = `Мой код в Суши-Хаус 39: ${profile.partner_code} 🍣 Введи его после покупки подписки и я получу бонус!`;
+                          const shareUrl = `https://t.me/share/url?url=https://sushi-house-39.ru&text=${encodeURIComponent(text)}`;
+                          const tg = window.Telegram?.WebApp;
+                          if (tg?.openTelegramLink) {
+                            tg.openTelegramLink(shareUrl);
+                          } else {
+                            window.open(shareUrl, '_blank');
+                          }
+                        }}
+                      >
+                        Поделиться
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -355,22 +365,34 @@ function ProfilePage() {
                       <span className="amb-panel__counter-label">SHC</span>
                     </div>
                   </div>
-                  {profile?.ref_url && (
-                    <button
-                      className="shop-profile__invite-btn"
-                      onClick={() => {
-                        const text = 'Привет! Присоединяйся к Суши-Хаус 39 — вкусные роллы со скидкой по подписке 🍣';
-                        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(profile.ref_url)}&text=${encodeURIComponent(text)}`;
-                        const tg = window.Telegram?.WebApp;
-                        if (tg?.openTelegramLink) {
-                          tg.openTelegramLink(shareUrl);
-                        } else {
-                          window.open(shareUrl, '_blank');
-                        }
-                      }}
-                    >
-                      Поделиться ссылкой
-                    </button>
+                  {profile?.partner_code && (
+                    <>
+                      <div className="shop-profile__partner-code-label">Ваш код партнёра</div>
+                      <div className="shop-profile__partner-code">{profile.partner_code}</div>
+                      <div className="shop-profile__partner-code-actions">
+                        <button
+                          className="shop-profile__invite-btn"
+                          onClick={() => navigator.clipboard?.writeText(profile.partner_code)}
+                        >
+                          Скопировать
+                        </button>
+                        <button
+                          className="shop-profile__invite-btn"
+                          onClick={() => {
+                            const text = `Мой код в Суши-Хаус 39: ${profile.partner_code} 🍣 Введи его после покупки подписки и я получу бонус!`;
+                            const shareUrl = `https://t.me/share/url?url=https://sushi-house-39.ru&text=${encodeURIComponent(text)}`;
+                            const tg = window.Telegram?.WebApp;
+                            if (tg?.openTelegramLink) {
+                              tg.openTelegramLink(shareUrl);
+                            } else {
+                              window.open(shareUrl, '_blank');
+                            }
+                          }}
+                        >
+                          Поделиться
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
 

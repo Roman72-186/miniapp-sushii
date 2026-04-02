@@ -2,7 +2,7 @@
 // Источник данных: SQLite (primary) → файловый кэш
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
-const { getUser, upsertUser } = require('./_lib/db');
+const { getUser, upsertUser, generatePartnerCode, getPartnerByCode } = require('./_lib/db');
 const { readGiftWindows } = require('./_lib/blob-store');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 
@@ -87,6 +87,18 @@ module.exports = async (req, res) => {
       dbUser = getUser(telegram_id);
     }
 
+    // Автогенерация partner_code если отсутствует
+    if (dbUser && !dbUser.partner_code) {
+      let code;
+      let attempts = 0;
+      do {
+        code = generatePartnerCode();
+        attempts++;
+      } while (getPartnerByCode(code) && attempts < 10);
+      upsertUser({ telegram_id: String(telegram_id), partner_code: code });
+      dbUser = getUser(telegram_id);
+    }
+
     // Проверка обязательных полей
     if (!dbUser) {
       console.error('[sync-user] Пользователь не найден в БД:', telegram_id);
@@ -164,6 +176,7 @@ module.exports = async (req, res) => {
       'PaymentID': dbUser?.payment_method_id || '',
       'balance_shc': dbUser?.balance_shc ? String(dbUser.balance_shc) : '',
       'ref_url': dbUser?.ref_url || '',
+      'partner_code': dbUser?.partner_code || '',
       'датаПодарка': giftDate,
     };
 
