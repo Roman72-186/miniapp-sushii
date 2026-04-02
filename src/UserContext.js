@@ -119,6 +119,8 @@ export function UserProvider({ children }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const isPaymentReturn = params.get('payment') === 'success';
+    const invitedBy = params.get('invited_by');
+
     sync(isPaymentReturn).then(() => {
       if (isPaymentReturn) {
         params.delete('payment');
@@ -127,7 +129,25 @@ export function UserProvider({ children }) {
         window.history.replaceState({}, '', newUrl);
       }
     });
-  }, [sync]);
+
+    // Регистрируем реферальную связь если пришли по реф-ссылке
+    if (invitedBy && telegramId && String(invitedBy) !== String(telegramId)) {
+      fetch('/api/register-referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: telegramId, invited_by: invitedBy }),
+      })
+        .then(r => r.json())
+        .then(() => {
+          // Убираем invited_by из URL чтобы не регистрировать повторно
+          const cleanParams = new URLSearchParams(window.location.search);
+          cleanParams.delete('invited_by');
+          const clean = cleanParams.toString();
+          window.history.replaceState({}, '', window.location.pathname + (clean ? '?' + clean : ''));
+        })
+        .catch(() => {});
+    }
+  }, [sync, telegramId]);
 
   useEffect(() => {
     if (!sessionStorage.getItem(PENDING_PAYMENT_KEY)) return undefined;
