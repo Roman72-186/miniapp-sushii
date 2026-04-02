@@ -20,7 +20,7 @@ body.shop-body {
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   padding-bottom: 100px;
-  animation: shop-page-enter 0.35s ease-out both;
+  animation: shop-page-enter 0.25s ease-out;
 }
 
 .shop-page * {
@@ -603,8 +603,8 @@ body.shop-body {
 }
 
 @keyframes shop-page-enter {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .shop-cart__header {
