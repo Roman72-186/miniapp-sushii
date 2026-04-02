@@ -27,6 +27,11 @@ function buildDatetime(timeStr) {
 }
 
 function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   const { listItemName, phone: userPhone, profile } = useUser();
   const shcBalance = profile?.balance_shc || 0;
   const [shcApplied, setShcApplied] = useState(0);
