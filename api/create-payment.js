@@ -40,7 +40,9 @@ module.exports = async (req, res) => {
   const totalAmount = PRICE_TABLE[tarifStr]?.[monthsNum];
   const amount = totalAmount.toFixed(2);
 
-  const returnUrl = `https://sushi-house-39.ru/discount-shop?telegram_id=${encodeURIComponent(telegram_id)}&payment=success`;
+  const returnUrl = isOneTime
+    ? `https://sushi-house-39.ru/discount-shop?telegram_id=${encodeURIComponent(telegram_id)}&payment=success`
+    : `https://sushi-house-39.ru/partner-code?telegram_id=${encodeURIComponent(telegram_id)}`;
 
   const monthsLabel = monthsNum === 1 ? '1 мес' : `${monthsNum} мес`;
   const description = isOneTime

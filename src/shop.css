@@ -2745,3 +2745,174 @@ body.shop-body {
 .benefits-tariff__btn:hover {
   opacity: 0.85;
 }
+
+/* ===== Partner Code Page ===== */
+.partner-code-page {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 32px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.partner-code-page__logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  object-fit: cover;
+  margin-bottom: 8px;
+}
+
+.partner-code-page__check {
+  font-size: 18px;
+  font-weight: 700;
+  color: #3CC8A1;
+}
+
+.partner-code-page__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.partner-code-page__subtitle {
+  font-size: 14px;
+  color: #aaa;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.partner-code-page__input-wrap {
+  width: 100%;
+}
+
+.partner-code-page__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-align: center;
+  background: #2a2a2e;
+  border: 2px solid #3a3a3e;
+  border-radius: 12px;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.partner-code-page__input:focus {
+  border-color: #3CC8A1;
+}
+
+.partner-code-page__error {
+  font-size: 14px;
+  color: #e53935;
+  text-align: center;
+}
+
+.partner-code-page__btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.partner-code-page__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.partner-code-page__btn--primary {
+  background: #3CC8A1;
+  color: #111;
+}
+
+.partner-code-page__btn--primary:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.partner-code-page__btn--skip {
+  background: transparent;
+  color: #888;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px;
+}
+
+.partner-code-page__btn--skip:hover {
+  color: #aaa;
+}
+
+/* Success screen */
+.partner-code-page__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+
+.partner-code-page__success-icon {
+  font-size: 56px;
+}
+
+.partner-code-page__success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #3CC8A1;
+}
+
+.partner-code-page__success-text {
+  font-size: 16px;
+  color: #eee;
+}
+
+.partner-code-page__success-shc {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.partner-code-page__success-hint {
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+}
+
+/* ===== Profile: partner code display ===== */
+.shop-profile__partner-code-label {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+
+.shop-profile__partner-code {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #3CC8A1;
+  background: #2a2a2e;
+  border-radius: 10px;
+  padding: 10px 20px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.shop-profile__partner-code-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.shop-profile__partner-code-actions .shop-profile__invite-btn {
+  flex: 1;
+}
