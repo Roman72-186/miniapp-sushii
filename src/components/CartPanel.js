@@ -1,8 +1,13 @@
 // src/components/CartPanel.js — Выдвижная панель корзины (тёмная тема)
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   return (
     <>
       <div className="shop-cart-overlay" onClick={onClose} />
