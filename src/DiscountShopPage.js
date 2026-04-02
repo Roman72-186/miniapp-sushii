@@ -810,28 +810,6 @@ function DiscountShopPage() {
         <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
       )}
 
-      {showCart && (
-        <CartPanel
-          items={cart.items}
-          total={cart.total}
-          onUpdateQuantity={cart.updateQuantity}
-          onRemove={cart.removeItem}
-          onClear={cart.clearNonGiftItems}
-          onClose={() => setShowCart(false)}
-          onCheckout={handleCheckout}
-        />
-      )}
-
-      {showCheckout && (
-        <CheckoutForm
-          items={cart.items}
-          total={cart.total}
-          telegramId={telegramId}
-          onBack={() => setShowCheckout(false)}
-          onSuccess={handleOrderSuccess}
-        />
-      )}
-
       {lockedPopup && (
         <>
           <div className="shop-locked-overlay" onClick={() => setLockedPopup(null)} />
@@ -846,7 +824,7 @@ function DiscountShopPage() {
       )}
     </div>
 
-    {/* Плавающая кнопка корзины — вне shop-page чтобы fixed работал корректно */}
+    {/* Всё с position:fixed вынесено за shop-page (иначе transform анимации ломает fixed) */}
     {cart.count > 0 && !showCart && !showCheckout && (
       <button className="shop-cart-fab" onClick={() => setShowCart(true)}>
         <span className="shop-cart-fab__left">
@@ -856,6 +834,28 @@ function DiscountShopPage() {
         </span>
         <span className="shop-cart-fab__total">{cart.total}₽</span>
       </button>
+    )}
+
+    {showCart && (
+      <CartPanel
+        items={cart.items}
+        total={cart.total}
+        onUpdateQuantity={cart.updateQuantity}
+        onRemove={cart.removeItem}
+        onClear={cart.clearNonGiftItems}
+        onClose={() => setShowCart(false)}
+        onCheckout={handleCheckout}
+      />
+    )}
+
+    {showCheckout && (
+      <CheckoutForm
+        items={cart.items}
+        total={cart.total}
+        telegramId={telegramId}
+        onBack={() => setShowCheckout(false)}
+        onSuccess={handleOrderSuccess}
+      />
     )}
     </>
   );
