@@ -750,7 +750,7 @@ function DiscountShopPage() {
         </div>
       </div>
 
-      <PromoBanner />
+      {/* <PromoBanner /> */}
 
       <nav className="shop-tabs" ref={tabsNavRef}>
         {DISCOUNT_CATEGORIES.map(category => (
