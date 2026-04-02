@@ -27,7 +27,10 @@
       "Bash(ssh root@64.188.63.249 \"grep -E ''SUPABASE'' miniapp-sushii/.env\")",
       "Bash(ssh root@64.188.63.249:*)",
       "Bash(ssh -o StrictHostKeyChecking=no root@64.188.63.249 \"cd miniapp-sushii && git pull && docker compose up -d --build 2>&1 | tail -20\")",
-      "WebFetch(domain:commons.wikimedia.org)"
+      "WebFetch(domain:commons.wikimedia.org)",
+      "Bash(ssh:*)",
+      "Bash(ls \"C:/Users/User/Desktop/Project/miniapp-sushii/public/\"*.json)",
+      "Bash(grep -E \"\\\\..*card.*\\\\{|\\\\..*Card.*\\\\{\" \"C:/Users/User/Desktop/Project/miniapp-sushii/src/shop.css\")"
     ]
   }
 }
