@@ -177,6 +177,7 @@ module.exports = async (req, res) => {
       'balance_shc': dbUser?.balance_shc ? String(dbUser.balance_shc) : '',
       'ref_url': dbUser?.ref_url || '',
       'partner_code': dbUser?.partner_code || '',
+      'invited_by': dbUser?.invited_by || '',
       'датаПодарка': giftDate,
     };
 
