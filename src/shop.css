@@ -19,7 +19,7 @@ body.shop-body {
   min-height: 100vh;
   color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  padding-bottom: 80px;
+  padding-bottom: 100px;
   animation: shop-page-enter 0.35s ease-out both;
 }
 
@@ -842,6 +842,58 @@ body.shop-body {
 .shop-cart__empty-icon {
   font-size: 48px;
   opacity: 0.5;
+}
+
+/* === Плавающая кнопка корзины === */
+.shop-cart-fab {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  background: #3CC8A1;
+  color: #fff;
+  border: none;
+  border-radius: 28px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(60, 200, 161, 0.45);
+  white-space: nowrap;
+  animation: shop-fab-in 0.25s ease-out both;
+  min-width: 200px;
+  justify-content: space-between;
+}
+
+@keyframes shop-fab-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.shop-cart-fab:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.shop-cart-fab__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shop-cart-fab__badge {
+  background: rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 13px;
+}
+
+.shop-cart-fab__total {
+  font-size: 16px;
+  font-weight: 700;
 }
 
 /* === Оформление заказа === */
