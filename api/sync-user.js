@@ -78,8 +78,15 @@ module.exports = async (req, res) => {
     }
 
     // 2. SQLite — единственный источник данных
-    const dbUser = getUser(telegram_id);
+    let dbUser = getUser(telegram_id);
     
+    // Автогенерация ref_url если отсутствует
+    if (dbUser && !dbUser.ref_url) {
+      const generatedUrl = `https://sushi-house-39.ru/?invited_by=${telegram_id}`;
+      upsertUser({ telegram_id: String(telegram_id), ref_url: generatedUrl });
+      dbUser = getUser(telegram_id);
+    }
+
     // Проверка обязательных полей
     if (!dbUser) {
       console.error('[sync-user] Пользователь не найден в БД:', telegram_id);
