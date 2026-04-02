@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
     try {
       const fs = require('fs');
       const path = require('path');
-      const cachePath = path.join(__dirname, '..', 'data', 'user-cache', `${telegram_id}.json`);
+      const cachePath = path.join(__dirname, '..', 'data', 'users', `${telegram_id}.json`);
       if (fs.existsSync(cachePath)) {
         fs.unlinkSync(cachePath);
         console.log('[cancel-subscription] Кэш очищен:', cachePath);

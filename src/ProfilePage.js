@@ -136,6 +136,12 @@ function ProfilePage() {
                 <span className="shop-profile__label">🔒 Действует до:</span>
                 <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
               </div>
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">🔄 Автосписание:</span>
+                <span className="shop-profile__value" style={{ color: profile?.payment_method_id ? '#3CC8A1' : '#999' }}>
+                  {profile?.payment_method_id ? 'активно' : 'отключено'}
+                </span>
+              </div>
             </div>
 
             {/* Амбассадор */}
