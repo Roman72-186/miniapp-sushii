@@ -517,11 +517,9 @@ function DiscountShopPage() {
     setShowCheckout(false);
     setOrderNumber(num);
 
-    if (orderData?.giftClaim?.ok || orderData?.giftClaim?.reason === 'already_claimed') {
+    if (hasGiftInCart) {
       setGiftStatus(prev => (prev ? { ...prev, status: 'claimed' } : prev));
       fetchGiftStatus();
-    } else if (hasGiftInCart) {
-      setGiftNotice('Заказ отправлен. Если подарок не обновится автоматически, проверим его вручную.');
     }
 
     cart.clear();
@@ -809,6 +807,18 @@ function DiscountShopPage() {
 
       {modalProduct && (
         <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
+      )}
+
+      {/* Плавающая кнопка корзины */}
+      {cart.count > 0 && !showCart && !showCheckout && (
+        <button className="shop-cart-fab" onClick={() => setShowCart(true)}>
+          <span className="shop-cart-fab__left">
+            <span>🛒</span>
+            <span className="shop-cart-fab__badge">{cart.count}</span>
+            <span>Оформить</span>
+          </span>
+          <span className="shop-cart-fab__total">{cart.total}₽</span>
+        </button>
       )}
 
       {showCart && (

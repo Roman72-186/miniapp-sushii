@@ -239,6 +239,18 @@ function ShopPage() {
         <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
       )}
 
+      {/* Плавающая кнопка корзины */}
+      {cart.count > 0 && !showCart && !showCheckout && (
+        <button className="shop-cart-fab" onClick={() => setShowCart(true)}>
+          <span className="shop-cart-fab__left">
+            <span>🛒</span>
+            <span className="shop-cart-fab__badge">{cart.count}</span>
+            <span>Оформить</span>
+          </span>
+          <span className="shop-cart-fab__total">{cart.total}₽</span>
+        </button>
+      )}
+
       {/* Корзина */}
       {showCart && (
         <CartPanel
