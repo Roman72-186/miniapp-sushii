@@ -173,9 +173,7 @@ function PaymentPage() {
         <button className="shop-header__back" onClick={handleBack}>
           ←
         </button>
-        <div className="shop-payment__error" style={{ background: 'transparent', color: '#9fb0c3', marginTop: 12 }}>
-          После оплаты во внешнем браузере просто вернитесь в Telegram. Подписка обновится автоматически.
-        </div>
+
         <div className="shop-header__center">
           <span className="shop-header__title">Оформление подписки</span>
         </div>
