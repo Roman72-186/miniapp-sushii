@@ -531,6 +531,18 @@ function LoginPage() {
           </form>
         )}
       </div>
+
+      <div style={{ textAlign: 'center', marginTop: 24, paddingBottom: 24 }}>
+        <span style={{ fontSize: 13, color: '#9fb0c3' }}>Нужна помощь? </span>
+        <a
+          href="https://t.me/roman_chatbots"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 13, color: '#3CC8A1', textDecoration: 'none' }}
+        >
+          Техническая поддержка
+        </a>
+      </div>
     </div>
   );
 }
