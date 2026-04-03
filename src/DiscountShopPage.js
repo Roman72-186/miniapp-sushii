@@ -363,7 +363,6 @@ function DiscountShopPage() {
       }
       
       if (hasGiftInCart) {
-        setGiftNotice('Подарок уже в корзине. Зафиксируем его после отправки заказа в Frontpad.');
         setGiftView(null);
         return;
       }
@@ -472,7 +471,6 @@ function DiscountShopPage() {
   const handleGiftClick = categoryId => {
     if (tarifLoading || giftStatusLoading) return;
     if (hasGiftInCart) {
-      setGiftNotice('Подарок уже в корзине. Зафиксируем его после отправки заказа в Frontpad.');
       return;
     }
 
@@ -530,8 +528,6 @@ function DiscountShopPage() {
     
     // Проверяем, есть ли уже подарок в корзине
     if (hasGiftInCart) {
-      console.log('Gift already in cart, showing notice');
-      setGiftNotice('Подарок уже в корзине. Зафиксируем его после отправки заказа в Frontpad.');
       setGiftView(null);
       return;
     }
@@ -558,9 +554,6 @@ function DiscountShopPage() {
       
       // Добавляем подарок в корзину
       cart.addItem(cartProduct);
-      
-      // Показываем уведомление о добавлении подарка
-      setGiftNotice('Подарок добавлен в корзину. Зафиксируем его после отправки заказа в Frontpad.');
       
       // Возвращаемся на главную страницу магазина
       setGiftView(null);
@@ -617,12 +610,6 @@ function DiscountShopPage() {
           </div>
           <div className="shop-header__spacer" />
         </header>
-
-        <div className="shop-section">
-          <p style={{ color: '#999', fontSize: 13, margin: '8px 16px 0', padding: 0 }}>
-            Выберите один подарок. Он добавится в корзину, а зафиксируем его только после отправки заказа в Frontpad.
-          </p>
-        </div>
 
         {loading ? (
           <BrandLoader text="Загружаем подарки" />

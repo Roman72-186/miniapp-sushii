@@ -18,6 +18,7 @@ function ProfilePage() {
   const [earnings, setEarnings] = useState(null);
   const [transactions, setTransactions] = useState(null);
   const [showAllTxns, setShowAllTxns] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Загружаем рефералов (по telegram_id, fallback на contact_id)
   useEffect(() => {
@@ -63,6 +64,27 @@ function ProfilePage() {
       })
       .catch(() => {});
   }, [telegramId]);
+
+  const refLink = telegramId ? `https://sushi-house-39.ru/?invited_by=${telegramId}` : null;
+
+  const handleCopyLink = () => {
+    if (!refLink) return;
+    navigator.clipboard?.writeText(refLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleShareLink = () => {
+    if (!refLink) return;
+    const text = 'Суши-Хаус 39 🍣 — подписка со скидками 30% на роллы! Переходи по ссылке:';
+    if (navigator.share) {
+      navigator.share({ title: 'Суши-Хаус 39', text, url: refLink }).catch(() => {});
+    } else {
+      navigator.clipboard?.writeText(refLink);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
 
   const handleBack = () => {
     if (telegramId) {
@@ -234,31 +256,18 @@ function ProfilePage() {
                   )}
                 </div>
 
-                {/* Партнёрский код */}
-                {profile?.partner_code && (
+                {/* Реферальная ссылка */}
+                {refLink && (
                   <div className="shop-profile__section">
-                    <div className="shop-profile__partner-code-label">Ваш код партнёра</div>
-                    <div className="shop-profile__partner-code">{profile.partner_code}</div>
+                    <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
+                    <div className="shop-profile__partner-code" style={{ fontSize: 12, wordBreak: 'break-all' }}>
+                      sushi-house-39.ru/?invited_by={telegramId}
+                    </div>
                     <div className="shop-profile__partner-code-actions">
-                      <button
-                        className="shop-profile__invite-btn"
-                        onClick={() => navigator.clipboard?.writeText(profile.partner_code)}
-                      >
-                        Скопировать
+                      <button className="shop-profile__invite-btn" onClick={handleCopyLink}>
+                        {copiedLink ? 'Скопировано!' : 'Скопировать'}
                       </button>
-                      <button
-                        className="shop-profile__invite-btn"
-                        onClick={() => {
-                          const text = `Мой код в Суши-Хаус 39: ${profile.partner_code} 🍣 Введи его после покупки подписки и я получу бонус!`;
-                          const shareUrl = `https://t.me/share/url?url=https://sushi-house-39.ru&text=${encodeURIComponent(text)}`;
-                          const tg = window.Telegram?.WebApp;
-                          if (tg?.openTelegramLink) {
-                            tg.openTelegramLink(shareUrl);
-                          } else {
-                            window.open(shareUrl, '_blank');
-                          }
-                        }}
-                      >
+                      <button className="shop-profile__invite-btn" onClick={handleShareLink}>
                         Поделиться
                       </button>
                     </div>
@@ -365,30 +374,17 @@ function ProfilePage() {
                       <span className="amb-panel__counter-label">SHC</span>
                     </div>
                   </div>
-                  {profile?.partner_code && (
+                  {refLink && (
                     <>
-                      <div className="shop-profile__partner-code-label">Ваш код партнёра</div>
-                      <div className="shop-profile__partner-code">{profile.partner_code}</div>
+                      <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
+                      <div className="shop-profile__partner-code" style={{ fontSize: 12, wordBreak: 'break-all' }}>
+                        sushi-house-39.ru/?invited_by={telegramId}
+                      </div>
                       <div className="shop-profile__partner-code-actions">
-                        <button
-                          className="shop-profile__invite-btn"
-                          onClick={() => navigator.clipboard?.writeText(profile.partner_code)}
-                        >
-                          Скопировать
+                        <button className="shop-profile__invite-btn" onClick={handleCopyLink}>
+                          {copiedLink ? 'Скопировано!' : 'Скопировать'}
                         </button>
-                        <button
-                          className="shop-profile__invite-btn"
-                          onClick={() => {
-                            const text = `Мой код в Суши-Хаус 39: ${profile.partner_code} 🍣 Введи его после покупки подписки и я получу бонус!`;
-                            const shareUrl = `https://t.me/share/url?url=https://sushi-house-39.ru&text=${encodeURIComponent(text)}`;
-                            const tg = window.Telegram?.WebApp;
-                            if (tg?.openTelegramLink) {
-                              tg.openTelegramLink(shareUrl);
-                            } else {
-                              window.open(shareUrl, '_blank');
-                            }
-                          }}
-                        >
+                        <button className="shop-profile__invite-btn" onClick={handleShareLink}>
                           Поделиться
                         </button>
                       </div>
