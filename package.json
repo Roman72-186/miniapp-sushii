@@ -23,10 +23,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "fetch:products": "node scripts/fetchProducts.js",
     "backup:db": "node scripts/backup-db.js",
-    "migrate:supabase": "node scripts/migrate-from-supabase.js",
-    "migrate:to-supabase": "node scripts/migrate-to-supabase.js",
+    "catalog": "python scripts/build-catalog-master.py",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

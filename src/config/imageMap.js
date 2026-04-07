@@ -26,7 +26,7 @@ const IMAGE_MAP = {
   'кани гриль': '/img/kani_gril.PNG',
   'каппа маки': '/img/kappa_maki.PNG',
   'киото чикен': '/img/kioto_chiken.PNG',
-  'краб дуэт гриль': '/img/krab_duet.PNG',
+  'краб дуэт гриль': '/new_roll/Краб дуэт гриль.jpg',
   'запеченный лосось файр': '/img/losos_fair.PNG',
   'манхеттен': '/img/manheten.PNG',
   'мидии маки гриль': '/img/midii_maki_gril.PNG',
@@ -47,7 +47,7 @@ const IMAGE_MAP = {
   // === Русские имена файлов (JPG) ===
   'поке с креветками': '/img/Поке с креветками.jpg',
   'поке с курицей': '/img/Поке с курицей.jpg',
-  'спайси эби маки': '/img/Спайси эби маки.jpg',
+  'спайси эби маки': '/new_roll/Спайси Эби маки.jpg',
   'суши пицца №3 (курица)': '/img/Суши пицца №3.jpg',
   'суши-пицца курица': '/img/Суши пицца №3.jpg',
   'суши сендвич с лососем': '/img/Суши сендвич с лососем.jpg',
@@ -136,11 +136,54 @@ const IMAGE_MAP = {
   'свит чили': '/img/sauce-sweet-chili.jpg',
 
   // === Гунканы ===
-  'гункан с жареным лососем': '/img/gunkan-salmon.jpg',
-  'гункан с икрой масаго': '/img/gunkan-masago.jpg',
-  'гункан с чукой': '/img/gunkan-chuka.jpg',
-  'гункан спайси кани': '/img/gunkan-kani.jpg',
-  'гункан унаги авокадо': '/img/gunkan-unagi.jpg',
+  'гункан с жареным лососем': '/new_roll/Гункан с жареным лососем.jpg',
+  'гункан с икрой масаго': '/new_roll/Гункан с икрой масаго.jpg',
+  'гункан с чукой': '/new_roll/Гункан с чукой.jpg',
+  'гункан спайси кани': '/new_roll/Гункан спайси кани.jpg',
+  'гункан унаги авокадо': '/new_roll/Гункан унаги авокадо.jpg',
+
+  // === Новые фото (new_roll/) — холодные роллы ===
+  'гранд лосось': '/new_roll/Гранд Лосось.jpg',
+  'сказочный тунец': '/new_roll/Сказочный Тунец.jpg',
+  'красная москва': '/new_roll/Красная Москва.jpg',
+  'миндальная филадельфия': '/new_roll/Миндальная Филадельфия.jpg',
+  'королевский': '/new_roll/Королевский.jpg',
+  'дракон лайт': '/new_roll/Дракон Лайт.jpg',
+  'черная жемчужина': '/new_roll/Чёрная жемчужина.jpg',
+  'унаги онигара': '/new_roll/Унаги Онигара.jpg',
+  'царский тунец': '/new_roll/Царский тунец.jpg',
+  'царская фила том ям': '/new_roll/Царская фила Том Ям.jpg',
+
+  // === Новые фото (new_roll/) — запечённые роллы ===
+  'запеченный ролл с угрем': '/new_roll/Запеченный ролл с угрём.jpg',
+  'клеопатра': '/new_roll/Клеопатра.jpg',
+  'сяке кунсей гриль': '/new_roll/Сяке кунсей гриль.jpg',
+  'сяке терияки': '/new_roll/Сяке терияки.jpg',
+  'сяке хот': '/new_roll/Сяке хот.jpg',
+  'теплый ролл с лососем': '/new_roll/Тёплый ролл с лососем.jpg',
+  'туна гриль': '/new_roll/Туна гриль.jpg',
+  'фила эби гриль': '/new_roll/Фила Эби гриль.jpg',
+  'чиззи эби': '/new_roll/Чиззи Эби.jpg',
+  'эби гриль': '/new_roll/Эби гриль.jpg',
+  'яки сяки хот': '/new_roll/Яки сяки хот.jpg',
+  'яки сяке хот': '/new_roll/Яки сяки хот.jpg',
+
+  // === Новые фото (new_roll/) — Филадельфия ===
+  'филадельфия без нори': '/new_roll/Филадельфия без нори.jpg',
+  'филадельфия люкс': '/new_roll/Филадельфия Люкс.jpg',
+  'филадельфия премиум': '/new_roll/Филадельфия премиум.jpg',
+  'филадельфия с авокадо': '/new_roll/Филадельфия с авокадо.jpg',
+  'филадельфия с огурцом': '/new_roll/Филадельфия с огурцом.jpg',
+  'филадельфия сливочная': '/new_roll/Филадельфия сливочная.jpg',
+
+  // === Новые фото (new_roll/) — суши ===
+  'суши пицца': '/new_roll/Суши пицца.jpg',
+  'суши сендвич с жареным лососем': '/new_roll/Суши сендвич с жареным лососем.jpg',
+  'суши-сендвич с жареным лососем': '/new_roll/Суши сендвич с жареным лососем.jpg',
+
+  // === Новые фото (new_roll/) — сеты ===
+  'сет коби брайант': '/new_roll/Сет Коби Брайант.jpg',
+  'коби брайант': '/new_roll/Сет Коби Брайант.jpg',
 };
 
 /**
@@ -157,6 +200,12 @@ function normalizeName(name) {
     .trim();
 }
 
+// Предвычисленный словарь с нормализованными ключами (строится один раз)
+// Нужен потому что normalizeName заменяет э→е, а ключи могут содержать э
+const _NORMALIZED_MAP = Object.fromEntries(
+  Object.entries(IMAGE_MAP).map(([k, v]) => [normalizeName(k), v])
+);
+
 /**
  * Получает URL изображения для товара по названию
  * @param {string} productName - Название товара
@@ -165,16 +214,16 @@ function normalizeName(name) {
 export function getProductImage(productName) {
   const normalized = normalizeName(productName);
 
-  // 1. Точное совпадение
-  if (IMAGE_MAP[normalized]) {
-    return IMAGE_MAP[normalized];
+  // 1. Точное совпадение (по нормализованным ключам)
+  if (_NORMALIZED_MAP[normalized]) {
+    return _NORMALIZED_MAP[normalized];
   }
 
   // 2. Частичное совпадение — ищем ключ внутри названия или наоборот
-  const keys = Object.keys(IMAGE_MAP);
+  const keys = Object.keys(_NORMALIZED_MAP);
   for (const key of keys) {
     if (normalized.includes(key) || key.includes(normalized)) {
-      return IMAGE_MAP[key];
+      return _NORMALIZED_MAP[key];
     }
   }
 
