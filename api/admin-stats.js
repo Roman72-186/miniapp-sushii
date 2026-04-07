@@ -1,6 +1,6 @@
 // api/admin-stats.js — Статистика для дашборда (admin)
 const { checkAuth } = require('./_lib/admin-auth');
-const { getDb } = require('./_lib/db');
+const { getAllUsersForStats, getMonthRevenue } = require('./_lib/db');
 
 function parseDate(ddmmyyyy) {
   if (!ddmmyyyy) return null;
@@ -17,9 +17,7 @@ module.exports = async (req, res) => {
   if (!checkAuth(req, res)) return;
 
   try {
-    const db = getDb();
-
-    const allUsers = db.prepare('SELECT tariff, is_ambassador, subscription_status, subscription_end, created_at FROM users').all();
+    const allUsers = await getAllUsersForStats();
 
     const now = new Date(); now.setHours(0,0,0,0);
     const in7 = new Date(now); in7.setDate(in7.getDate() + 7);
@@ -46,9 +44,7 @@ module.exports = async (req, res) => {
     // Выручка за текущий месяц
     const now2 = new Date();
     const monthStart = `${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}-01`;
-    const revenue = db.prepare(
-      "SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE status='succeeded' AND created_at >= ?"
-    ).get(monthStart);
+    const revenue = await getMonthRevenue(monthStart);
 
     return res.status(200).json({
       success: true,

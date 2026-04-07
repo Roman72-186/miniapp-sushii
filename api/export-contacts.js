@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const users = getAllUsers();
+    const users = await getAllUsers();
 
     const rows = users.map(u => ({
       telegram_id: u.telegram_id || '',

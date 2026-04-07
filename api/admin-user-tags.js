@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'telegram_id обязателен' });
       }
 
-      const user = getUser(telegramId);
+      const user = await getUser(telegramId);
       if (!user) {
         return res.status(404).json({ error: 'Пользователь не найден' });
       }
@@ -66,7 +66,7 @@ module.exports = async (req, res) => {
 
     let updatedUser;
     try {
-      updatedUser = adminApplyUserTagAction(telegramId, action, tag);
+      updatedUser = await adminApplyUserTagAction(telegramId, action, tag);
     } catch (error) {
       if (error.message === 'user_not_found') {
         return res.status(404).json({ error: 'Пользователь не найден' });

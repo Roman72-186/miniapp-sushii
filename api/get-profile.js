@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
     const cache = await readUserCache(telegram_id);
     if (cache && cache.contact) {
       const v = cache.variables || {};
-      const giftHistory = getGiftHistory(telegram_id);
+      const giftHistory = await getGiftHistory(telegram_id);
       return res.status(200).json({
         name: cache.contact.name || null,
         phone: (cache.listItem && cache.listItem.telefon) || null,
@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
     }
 
     // 2. Fallback: SQLite + blob-store
-    const dbUser = getUser(telegram_id);
+    const dbUser = await getUser(telegram_id);
     if (!dbUser) {
       return res.status(404).json({ error: 'Контакт не найден' });
     }
@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
       }
     } catch (_) {}
 
-    const giftHistory = getGiftHistory(telegram_id);
+    const giftHistory = await getGiftHistory(telegram_id);
     return res.status(200).json({
       name: dbUser.name || null,
       phone: dbUser.phone || null,

@@ -19,8 +19,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const user = getUser(telegram_id);
-    
+    const user = await getUser(telegram_id);
+
     if (!user) {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
     });
 
     // Только убираем payment_method_id — подписка остаётся активной до конца срока
-    cancelAutoRenew(telegram_id);
+    await cancelAutoRenew(telegram_id);
 
     // Очищаем кэш пользователя (чтобы изменения применились сразу)
     try {

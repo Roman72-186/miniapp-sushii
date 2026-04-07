@@ -1,7 +1,7 @@
 // POST /api/auth/login-with-password — Вход по телефону + паролю
 
 const bcrypt = require('bcrypt');
-const { getDb } = require('../_lib/db');
+const { getUserByPhone } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
 
@@ -44,8 +44,7 @@ module.exports = async (req, res) => {
     }
 
     // Находим пользователя в SQLite
-    const db = getDb();
-    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    const user = await getUserByPhone(phone);
     if (!user) {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }

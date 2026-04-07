@@ -1,6 +1,6 @@
 // POST /api/auth/verify-otp — Проверка OTP кода, выдача JWT
 
-const { getDb } = require('../_lib/db');
+const { getUserByPhone } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const otpStore = require('./_otp-store');
 
@@ -38,8 +38,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const db = getDb();
-    const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    const user = await getUserByPhone(phone);
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
     const token = generateToken(user);

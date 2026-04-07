@@ -465,6 +465,50 @@ async function getGiftHistory(telegramId) {
   return res.rows;
 }
 
+// ─── Дополнительные функции для API ──────────────────────────
+
+async function getUserByPhone(phone) {
+  const res = await query('SELECT * FROM users WHERE phone = $1', [phone]);
+  return res.rows[0] || null;
+}
+
+async function getLastPayment(telegramId) {
+  const res = await query(
+    'SELECT * FROM payments WHERE telegram_id = $1 ORDER BY created_at DESC LIMIT 1',
+    [String(telegramId)]
+  );
+  return res.rows[0] || null;
+}
+
+async function getAdminSubscribersList() {
+  const res = await query(`
+    SELECT telegram_id, name, phone, tariff, is_ambassador,
+           subscription_status, subscription_start, subscription_end,
+           balance_shc, notes, created_at, updated_at
+    FROM users
+    WHERE tariff IS NOT NULL
+    ORDER BY
+      CASE tariff WHEN '9990' THEN 1 WHEN '1190' THEN 2 WHEN '490' THEN 3 WHEN '290' THEN 4 ELSE 5 END,
+      updated_at DESC
+  `);
+  return res.rows;
+}
+
+async function getAllUsersForStats() {
+  const res = await query(
+    'SELECT tariff, is_ambassador, subscription_status, subscription_end, created_at FROM users'
+  );
+  return res.rows;
+}
+
+async function getMonthRevenue(monthStart) {
+  const res = await query(
+    "SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE status='succeeded' AND created_at >= $1",
+    [monthStart]
+  );
+  return res.rows[0];
+}
+
 // ─── Экспорт (совместим с db.js) ─────────────────────────────
 
 module.exports = {
@@ -476,11 +520,14 @@ module.exports = {
   getGiftHistory,
   getUser,
   getUserByContactId,
+  getUserByPhone,
   getAllUsers,
+  getAllUsersForStats,
   updateBalance,
   getReferrals,
   setInvitedBy,
   recordPayment,
+  getLastPayment,
   recordTransaction,
   getTransactions,
   getTotalEarnings,
@@ -499,4 +546,6 @@ module.exports = {
   adminApplyUserTagAction,
   extendSubscription,
   setUserNotes,
+  getAdminSubscribersList,
+  getMonthRevenue,
 };

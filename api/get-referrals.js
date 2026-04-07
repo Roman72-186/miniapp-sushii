@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
 
     if (!tgId && contact_id) {
       const { getUserByContactId } = require('./_lib/db');
-      const user = getUserByContactId(contact_id);
+      const user = await getUserByContactId(contact_id);
       if (user) tgId = user.telegram_id;
     }
 
@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
     }
 
     // Получаем рефералов из SQLite
-    const referrals = getDbReferrals(tgId);
+    const referrals = await getDbReferrals(tgId);
 
     const result = referrals.map(r => ({
       name: r.name || 'Без имени',

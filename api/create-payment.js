@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
     : `Подписка Суши-Хаус 39 (${tarifStr}\u20BD \u00D7 ${monthsLabel})`;
 
   // Телефон пользователя для чека (54-ФЗ)
-  const dbUser = getUser(telegram_id);
+  const dbUser = await getUser(telegram_id);
   const rawPhone = reqPhone || dbUser?.phone || null;
   let userPhone = null;
   if (rawPhone) {
@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
 
   // Сохраняем нормализованный телефон в БД (7XXXXXXXXXX)
   if (userPhone && (!dbUser?.phone || dbUser.phone !== userPhone)) {
-    upsertUser({ telegram_id: String(telegram_id), phone: userPhone });
+    await upsertUser({ telegram_id: String(telegram_id), phone: userPhone });
   }
 
   const body = {

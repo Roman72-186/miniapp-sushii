@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
         console.log(`[ORDER] phone_from_cache="${cachedPhone}" (overrides form)`);
         orderPhone = cachedPhone;
       } else {
-        const dbUser = getUser(telegram_id);
+        const dbUser = await getUser(telegram_id);
         if (dbUser?.phone) {
           console.log(`[ORDER] phone_from_db="${dbUser.phone}" (overrides form)`);
           orderPhone = dbUser.phone;
@@ -174,12 +174,12 @@ module.exports = async (req, res) => {
     // Списание SHC баллов
     const shcToUse = Number(shc_used) || 0;
     if (shcToUse > 0 && telegram_id) {
-      const dbUser = getUser(telegram_id);
+      const dbUser = await getUser(telegram_id);
       const userBalance = dbUser?.balance_shc || 0;
       if (shcToUse > userBalance) {
         return res.status(400).json({ success: false, error: 'Недостаточно SHC баллов' });
       }
-      updateBalance(telegram_id, -shcToUse);
+      await updateBalance(telegram_id, -shcToUse);
     }
 
     const orderComment = [

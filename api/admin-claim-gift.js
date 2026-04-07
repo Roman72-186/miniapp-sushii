@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
     await writeGiftWindows(telegram_id, stored);
 
     try {
-      insertGiftHistory({
+      await insertGiftHistory({
         telegramId: telegram_id,
         giftType: type,
         claimedAt: window.claimedAt,

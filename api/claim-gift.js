@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
     // 4a. Логировать в SQLite gift_history
     try {
       const giftType = windowInArray.grantType || (stored.tarif === '1190' ? 'set' : 'roll');
-      insertGiftHistory({
+      await insertGiftHistory({
         telegramId: telegram_id,
         giftType,
         claimedAt: today,

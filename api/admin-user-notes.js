@@ -14,8 +14,8 @@ module.exports = async (req, res) => {
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
   try {
-    if (!getUser(telegram_id)) return res.status(404).json({ error: 'Пользователь не найден' });
-    setUserNotes(telegram_id, notes);
+    if (!(await getUser(telegram_id))) return res.status(404).json({ error: 'Пользователь не найден' });
+    await setUserNotes(telegram_id, notes);
     return res.status(200).json({ success: true });
   } catch (e) {
     console.error('admin-user-notes error:', e.message);

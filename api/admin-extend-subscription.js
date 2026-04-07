@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
   if (!d || d < 1 || d > 365) return res.status(400).json({ error: 'days: от 1 до 365' });
 
   try {
-    const user = extendSubscription(telegram_id, d);
+    const user = await extendSubscription(telegram_id, d);
 
     // Инвалидируем кэш
     try {
