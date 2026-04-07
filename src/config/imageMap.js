@@ -114,26 +114,7 @@ const IMAGE_MAP = {
   'сет роял': '/img/sets/set_royal.jpg',
   'сет унесенные ветром': '/img/sets/set_unesennye.jpg',
 
-  // === Добавки и соусы ===
-  'васаби': '/img/wasabi.jpg',
-  'васаби (20 г)': '/img/wasabi.jpg',
-  'имбирь': '/img/ginger-pickled.jpg',
-  'имбирь (30 г)': '/img/ginger-pickled.jpg',
-  'соевый соус': '/img/soy-sauce.jpg',
-  'соевый соус (40 мл)': '/img/soy-sauce.jpg',
-  'соус спайси': '/img/sauce-spicy.jpg',
-  'соус спайси 50г': '/img/sauce-spicy.jpg',
-  'соус масаго': '/img/sauce-masago.jpg',
-  'соус масаго 50г': '/img/sauce-masago.jpg',
-  'соус унаги': '/img/sauce-unagi.jpg',
-  'соус унаги 50г': '/img/sauce-unagi.jpg',
-  'соус ореховый': '/img/sauce-peanut.jpg',
-  'соус ореховый 50г': '/img/sauce-peanut.jpg',
-  'соус свит чилли': '/img/sauce-sweet-chili.jpg',
-  'соус свит чилли 50г': '/img/sauce-sweet-chili.jpg',
-  'соус свит чили': '/img/sauce-sweet-chili.jpg',
-  'свит чилли': '/img/sauce-sweet-chili.jpg',
-  'свит чили': '/img/sauce-sweet-chili.jpg',
+  // === Добавки и соусы — используется логотип-заглушка (/logo.jpg через fallback) ===
 
   // === Гунканы ===
   'гункан с жареным лососем': '/new_roll/Гункан с жареным лососем.jpg',
