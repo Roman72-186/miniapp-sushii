@@ -78,6 +78,8 @@ function isGiftLocked(category, userTarif) {
   return userTarif !== category.minTarif;
 }
 
+const GIFT_TYPE_LABEL = { 'gift-rolls': 'Ролл', 'gift-sets': 'Сет' };
+
 function useDiscountMenu() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -695,9 +697,9 @@ function DiscountShopPage() {
             const isAvailable = !isDisabled;
 
             let icon = category.icon;
-            let text = category.tab;
             let extraClass = '';
             let badge = null;
+            let subText = '';
 
             if (anyLoading) {
               badge = <span className="shop-gift-btn__lock">...</span>;
@@ -705,18 +707,20 @@ function DiscountShopPage() {
               badge = <span className="shop-gift-btn__lock">🔒</span>;
             } else if (isSelectedGift) {
               icon = '✓';
-              text = 'В корзине';
+              subText = 'в корзине';
               extraClass = 'shop-gift-btn--claimed';
             } else if (hasGiftInCart) {
-              text = 'Уже выбран';
+              subText = 'уже выбран';
               extraClass = 'shop-gift-btn--waiting';
             } else if (isClaimed) {
               icon = '✓';
-              text = 'Получен';
+              subText = 'получен ✓';
               extraClass = 'shop-gift-btn--claimed';
             } else if (isWaiting) {
-              text = `Через ${giftStatus.daysLeft} дн.`;
+              subText = `через ${giftStatus.daysLeft} дн.`;
               extraClass = 'shop-gift-btn--waiting';
+            } else if (isAvailable) {
+              subText = 'доступен ✓';
             }
 
             return (
@@ -727,7 +731,8 @@ function DiscountShopPage() {
                 disabled={isDisabled}
               >
                 <span className="shop-gift-btn__icon">{icon}</span>
-                <span className="shop-gift-btn__text">{text}</span>
+                <span className="shop-gift-btn__label">{GIFT_TYPE_LABEL[category.id] ?? category.tab}</span>
+                {subText ? <span className="shop-gift-btn__sub">{subText}</span> : null}
                 {badge}
               </button>
             );

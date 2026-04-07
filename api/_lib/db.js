@@ -74,11 +74,24 @@ function getDb() {
       FOREIGN KEY (referral_id) REFERENCES users(telegram_id)
     );
 
+    CREATE TABLE IF NOT EXISTS gift_history (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      telegram_id TEXT    NOT NULL,
+      gift_type   TEXT    NOT NULL,
+      claimed_at  TEXT    NOT NULL,
+      claimed_ts  TEXT    NOT NULL,
+      window_num  INTEGER,
+      granted_by  TEXT    DEFAULT 'user',
+      created_at  TEXT    DEFAULT (datetime('now')),
+      FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_referral_bonuses_user ON referral_bonuses(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_invited_by ON users(invited_by);
     CREATE INDEX IF NOT EXISTS idx_payments_telegram_id ON payments(telegram_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_ambassador ON transactions(ambassador_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_referral ON transactions(referral_id);
+    CREATE INDEX IF NOT EXISTS idx_gift_history_telegram ON gift_history(telegram_id);
   `);
 
   // Миграция: добавить partner_code если нет
@@ -494,9 +507,30 @@ function getAllUsers() {
   return getDb().prepare('SELECT * FROM users ORDER BY updated_at DESC').all();
 }
 
+// ─── Gift History ────────────────────────────────────────
+
+function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy }) {
+  getDb().prepare(`
+    INSERT INTO gift_history (telegram_id, gift_type, claimed_at, claimed_ts, window_num, granted_by)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(String(telegramId), giftType, claimedAt, claimedTs, windowNum || null, grantedBy || 'user');
+}
+
+function getGiftHistory(telegramId) {
+  return getDb().prepare(`
+    SELECT gift_type, claimed_at, claimed_ts, window_num, granted_by
+    FROM gift_history
+    WHERE telegram_id = ?
+    ORDER BY claimed_ts DESC
+    LIMIT 50
+  `).all(String(telegramId));
+}
+
 module.exports = {
   getDb,
   upsertUser,
+  insertGiftHistory,
+  getGiftHistory,
   getUser,
   getUserByContactId,
   getAllUsers,
