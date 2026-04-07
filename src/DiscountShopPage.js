@@ -8,7 +8,6 @@ import ShopProductCard from './components/ShopProductCard';
 import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
-import PromoBanner from './components/PromoBanner';
 import './shop.css';
 
 const DISCOUNT_CATEGORIES = [
