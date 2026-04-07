@@ -31,6 +31,8 @@ function AdminPage() {
   const [settingTariff, setSettingTariff] = useState(null); // telegram_id пока идёт смена тарифа
   const [extendingDays, setExtendingDays] = useState({}); // {telegram_id: '5'}
   const [extending, setExtending] = useState(null); // telegram_id пока идёт продление
+  // inline смена тарифа с датой: { telegram_id, tariff, end_date }
+  const [subEdit, setSubEdit] = useState(null);
   const [editingNotes, setEditingNotes] = useState({}); // {telegram_id: 'текст'}
   const [dashStats, setDashStats] = useState(null);
   const [dashLoading, setDashLoading] = useState(false);
@@ -234,6 +236,29 @@ function AdminPage() {
       console.error('setTariff error:', err);
     }
     setSettingTariff(null);
+  };
+
+  // Смена тарифа + дата окончания
+  const applySubscription = async () => {
+    if (!subEdit) return;
+    setSettingTariff(subEdit.telegram_id);
+    try {
+      const res = await fetch(`${API}/api/admin/set-subscription`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ telegram_id: subEdit.telegram_id, tariff: subEdit.tariff, end_date: subEdit.end_date }),
+      });
+      const data = await res.json();
+      if (data.success) { loadSubscribers(); setSubEdit(null); }
+    } catch (err) {
+      console.error('applySubscription error:', err);
+    }
+    setSettingTariff(null);
+  };
+
+  const defaultEndDate = () => {
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
   };
 
   // Продление подписки на N дней
@@ -696,7 +721,11 @@ function AdminPage() {
                     <button
                       key={t}
                       style={s.tariff === t ? styles.tariffBtnActive : styles.tariffBtnInactive}
-                      onClick={() => setTariff(s.telegram_id, t)}
+                      onClick={() => setSubEdit(
+                        subEdit?.telegram_id === s.telegram_id && subEdit?.tariff === t
+                          ? null
+                          : { telegram_id: s.telegram_id, tariff: t, end_date: defaultEndDate() }
+                      )}
                       disabled={!!settingTariff}
                     >
                       {settingTariff === s.telegram_id ? '...' : t}
@@ -718,6 +747,24 @@ function AdminPage() {
                     {extending === s.telegram_id ? '...' : '+Дн'}
                   </button>
                 </div>
+                {/* Inline форма смены тарифа + даты */}
+                {subEdit?.telegram_id === s.telegram_id && (
+                  <div style={styles.subEditRow}>
+                    <span style={{ color: CP.cyan, fontSize: 11, fontWeight: 700 }}>
+                      Тариф {subEdit.tariff}₽ до:
+                    </span>
+                    <input
+                      type="date"
+                      value={subEdit.end_date}
+                      onChange={e => setSubEdit(prev => ({ ...prev, end_date: e.target.value }))}
+                      style={styles.dateInput}
+                    />
+                    <button style={styles.applyBtn} onClick={applySubscription} disabled={!!settingTariff}>
+                      {settingTariff === s.telegram_id ? '...' : '✓'}
+                    </button>
+                    <button style={styles.btnCancel} onClick={() => setSubEdit(null)}>✕</button>
+                  </div>
+                )}
                 <div style={styles.notesRow}>
                   <input
                     type="text"
@@ -1592,6 +1639,39 @@ const styles = {
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
+  },
+  subEditRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+    padding: '7px 9px',
+    background: 'rgba(0,229,255,0.05)',
+    border: `1px solid ${CP.cyanDim}`,
+    borderRadius: 4,
+    flexWrap: 'wrap',
+  },
+  dateInput: {
+    flex: 1,
+    minWidth: 120,
+    padding: '4px 7px',
+    background: CP.surface,
+    border: `1px solid ${CP.border}`,
+    borderRadius: 4,
+    color: CP.text,
+    fontSize: 12,
+    colorScheme: 'dark',
+  },
+  applyBtn: {
+    padding: '5px 12px',
+    background: 'rgba(0,229,255,0.12)',
+    color: CP.cyan,
+    border: `1px solid ${CP.cyan}`,
+    borderRadius: 4,
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: `0 0 6px rgba(0,229,255,0.2)`,
   },
 };
 

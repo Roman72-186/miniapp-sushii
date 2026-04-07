@@ -33,4 +33,13 @@ async function writeUserCache(telegramId, data) {
   await fs.promises.writeFile(filePath, JSON.stringify(data), 'utf8');
 }
 
-module.exports = { readUserCache, writeUserCache };
+async function deleteUserCache(telegramId) {
+  try {
+    const filePath = path.join(DATA_DIR, `${telegramId}.json`);
+    await fs.promises.unlink(filePath);
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.error('deleteUserCache error:', err.message);
+  }
+}
+
+module.exports = { readUserCache, writeUserCache, deleteUserCache };
