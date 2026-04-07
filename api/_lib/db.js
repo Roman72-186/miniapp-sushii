@@ -513,6 +513,37 @@ function getAllUsers() {
   return getDb().prepare('SELECT * FROM users ORDER BY updated_at DESC').all();
 }
 
+function getUserByPhone(phone) {
+  return getDb().prepare('SELECT * FROM users WHERE phone = ?').get(phone) || null;
+}
+
+function getLastPayment(telegramId) {
+  return getDb().prepare('SELECT * FROM payments WHERE telegram_id = ? ORDER BY created_at DESC LIMIT 1').get(String(telegramId)) || null;
+}
+
+function getAdminSubscribersList() {
+  return getDb().prepare(`
+    SELECT telegram_id, name, phone, tariff, is_ambassador,
+           subscription_status, subscription_start, subscription_end,
+           balance_shc, notes, created_at, updated_at
+    FROM users
+    WHERE tariff IS NOT NULL
+    ORDER BY
+      CASE tariff WHEN '9990' THEN 1 WHEN '1190' THEN 2 WHEN '490' THEN 3 WHEN '290' THEN 4 ELSE 5 END,
+      updated_at DESC
+  `).all();
+}
+
+function getAllUsersForStats() {
+  return getDb().prepare('SELECT tariff, is_ambassador, subscription_status, subscription_end, created_at FROM users').all();
+}
+
+function getMonthRevenue(monthStart) {
+  return getDb().prepare(
+    "SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE status='succeeded' AND created_at >= ?"
+  ).get(monthStart);
+}
+
 function extendSubscription(telegramId, days) {
   const user = getUser(telegramId);
   if (!user) throw new Error('user_not_found');
@@ -621,4 +652,9 @@ module.exports = {
   adminApplyUserTagAction,
   extendSubscription,
   setUserNotes,
+  getUserByPhone,
+  getLastPayment,
+  getAdminSubscribersList,
+  getAllUsersForStats,
+  getMonthRevenue,
 };
