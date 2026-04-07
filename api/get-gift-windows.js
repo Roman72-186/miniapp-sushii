@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
     let датаОКОНЧАНИЯ = '';
 
     // 1. SQLite — основной источник
-    const dbUser = getUser(telegram_id);
+    const dbUser = await getUser(telegram_id);
     if (dbUser && dbUser.tariff) {
       tarif = dbUser.tariff;
       датаНачала = dbUser.subscription_start || '';

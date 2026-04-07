@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
   try {
-    const user = getUser(telegram_id);
+    const user = await getUser(telegram_id);
     if (!user) {
       return res.status(200).json({
         transactions: [], earnings: { total: 0, level1: 0, level2: 0 },
@@ -24,12 +24,12 @@ module.exports = async (req, res) => {
     }
 
     // Амбассадорские комиссии
-    const transactions = getTransactions(telegram_id, 100);
-    const earnings = getTotalEarnings(telegram_id);
+    const transactions = await getTransactions(telegram_id, 100);
+    const earnings = await getTotalEarnings(telegram_id);
 
     // SHC бонусы за рефералов
-    const bonuses = getReferralBonuses(telegram_id, 100);
-    const referrals = getReferrals(telegram_id);
+    const bonuses = await getReferralBonuses(telegram_id, 100);
+    const referrals = await getReferrals(telegram_id);
     const totalShc = bonuses.reduce((sum, b) => sum + b.total_amount, 0);
 
     return res.status(200).json({

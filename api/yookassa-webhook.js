@@ -87,7 +87,7 @@ module.exports = async (req, res) => {
     let cached = null;
     try { cached = await readUserCache(telegramId); } catch (_) {}
 
-    const dbUser = getUser(telegramId);
+    const dbUser = await getUser(telegramId);
 
     // 2. Создать заказ во Frontpad для учёта подписки
     try {
@@ -128,7 +128,7 @@ module.exports = async (req, res) => {
       const paymentAmount = Number(payment.amount?.value) || 0;
 
       // Обновляем пользователя в SQLite
-      upsertUser({
+      await upsertUser({
         telegram_id: String(telegramId),
         tariff: String(tarif),
         is_ambassador: isOneTime ? true : undefined,
@@ -139,7 +139,7 @@ module.exports = async (req, res) => {
       });
 
       // Записываем платёж
-      const paymentDbId = recordPayment({
+      const paymentDbId = await recordPayment({
         telegram_id: String(telegramId),
         tariff: String(tarif),
         amount: paymentAmount,
@@ -149,7 +149,7 @@ module.exports = async (req, res) => {
 
       // Начисляем 20% SHC пригласившему (если плательщик — чей-то реферал)
       if (!isOneTime && paymentAmount > 0) {
-        const referralResult = processReferralSHC(String(telegramId), paymentAmount);
+        const referralResult = await processReferralSHC(String(telegramId), paymentAmount);
         if (referralResult) {
           console.log('webhook: referral SHC processed', referralResult);
         }

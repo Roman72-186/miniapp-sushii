@@ -1,6 +1,6 @@
 // api/auth/login-by-phone.js — Шаг 1: проверка телефона
 
-const { getDb, upsertUser, getUser } = require('../_lib/db');
+const { getUserByPhone, upsertUser, getUser } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
 
@@ -29,15 +29,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const db = getDb();
-    const existingUser = db.prepare('SELECT * FROM users WHERE phone = ?').get(phone);
+    const existingUser = await getUserByPhone(phone);
 
     // === РЕГИСТРАЦИЯ нового пользователя (name передан, пользователь не найден) ===
     if (rawName && !existingUser) {
       const webId = 'web_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
       const name = String(rawName).trim();
-      upsertUser({ telegram_id: webId, phone, name });
-      const newUser = getUser(webId);
+      await upsertUser({ telegram_id: webId, phone, name });
+      const newUser = await getUser(webId);
       const token = generateToken(newUser);
       const refreshToken = generateRefreshToken(newUser);
       console.log('[login-by-phone] Новый веб-пользователь:', webId);

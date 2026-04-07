@@ -16,10 +16,10 @@ module.exports = async (req, res) => {
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
   try {
-    const user = getUser(telegram_id);
+    const user = await getUser(telegram_id);
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
-    deactivateSubscription(telegram_id);
+    await deactivateSubscription(telegram_id);
 
     // Инвалидируем файловый кэш
     try {

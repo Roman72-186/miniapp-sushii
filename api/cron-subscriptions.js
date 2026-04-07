@@ -139,7 +139,7 @@ async function runSubscriptionCron() {
 
   // 1. Напоминание за 1 день
   try {
-    const expiring1 = getExpiringSubscriptions(1);
+    const expiring1 = await getExpiringSubscriptions(1);
     for (const user of expiring1) {
       await sendMessage(
         user.telegram_id,
@@ -160,7 +160,7 @@ async function runSubscriptionCron() {
 
   // 3. День окончания: рекуррентное списание или деактивация
   try {
-    const expiredToday = getExpiredToday();
+    const expiredToday = await getExpiredToday();
     for (const user of expiredToday) {
       if (user.payment_method_id) {
         // Есть сохранённый метод оплаты — пробуем списать
@@ -172,10 +172,10 @@ async function runSubscriptionCron() {
           newEnd.setDate(newEnd.getDate() + 30);
           const newEndStr = formatDate(newEnd);
 
-          renewSubscription(user.telegram_id, newEndStr);
+          await renewSubscription(user.telegram_id, newEndStr);
 
           // Записываем платёж в БД
-          const paymentDbId = recordPayment({
+          const paymentDbId = await recordPayment({
             telegram_id: user.telegram_id,
             tariff: user.tariff,
             amount: result.amount,
@@ -184,7 +184,7 @@ async function runSubscriptionCron() {
           });
 
           // Начисляем 20% SHC пригласившему
-          processReferralSHC(String(user.telegram_id), result.amount);
+          await processReferralSHC(String(user.telegram_id), result.amount);
 
           await sendMessage(
             user.telegram_id,
@@ -200,7 +200,7 @@ async function runSubscriptionCron() {
 
         } else {
           // Списание не прошло — деактивируем
-          deactivateSubscription(user.telegram_id);
+          await deactivateSubscription(user.telegram_id);
           await sendMessage(
             user.telegram_id,
             `❌ <b>Не удалось продлить подписку</b>\n\nАвтосписание не прошло. Подписка (${user.tariff}₽) деактивирована.\n\n💡 Вы можете продлить подписку вручную:`,
@@ -216,7 +216,7 @@ async function runSubscriptionCron() {
         }
       } else {
         // Нет метода оплаты — деактивируем
-        deactivateSubscription(user.telegram_id);
+        await deactivateSubscription(user.telegram_id);
         await sendMessage(
           user.telegram_id,
           `📛 <b>Подписка истекла</b>\n\nВаша подписка (${user.tariff}₽) закончилась.\n\n💡 Продлите, чтобы снова получать скидки и подарки:`,

@@ -2,7 +2,7 @@
 // Добавление или обновление пользователя через админку
 
 const { checkAuth } = require('../_lib/admin-auth');
-const { getDb, upsertUser } = require('../_lib/db');
+const { getUserByPhone, getUser, upsertUser } = require('../_lib/db');
 
 function normalizePhone(raw) {
   if (!raw) return null;
@@ -55,15 +55,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const db = getDb();
-
-    const existingUser = db.prepare('SELECT * FROM users WHERE phone = ?').get(normalizedPhone);
+    const existingUser = await getUserByPhone(normalizedPhone);
     const telegram_id = existingUser ? existingUser.telegram_id : `web_${normalizedPhone}`;
     const isNew = !existingUser;
 
     const finalName = (name && name.trim()) || existingUser?.name || `Клиент ${normalizedPhone}`;
 
-    upsertUser({
+    await upsertUser({
       telegram_id,
       name: finalName,
       phone: normalizedPhone,
@@ -73,7 +71,7 @@ module.exports = async (req, res) => {
       subscription_end,
     });
 
-    const user = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(telegram_id);
+    const user = await getUser(telegram_id);
 
     return res.status(200).json({
       success: true,

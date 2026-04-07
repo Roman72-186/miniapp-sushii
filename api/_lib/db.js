@@ -1,4 +1,9 @@
 // api/_lib/db.js — SQLite база данных (better-sqlite3)
+if (process.env.USE_SUPABASE === 'true') {
+  module.exports = require('./db-pg');
+  return;
+}
+
 const Database = require('better-sqlite3');
 const path = require('path');
 

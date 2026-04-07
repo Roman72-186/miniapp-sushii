@@ -1,6 +1,6 @@
 // api/apply-partner-code.js — Применение партнёрского кода после покупки подписки
 
-const { getUser, getPartnerByCode, setInvitedBy, updateBalance, processReferralBonus, getDb } = require('./_lib/db');
+const { getUser, getPartnerByCode, setInvitedBy, updateBalance, processReferralBonus, getLastPayment } = require('./_lib/db');
 const fs = require('fs');
 const path = require('path');
 
@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
 
   try {
     // Ищем партнёра по коду
-    const partner = getPartnerByCode(cleanCode);
+    const partner = await getPartnerByCode(cleanCode);
     if (!partner) {
       return res.status(404).json({ error: 'Код не найден. Проверьте правильность ввода.' });
     }
@@ -36,28 +36,25 @@ module.exports = async (req, res) => {
     }
 
     // Проверяем, не установлен ли уже invited_by
-    const user = getUser(telegram_id);
+    const user = await getUser(telegram_id);
     if (user?.invited_by) {
       return res.status(400).json({ error: 'Код партнёра уже был применён ранее' });
     }
 
     // Устанавливаем реферальную связь
-    setInvitedBy(String(telegram_id), String(partner.telegram_id));
+    await setInvitedBy(String(telegram_id), String(partner.telegram_id));
 
     // Ретроактивная комиссия 20% за последний платёж
-    const db = getDb();
-    const lastPayment = db.prepare(
-      'SELECT * FROM payments WHERE telegram_id = ? ORDER BY created_at DESC LIMIT 1'
-    ).get(String(telegram_id));
+    const lastPayment = await getLastPayment(String(telegram_id));
 
     let shcAwarded = 0;
     if (lastPayment && lastPayment.amount > 0) {
       shcAwarded = Math.round(lastPayment.amount * 0.20);
-      updateBalance(String(partner.telegram_id), shcAwarded);
+      await updateBalance(String(partner.telegram_id), shcAwarded);
     }
 
     // Пороговые SHC бонусы (50 SHC за друга + бонусы за количество)
-    processReferralBonus(String(partner.telegram_id), String(telegram_id));
+    await processReferralBonus(String(partner.telegram_id), String(telegram_id));
 
     // Очищаем кэш обоих пользователей
     for (const tid of [telegram_id, partner.telegram_id]) {

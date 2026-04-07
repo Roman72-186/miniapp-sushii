@@ -1,6 +1,6 @@
 // api/admin-subscribers.js — Список подписчиков из SQLite + данные подарков
 const { checkAuth } = require('./_lib/admin-auth');
-const { getDb } = require('./_lib/db');
+const { getAdminSubscribersList } = require('./_lib/db');
 const fs = require('fs');
 const path = require('path');
 
@@ -28,19 +28,8 @@ module.exports = async (req, res) => {
   if (!checkAuth(req, res)) return;
 
   try {
-    const db = getDb();
-
     // Все пользователи с подпиской (tariff не null)
-    const rows = db.prepare(`
-      SELECT telegram_id, name, phone, tariff, is_ambassador,
-             subscription_status, subscription_start, subscription_end,
-             balance_shc, notes, created_at, updated_at
-      FROM users
-      WHERE tariff IS NOT NULL
-      ORDER BY
-        CASE tariff WHEN '9990' THEN 1 WHEN '1190' THEN 2 WHEN '490' THEN 3 WHEN '290' THEN 4 ELSE 5 END,
-        updated_at DESC
-    `).all();
+    const rows = await getAdminSubscribersList();
 
     // Статистика
     const stats = {

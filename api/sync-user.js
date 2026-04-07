@@ -25,9 +25,9 @@ module.exports = async (req, res) => {
   try {
     // Обновляем имя из Telegram только если в БД пусто И имя не тестовое
     if (tg_name) {
-      const existing = getUser(telegram_id);
+      const existing = await getUser(telegram_id);
       const isTestName = tg_name.toLowerCase().includes('test') || tg_name.toLowerCase().includes('user');
-      
+
       // 🔍 DEBUG: Логируем проверку имени
       console.log('[sync-user] Проверка имени:', {
         telegram_id,
@@ -36,14 +36,14 @@ module.exports = async (req, res) => {
         is_test_name: isTestName,
         should_update: !existing || (!existing.name && !isTestName),
       });
-      
+
       if (!existing) {
         // Создаём нового пользователя с именем из Telegram (если не тестовое)
-        upsertUser({ telegram_id: String(telegram_id), name: isTestName ? null : tg_name });
+        await upsertUser({ telegram_id: String(telegram_id), name: isTestName ? null : tg_name });
       } else if (!existing.name) {
         // Обновляем имя только если в БД пусто и имя не тестовое
         if (!isTestName) {
-          upsertUser({ telegram_id: String(telegram_id), name: tg_name });
+          await upsertUser({ telegram_id: String(telegram_id), name: tg_name });
         }
       }
       // Если имя уже есть в БД — не перезаписываем!
@@ -78,13 +78,13 @@ module.exports = async (req, res) => {
     }
 
     // 2. SQLite — единственный источник данных
-    let dbUser = getUser(telegram_id);
-    
+    let dbUser = await getUser(telegram_id);
+
     // Автогенерация ref_url если отсутствует
     if (dbUser && !dbUser.ref_url) {
       const generatedUrl = `https://sushi-house-39.ru/?invited_by=${telegram_id}`;
-      upsertUser({ telegram_id: String(telegram_id), ref_url: generatedUrl });
-      dbUser = getUser(telegram_id);
+      await upsertUser({ telegram_id: String(telegram_id), ref_url: generatedUrl });
+      dbUser = await getUser(telegram_id);
     }
 
     // Автогенерация partner_code если отсутствует
@@ -94,9 +94,9 @@ module.exports = async (req, res) => {
       do {
         code = generatePartnerCode();
         attempts++;
-      } while (getPartnerByCode(code) && attempts < 10);
-      upsertUser({ telegram_id: String(telegram_id), partner_code: code });
-      dbUser = getUser(telegram_id);
+      } while ((await getPartnerByCode(code)) && attempts < 10);
+      await upsertUser({ telegram_id: String(telegram_id), partner_code: code });
+      dbUser = await getUser(telegram_id);
     }
 
     // Проверка обязательных полей
@@ -220,7 +220,7 @@ module.exports = async (req, res) => {
 
     // Fallback 1: SQLite данные напрямую
     try {
-      const dbUser = getUser(telegram_id);
+      const dbUser = await getUser(telegram_id);
       if (dbUser && dbUser.tariff) {
         console.log('[sync-user] Fallback: возвращаем данные из SQLite');
         const fallbackData = {
