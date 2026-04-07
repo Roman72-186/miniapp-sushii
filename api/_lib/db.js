@@ -94,8 +94,9 @@ function getDb() {
     CREATE INDEX IF NOT EXISTS idx_gift_history_telegram ON gift_history(telegram_id);
   `);
 
-  // Миграция: добавить partner_code если нет
+  // Миграции: добавить новые колонки если нет
   try { _db.exec('ALTER TABLE users ADD COLUMN partner_code TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN notes TEXT'); } catch {}
 
   return _db;
 }
@@ -507,6 +508,40 @@ function getAllUsers() {
   return getDb().prepare('SELECT * FROM users ORDER BY updated_at DESC').all();
 }
 
+function extendSubscription(telegramId, days) {
+  const user = getUser(telegramId);
+  if (!user) throw new Error('user_not_found');
+
+  const fmt = d => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let base = today;
+  if (user.subscription_end) {
+    const [dd, mm, yyyy] = user.subscription_end.split('.');
+    const end = new Date(`${yyyy}-${mm}-${dd}`);
+    if (end > today) base = end;
+  }
+
+  const newEnd = new Date(base);
+  newEnd.setDate(newEnd.getDate() + Number(days));
+
+  getDb().prepare(`
+    UPDATE users
+    SET subscription_status = 'активно',
+        subscription_start = COALESCE(subscription_start, ?),
+        subscription_end = ?,
+        updated_at = datetime('now')
+    WHERE telegram_id = ?
+  `).run(fmt(today), fmt(newEnd), String(telegramId));
+
+  return getUser(telegramId);
+}
+
+function setUserNotes(telegramId, notes) {
+  getDb().prepare(`UPDATE users SET notes = ?, updated_at = datetime('now') WHERE telegram_id = ?`)
+    .run(notes || null, String(telegramId));
+}
+
 function setUserTariff(telegramId, tariff) {
   getDb().prepare(`
     UPDATE users SET tariff = ?, updated_at = datetime('now') WHERE telegram_id = ?
@@ -579,4 +614,6 @@ module.exports = {
   renewSubscription,
   setUserTariff,
   adminApplyUserTagAction,
+  extendSubscription,
+  setUserNotes,
 };

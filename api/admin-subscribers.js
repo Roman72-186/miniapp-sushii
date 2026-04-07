@@ -34,7 +34,7 @@ module.exports = async (req, res) => {
     const rows = db.prepare(`
       SELECT telegram_id, name, phone, tariff, is_ambassador,
              subscription_status, subscription_start, subscription_end,
-             balance_shc, created_at, updated_at
+             balance_shc, notes, created_at, updated_at
       FROM users
       WHERE tariff IS NOT NULL
       ORDER BY

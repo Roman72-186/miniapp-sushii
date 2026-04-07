@@ -29,6 +29,11 @@ function AdminPage() {
   const [grantTgId, setGrantTgId] = useState(''); // ввод telegram_id для выдачи подарка
   const [resettingSub, setResettingSub] = useState(null); // telegram_id пока идёт сброс подписки
   const [settingTariff, setSettingTariff] = useState(null); // telegram_id пока идёт смена тарифа
+  const [extendingDays, setExtendingDays] = useState({}); // {telegram_id: '5'}
+  const [extending, setExtending] = useState(null); // telegram_id пока идёт продление
+  const [editingNotes, setEditingNotes] = useState({}); // {telegram_id: 'текст'}
+  const [dashStats, setDashStats] = useState(null);
+  const [dashLoading, setDashLoading] = useState(false);
 
   // Banners state
   const [banners, setBanners] = useState([]);
@@ -127,6 +132,7 @@ function AdminPage() {
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
     if (loggedIn && tab === 'pricing' && !pricing) loadPricing();
+    if (loggedIn && tab === 'stats') loadStats();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Сохранение товара
@@ -229,6 +235,43 @@ function AdminPage() {
     }
     setSettingTariff(null);
   };
+
+  // Продление подписки на N дней
+  const extendSub = async (telegramId) => {
+    const days = Number(extendingDays[telegramId]);
+    if (!days || days < 1) return;
+    setExtending(telegramId);
+    try {
+      const res = await fetch(`${API}/api/admin/extend-subscription`, {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ telegram_id: telegramId, days }),
+      });
+      const data = await res.json();
+      if (data.success) { loadSubscribers(); setExtendingDays(prev => ({ ...prev, [telegramId]: '' })); }
+    } catch (err) { console.error('extendSub error:', err); }
+    setExtending(null);
+  };
+
+  // Сохранить заметку
+  const saveNotes = async (telegramId, notes) => {
+    try {
+      await fetch(`${API}/api/admin/user-notes`, {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ telegram_id: telegramId, notes }),
+      });
+    } catch (err) { console.error('saveNotes error:', err); }
+  };
+
+  // Загрузка статистики
+  const loadStats = useCallback(async () => {
+    setDashLoading(true);
+    try {
+      const res = await fetch(`${API}/api/admin/stats`, { headers: headers() });
+      const data = await res.json();
+      if (data.success) setDashStats(data.stats);
+    } catch (_) {}
+    setDashLoading(false);
+  }, []); // eslint-disable-line
 
   // Загрузка цен
   const loadPricing = useCallback(async () => {
@@ -486,6 +529,12 @@ function AdminPage() {
           Цены
         </button>
         <button
+          style={tab === 'stats' ? styles.tabActive : styles.tab}
+          onClick={() => setTab('stats')}
+        >
+          Статистика
+        </button>
+        <button
           style={tab === 'add' ? styles.tabActive : styles.tab}
           onClick={() => setTab('add')}
         >
@@ -673,6 +722,32 @@ function AdminPage() {
                       {settingTariff === s.telegram_id ? '...' : t}
                     </button>
                   ))}
+                  <input
+                    type="number"
+                    min="1" max="365"
+                    placeholder="дн."
+                    value={extendingDays[s.telegram_id] || ''}
+                    onChange={e => setExtendingDays(prev => ({ ...prev, [s.telegram_id]: e.target.value }))}
+                    style={styles.daysInput}
+                  />
+                  <button
+                    style={styles.extendBtn}
+                    onClick={() => extendSub(s.telegram_id)}
+                    disabled={!!extending || !extendingDays[s.telegram_id]}
+                  >
+                    {extending === s.telegram_id ? '...' : '+Дн'}
+                  </button>
+                </div>
+                <div style={styles.notesRow}>
+                  <input
+                    type="text"
+                    placeholder="Заметка..."
+                    defaultValue={s.notes || ''}
+                    key={s.telegram_id + '_notes'}
+                    onBlur={e => { if (e.target.value !== (s.notes || '')) saveNotes(s.telegram_id, e.target.value); }}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.target.blur(); } }}
+                    style={styles.notesInput}
+                  />
                 </div>
                 {/* Подарки */}
                 {s.gifts && (
@@ -925,6 +1000,57 @@ function AdminPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ─── Stats Tab ─── */}
+      {tab === 'stats' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={styles.addTitle}>Дашборд</h3>
+            <button style={styles.btnSmall} onClick={loadStats} disabled={dashLoading}>
+              {dashLoading ? '...' : 'Обновить'}
+            </button>
+          </div>
+          {dashStats && (
+            <div style={styles.statsGrid}>
+              <div style={styles.statCard}>
+                <div style={styles.statVal}>{dashStats.totalUsers}</div>
+                <div style={styles.statLabel}>Всего в базе</div>
+              </div>
+              <div style={styles.statCard}>
+                <div style={styles.statVal}>{dashStats.activeTotal}</div>
+                <div style={styles.statLabel}>Активных</div>
+              </div>
+              <div style={styles.statCard}>
+                <div style={styles.statVal}>{dashStats.expiringSoon}</div>
+                <div style={styles.statLabel}>Истекает ≤7 дн.</div>
+              </div>
+              <div style={styles.statCard}>
+                <div style={styles.statVal}>{dashStats.newThisWeek}</div>
+                <div style={styles.statLabel}>Новых за 7 дн.</div>
+              </div>
+              <div style={styles.statCard}>
+                <div style={styles.statVal}>{dashStats.revenueThisMonth?.toLocaleString('ru-RU')} ₽</div>
+                <div style={styles.statLabel}>Выручка за месяц</div>
+              </div>
+              <div style={styles.statCard}>
+                <div style={styles.statVal}>{dashStats.ambassadors}</div>
+                <div style={styles.statLabel}>Амбассадоров</div>
+              </div>
+              <div style={{ ...styles.statCard, gridColumn: '1 / -1' }}>
+                <div style={styles.statLabel}>По тарифам (активные)</div>
+                <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
+                  {Object.entries(dashStats.activeByTariff).map(([t, n]) => (
+                    <span key={t} style={{ fontWeight: 700, fontSize: 15 }}>
+                      {t}₽: <span style={{ color: '#3CC8A1' }}>{n}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          {!dashStats && !dashLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
         </div>
       )}
     </div>
@@ -1305,6 +1431,61 @@ const styles = {
     fontSize: 11,
     fontWeight: 600,
     cursor: 'pointer',
+  },
+  daysInput: {
+    width: 44,
+    padding: '4px 6px',
+    background: '#2a2a2e',
+    color: '#fff',
+    border: '1px solid #444',
+    borderRadius: 6,
+    fontSize: 11,
+    textAlign: 'center',
+  },
+  extendBtn: {
+    padding: '4px 8px',
+    background: '#1a3a2a',
+    color: '#3CC8A1',
+    border: '1px solid #3CC8A1',
+    borderRadius: 6,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  notesRow: {
+    marginTop: 6,
+  },
+  notesInput: {
+    width: '100%',
+    padding: '5px 8px',
+    background: '#222',
+    color: '#ccc',
+    border: '1px solid #333',
+    borderRadius: 6,
+    fontSize: 12,
+    boxSizing: 'border-box',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 10,
+  },
+  statCard: {
+    background: '#fff',
+    borderRadius: 12,
+    padding: '14px 16px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
+  },
+  statVal: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: '#1a1a1a',
+    lineHeight: 1.2,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
   },
   // Banners
   bannerSlot: {
