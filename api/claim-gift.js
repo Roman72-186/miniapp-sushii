@@ -2,6 +2,7 @@
 
 const { getCurrentWindow, formatDDMMYYYY, todayUTC, parseDDMMYYYY } = require('./_lib/gift-windows');
 const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
+const { insertGiftHistory } = require('./_lib/db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,6 +41,21 @@ module.exports = async (req, res) => {
 
     // 4. Записать обратно в blob-store
     await writeGiftWindows(telegram_id, stored);
+
+    // 4a. Логировать в SQLite gift_history
+    try {
+      const giftType = windowInArray.grantType || (stored.tarif === '1190' ? 'set' : 'roll');
+      insertGiftHistory({
+        telegramId: telegram_id,
+        giftType,
+        claimedAt: today,
+        claimedTs: new Date().toISOString(),
+        windowNum: windowInArray.num,
+        grantedBy: windowInArray.grantedBy || 'user',
+      });
+    } catch (histErr) {
+      console.error('gift_history insert error:', histErr.message);
+    }
 
     // 5. Вычислить дату следующего окна
     let nextWindowDate = null;

@@ -1,7 +1,7 @@
 // api/get-profile.js — Получение профиля подписчика (SQLite + blob-store)
 
 const { readUserCache } = require('./_lib/user-cache');
-const { getUser } = require('./_lib/db');
+const { getUser, getGiftHistory } = require('./_lib/db');
 const { readGiftWindows } = require('./_lib/blob-store');
 
 module.exports = async (req, res) => {
@@ -28,6 +28,7 @@ module.exports = async (req, res) => {
     const cache = await readUserCache(telegram_id);
     if (cache && cache.contact) {
       const v = cache.variables || {};
+      const giftHistory = getGiftHistory(telegram_id);
       return res.status(200).json({
         name: cache.contact.name || null,
         phone: (cache.listItem && cache.listItem.telefon) || null,
@@ -39,6 +40,7 @@ module.exports = async (req, res) => {
         contact_id: cache.contact.id || null,
         ref_url: v['ref_url'] || null,
         has_payment_id: !!v['PaymentID'],
+        giftHistory,
       });
     }
 
@@ -58,6 +60,7 @@ module.exports = async (req, res) => {
       }
     } catch (_) {}
 
+    const giftHistory = getGiftHistory(telegram_id);
     return res.status(200).json({
       name: dbUser.name || null,
       phone: dbUser.phone || null,
@@ -69,6 +72,7 @@ module.exports = async (req, res) => {
       contact_id: dbUser.watbot_contact_id || null,
       ref_url: dbUser.ref_url || null,
       has_payment_id: !!dbUser.payment_method_id,
+      giftHistory,
     });
   } catch (error) {
     console.error('Ошибка получения профиля:', error);

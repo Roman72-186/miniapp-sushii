@@ -2,6 +2,7 @@
 const { checkAuth } = require('./_lib/admin-auth');
 const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
 const { formatDDMMYYYY, todayUTC } = require('./_lib/gift-windows');
+const { insertGiftHistory } = require('./_lib/db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -42,6 +43,19 @@ module.exports = async (req, res) => {
     stored.updatedAt = new Date().toISOString();
 
     await writeGiftWindows(telegram_id, stored);
+
+    try {
+      insertGiftHistory({
+        telegramId: telegram_id,
+        giftType: type,
+        claimedAt: window.claimedAt,
+        claimedTs: new Date().toISOString(),
+        windowNum: window.num,
+        grantedBy: 'admin',
+      });
+    } catch (histErr) {
+      console.error('gift_history insert error:', histErr.message);
+    }
 
     return res.status(200).json({ success: true, window });
   } catch (error) {

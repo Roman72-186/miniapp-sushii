@@ -160,6 +160,24 @@ function ProfilePage() {
               </div>
             </div>
 
+            {/* История подарков */}
+            {profile?.giftHistory?.length > 0 && (
+              <div className="shop-profile__section">
+                <div className="shop-profile__label" style={{ marginBottom: 10 }}>🎁 История подарков</div>
+                <ul className="profile-gift-list">
+                  {profile.giftHistory.map((g, i) => (
+                    <li key={i} className="profile-gift-item">
+                      <span className="profile-gift-type">{g.gift_type === 'roll' ? 'Ролл' : 'Сет'}</span>
+                      <span className="profile-gift-date">{g.claimed_at}</span>
+                      {g.granted_by === 'admin' && (
+                        <span className="profile-gift-badge">от админа</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Амбассадор */}
             {hasTag('амба') ? (
               <>
