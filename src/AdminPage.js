@@ -28,6 +28,7 @@ function AdminPage() {
   const [grantingGift, setGrantingGift] = useState(null); // telegram_id пока идёт запрос
   const [grantTgId, setGrantTgId] = useState(''); // ввод telegram_id для выдачи подарка
   const [resettingSub, setResettingSub] = useState(null); // telegram_id пока идёт сброс подписки
+  const [settingTariff, setSettingTariff] = useState(null); // telegram_id пока идёт смена тарифа
 
   // Banners state
   const [banners, setBanners] = useState([]);
@@ -43,7 +44,10 @@ function AdminPage() {
   const [addName, setAddName] = useState('');
   const [addPhone, setAddPhone] = useState('');
   const [addTariff, setAddTariff] = useState('290');
-  const [addMonths, setAddMonths] = useState('1');
+  const [addEndDate, setAddEndDate] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
+  });
   const [addLoading, setAddLoading] = useState(false);
   const [addResult, setAddResult] = useState(null);
 
@@ -209,6 +213,23 @@ function AdminPage() {
     setResettingSub(null);
   };
 
+  // Смена тарифа
+  const setTariff = async (telegramId, tariff) => {
+    setSettingTariff(telegramId);
+    try {
+      const res = await fetch(`${API}/api/admin/user-tags`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ telegram_id: telegramId, action: 'add', tag: tariff }),
+      });
+      const data = await res.json();
+      if (data.success) loadSubscribers();
+    } catch (err) {
+      console.error('setTariff error:', err);
+    }
+    setSettingTariff(null);
+  };
+
   // Загрузка цен
   const loadPricing = useCallback(async () => {
     setPricingLoading(true);
@@ -367,7 +388,7 @@ function AdminPage() {
           name: addName.trim() || undefined,
           phone: addPhone.trim(),
           tariff: addTariff,
-          months: Number(addMonths),
+          end_date: addEndDate,
         }),
       });
       const data = await res.json();
@@ -376,7 +397,8 @@ function AdminPage() {
         setAddPhone('');
         setAddName('');
         setAddTariff('290');
-        setAddMonths('1');
+        const d = new Date(); d.setDate(d.getDate() + 30);
+        setAddEndDate(d.toISOString().split('T')[0]);
       }
     } catch {
       setAddResult({ success: false, error: 'Ошибка соединения' });
@@ -640,6 +662,18 @@ function AdminPage() {
                   )}
                   {s.balance_shc > 0 && <span>SHC: {s.balance_shc}</span>}
                 </div>
+                <div style={styles.tariffRow}>
+                  {['290', '490', '1190'].map(t => (
+                    <button
+                      key={t}
+                      style={s.tariff === t ? styles.tariffBtnActive : styles.tariffBtnInactive}
+                      onClick={() => setTariff(s.telegram_id, t)}
+                      disabled={!!settingTariff}
+                    >
+                      {settingTariff === s.telegram_id ? '...' : t}
+                    </button>
+                  ))}
+                </div>
                 {/* Подарки */}
                 {s.gifts && (
                   <div style={styles.giftsRow}>
@@ -848,18 +882,15 @@ function AdminPage() {
                 <option value="9990">9990 ₽ — Амбассадор</option>
               </select>
 
-              <label style={styles.fieldLabel}>Период подписки *</label>
-              <select
-                value={addMonths}
-                onChange={e => setAddMonths(e.target.value)}
+              <label style={styles.fieldLabel}>Подписка активна до *</label>
+              <input
+                type="date"
+                value={addEndDate}
+                onChange={e => setAddEndDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
                 style={{ ...styles.input, marginBottom: 18 }}
-              >
-                <option value="1">1 месяц</option>
-                <option value="2">2 месяца</option>
-                <option value="3">3 месяца</option>
-                <option value="6">6 месяцев</option>
-                <option value="12">12 месяцев</option>
-              </select>
+                required
+              />
 
               <button
                 type="submit"
@@ -1249,6 +1280,31 @@ const styles = {
     fontWeight: 600,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
+  },
+  tariffRow: {
+    display: 'flex',
+    gap: 4,
+    marginTop: 6,
+  },
+  tariffBtnActive: {
+    padding: '4px 10px',
+    background: '#3CC8A1',
+    color: '#111',
+    border: '1px solid #3CC8A1',
+    borderRadius: 6,
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  tariffBtnInactive: {
+    padding: '4px 10px',
+    background: '#2a2a2e',
+    color: '#aaa',
+    border: '1px solid #444',
+    borderRadius: 6,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: 'pointer',
   },
   // Banners
   bannerSlot: {

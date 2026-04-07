@@ -507,6 +507,31 @@ function getAllUsers() {
   return getDb().prepare('SELECT * FROM users ORDER BY updated_at DESC').all();
 }
 
+function setUserTariff(telegramId, tariff) {
+  getDb().prepare(`
+    UPDATE users SET tariff = ?, updated_at = datetime('now') WHERE telegram_id = ?
+  `).run(tariff, String(telegramId));
+  return getUser(telegramId);
+}
+
+function adminApplyUserTagAction(telegramId, action, tag) {
+  const user = getUser(telegramId);
+  if (!user) throw new Error('user_not_found');
+  if (action !== 'add' && action !== 'remove') throw new Error('invalid_action');
+
+  const TARIFF_TAGS = ['290', '490', '1190', '9990'];
+  if (TARIFF_TAGS.includes(tag)) {
+    return setUserTariff(telegramId, action === 'add' ? tag : null);
+  }
+  if (tag === 'амба') {
+    getDb().prepare(
+      `UPDATE users SET is_ambassador = ?, updated_at = datetime('now') WHERE telegram_id = ?`
+    ).run(action === 'add' ? 1 : 0, String(telegramId));
+    return getUser(telegramId);
+  }
+  throw new Error('invalid_tag');
+}
+
 // ─── Gift History ────────────────────────────────────────
 
 function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy }) {
@@ -552,4 +577,6 @@ module.exports = {
   cancelAutoRenew,
   deactivateSubscription,
   renewSubscription,
+  setUserTariff,
+  adminApplyUserTagAction,
 };
