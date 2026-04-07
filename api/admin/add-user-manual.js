@@ -27,11 +27,13 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
   if (!checkAuth(req, res)) return;
 
-  const { name, phone, tariff, months } = req.body || {};
+  const { name, phone, tariff, months, end_date } = req.body || {};
 
   if (!phone) return res.status(400).json({ error: 'Номер телефона обязателен' });
   if (!tariff) return res.status(400).json({ error: 'Тариф обязателен' });
-  if (!months || Number(months) < 1) return res.status(400).json({ error: 'Период подписки обязателен' });
+  if (!end_date && (!months || Number(months) < 1)) {
+    return res.status(400).json({ error: 'Укажите дату окончания подписки' });
+  }
 
   const normalizedPhone = normalizePhone(phone);
   if (!normalizedPhone || normalizedPhone.length < 10) {
@@ -39,11 +41,18 @@ module.exports = async (req, res) => {
   }
 
   const today = new Date();
-  const endDate = new Date(today);
-  endDate.setMonth(endDate.getMonth() + Number(months));
-
   const subscription_start = formatDate(today);
-  const subscription_end = formatDate(endDate);
+  let subscription_end;
+
+  if (end_date) {
+    // YYYY-MM-DD из HTML date input
+    const d = new Date(end_date + 'T00:00:00');
+    subscription_end = formatDate(d);
+  } else {
+    const endDate = new Date(today);
+    endDate.setMonth(endDate.getMonth() + Number(months));
+    subscription_end = formatDate(endDate);
+  }
 
   try {
     const db = getDb();
