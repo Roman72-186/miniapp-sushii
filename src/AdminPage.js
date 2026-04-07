@@ -296,7 +296,7 @@ function AdminPage() {
       if (data.success) setDashStats(data.stats);
     } catch (_) {}
     setDashLoading(false);
-  }, []); // eslint-disable-line
+  }, [headers]);
 
   // Загрузка цен
   const loadPricing = useCallback(async () => {
