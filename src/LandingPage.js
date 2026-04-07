@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
+import LoginPage from './LoginPage';
 
 const TARIFFS = [
   {
@@ -81,28 +82,9 @@ function LandingPage() {
     window.location.href = `/pay/${price}${tid}`;
   };
 
-  // Веб-пользователь не авторизован — показываем страницу входа
+  // Веб-пользователь не авторизован — показываем форму входа прямо на главной
   if (!userLoading && !telegramId) {
-    return (
-      <div className="shop-page">
-        <div className="shop-landing">
-          <img src="/logo.jpg" alt="Суши-Хаус 39" className="shop-landing__logo" onClick={handleLogoClick} style={{ cursor: 'default' }} />
-          <h1 className="shop-landing__title">СУШИ-ХАУС 39</h1>
-          <p className="shop-landing__subtitle">Подписка со скидками и подарками</p>
-          <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 320, margin: '32px auto 0' }}>
-            <button
-              className="shop-payment__btn"
-              onClick={() => { window.location.href = '/login'; }}
-            >
-              Войти по номеру телефона
-            </button>
-            <div style={{ textAlign: 'center', fontSize: 13, color: '#9fb0c3', lineHeight: 1.5 }}>
-              Введите номер телефона — если у вас уже есть подписка, она подтянется автоматически
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoginPage />;
   }
 
   if (userLoading || redirecting || hasActiveSubscription) {
