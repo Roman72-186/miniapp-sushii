@@ -27,6 +27,7 @@ function AdminPage() {
   const [subsSearch, setSubsSearch] = useState('');
   const [grantingGift, setGrantingGift] = useState(null); // telegram_id пока идёт запрос
   const [grantTgId, setGrantTgId] = useState(''); // ввод telegram_id для выдачи подарка
+  const [resettingSub, setResettingSub] = useState(null); // telegram_id пока идёт сброс подписки
 
   // Banners state
   const [banners, setBanners] = useState([]);
@@ -188,6 +189,24 @@ function AdminPage() {
       console.error('claimGift error:', err);
     }
     setGrantingGift(null);
+  };
+
+  // Сброс подписки
+  const resetSubscription = async (telegramId, name) => {
+    if (!window.confirm(`Сбросить подписку пользователя "${name || telegramId}"?\nОн увидит экран оплаты при следующем входе.`)) return;
+    setResettingSub(telegramId);
+    try {
+      const res = await fetch(`${API}/api/admin/reset-subscription`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ telegram_id: telegramId }),
+      });
+      const data = await res.json();
+      if (data.success) loadSubscribers();
+    } catch (err) {
+      console.error('resetSubscription error:', err);
+    }
+    setResettingSub(null);
   };
 
   // Загрузка цен
@@ -601,6 +620,9 @@ function AdminPage() {
                     </button>
                     <button style={styles.claimBtn} onClick={() => claimGift(s.telegram_id, 'set')} disabled={!!grantingGift}>
                       {grantingGift === s.telegram_id + '-set' ? '...' : '-S'}
+                    </button>
+                    <button style={styles.resetSubBtn} onClick={() => resetSubscription(s.telegram_id, s.name)} disabled={!!resettingSub}>
+                      {resettingSub === s.telegram_id ? '...' : 'RST'}
                     </button>
                   </span>
                 </div>
@@ -1211,6 +1233,17 @@ const styles = {
     background: '#fce8e8',
     color: '#c62828',
     border: '1px solid #f5a5a5',
+    borderRadius: 6,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  resetSubBtn: {
+    padding: '6px 8px',
+    background: '#3a2020',
+    color: '#ff8a80',
+    border: '1px solid #7a3030',
     borderRadius: 6,
     fontSize: 11,
     fontWeight: 600,

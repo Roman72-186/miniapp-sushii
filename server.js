@@ -38,6 +38,7 @@ app.all('/api/admin/products', require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
 app.all('/api/admin/grant-gift', require('./api/admin-grant-gift'));
 app.all('/api/admin/claim-gift', require('./api/admin-claim-gift'));
+app.all('/api/admin/reset-subscription', require('./api/admin-reset-subscription'));
 app.all('/api/admin/banners', require('./api/admin-banners'));
 app.all('/api/admin/pricing', require('./api/admin-pricing'));
 app.all('/api/admin/add-user-manual', require('./api/admin/add-user-manual'));
