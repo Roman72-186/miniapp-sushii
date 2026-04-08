@@ -83,11 +83,7 @@ function LandingPage() {
     window.location.href = `/pay/${price}${tid}`;
   };
 
-  // Веб-пользователь не авторизован — показываем форму входа прямо на главной
-  if (!userLoading && !telegramId) {
-    return <LoginPage />;
-  }
-
+  // Пока грузим или есть активная подписка — лоадер / редирект
   if (userLoading || redirecting || hasActiveSubscription) {
     return (
       <div className="shop-page">
@@ -96,7 +92,7 @@ function LandingPage() {
     );
   }
 
-  // Нет подписки — сначала splash, потом тарифы
+  // Сплэш — первый экран для всех без активной подписки (включая веб/реферальных)
   if (showSplash) {
     return (
       <div className="shop-page" style={{ padding: 0 }}>
@@ -124,6 +120,11 @@ function LandingPage() {
         </div>
       </div>
     );
+  }
+
+  // После сплэша: веб-пользователь не авторизован — форма входа
+  if (!telegramId) {
+    return <LoginPage />;
   }
 
   return (
