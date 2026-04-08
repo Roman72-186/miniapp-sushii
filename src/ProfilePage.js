@@ -22,6 +22,27 @@ function ProfilePage() {
   const [showAllTxns, setShowAllTxns] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [orderHistory, setOrderHistory] = useState(null);
+  const [priceTable, setPriceTable] = useState({
+    '290':  { 1: 290,  3: 750,  5: 1200 },
+    '490':  { 1: 690,  3: 1690, 5: 2990 },
+    '1190': { 1: 1390, 3: 3850, 5: 6600 },
+  });
+
+  // Загружаем актуальные цены из API
+  useEffect(() => {
+    fetch('/api/admin/pricing')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.pricing) {
+          const table = {};
+          for (const [key, val] of Object.entries(data.pricing)) {
+            table[key] = val.months || { 1: val.price };
+          }
+          setPriceTable(table);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Загружаем рефералов (по telegram_id, fallback на contact_id)
   useEffect(() => {
@@ -728,13 +749,15 @@ function ProfilePage() {
             {/* Продление текущего — 1/3/5 месяцев */}
             {tarif && tarif !== '9990' && (
               <div style={{ marginTop: 4 }}>
-                <div style={{ color: '#8888aa', fontSize: 12, marginBottom: 8 }}>↻ Продлить текущий тариф ({TARIFF_INFO[tarif]?.label})</div>
+                <div style={{ color: '#8888aa', fontSize: 12, marginBottom: 8 }}>↻ Продлить текущий тариф</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[
                     { months: 1, label: '1 мес' },
                     { months: 3, label: '3 мес' },
                     { months: 5, label: '5 мес' },
-                  ].map(({ months, label }) => (
+                  ].map(({ months, label }) => {
+                    const price = priceTable[tarif]?.[months];
+                    return (
                     <button
                       key={months}
                       onClick={() => handleTariffNavigate(tarif, months)}
@@ -746,13 +769,16 @@ function ProfilePage() {
                         borderRadius: 10,
                         color: '#3CC8A1',
                         fontWeight: 700,
-                        fontSize: 14,
+                        fontSize: 12,
                         cursor: 'pointer',
+                        lineHeight: 1.3,
                       }}
                     >
-                      {label}
+                      <div>{label}</div>
+                      {price && <div style={{ fontSize: 13, marginTop: 2 }}>{price} ₽</div>}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
