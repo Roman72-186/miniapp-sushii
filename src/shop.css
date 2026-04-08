@@ -385,6 +385,7 @@ body.shop-body {
   object-fit: cover;
   display: block;
   opacity: 0.93;
+  transform: scale(1.12);
 }
 
 .shop-card__body {
