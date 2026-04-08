@@ -101,7 +101,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
           await fetch('/api/claim-gift', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId }),
+            body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId, address: selectedPickup.address }),
           });
         } catch (_) { /* не блокируем успех заказа */ }
         sync(true);

@@ -3060,6 +3060,16 @@ body.shop-body {
   flex: 1;
 }
 
+.profile-gift-address {
+  color: #888;
+  font-size: 12px;
+  flex: 1;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .profile-gift-badge {
   font-size: 11px;
   background: #3CC8A1;

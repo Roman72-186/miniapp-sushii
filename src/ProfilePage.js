@@ -19,6 +19,7 @@ function ProfilePage() {
   const [transactions, setTransactions] = useState(null);
   const [showAllTxns, setShowAllTxns] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [giftHistory, setGiftHistory] = useState(null);
 
   // Загружаем рефералов (по telegram_id, fallback на contact_id)
   useEffect(() => {
@@ -62,6 +63,14 @@ function ProfilePage() {
           setBonuses(data.bonuses);
         }
       })
+      .catch(() => {});
+  }, [telegramId]);
+
+  useEffect(() => {
+    if (!telegramId) return;
+    fetch(`/api/get-gift-history?telegram_id=${telegramId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.success) setGiftHistory(data.history); })
       .catch(() => {});
   }, [telegramId]);
 
@@ -161,17 +170,16 @@ function ProfilePage() {
             </div>
 
             {/* История подарков */}
-            {profile?.giftHistory?.length > 0 && (
+            {giftHistory && giftHistory.length > 0 && (
               <div className="shop-profile__section">
                 <div className="shop-profile__label" style={{ marginBottom: 10 }}>🎁 История подарков</div>
                 <ul className="profile-gift-list">
-                  {profile.giftHistory.map((g, i) => (
+                  {giftHistory.map((g, i) => (
                     <li key={i} className="profile-gift-item">
                       <span className="profile-gift-type">{g.gift_type === 'roll' ? 'Ролл' : 'Сет'}</span>
                       <span className="profile-gift-date">{g.claimed_at}</span>
-                      {g.granted_by === 'admin' && (
-                        <span className="profile-gift-badge">от админа</span>
-                      )}
+                      {g.address && <span className="profile-gift-address">{g.address}</span>}
+                      {g.granted_by === 'admin' && <span className="profile-gift-badge">от админа</span>}
                     </li>
                   ))}
                 </ul>

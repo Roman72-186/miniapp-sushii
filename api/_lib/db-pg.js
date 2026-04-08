@@ -449,16 +449,16 @@ async function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Gift History ────────────────────────────────────────────
 
-async function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy }) {
+async function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy, address }) {
   await query(`
-    INSERT INTO gift_history (telegram_id, gift_type, claimed_at, claimed_ts, window_num, granted_by)
-    VALUES ($1, $2, $3, $4, $5, $6)
-  `, [String(telegramId), giftType, claimedAt, claimedTs, windowNum || null, grantedBy || 'user']);
+    INSERT INTO gift_history (telegram_id, gift_type, claimed_at, claimed_ts, window_num, granted_by, address)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `, [String(telegramId), giftType, claimedAt, claimedTs, windowNum || null, grantedBy || 'user', address || null]);
 }
 
 async function getGiftHistory(telegramId) {
   const res = await query(`
-    SELECT gift_type, claimed_at, claimed_ts, window_num, granted_by
+    SELECT id, gift_type, claimed_at, claimed_ts, window_num, granted_by, address
     FROM gift_history WHERE telegram_id = $1
     ORDER BY claimed_ts DESC LIMIT 50
   `, [String(telegramId)]);

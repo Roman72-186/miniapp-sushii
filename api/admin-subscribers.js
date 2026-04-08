@@ -1,6 +1,6 @@
 // api/admin-subscribers.js — Список подписчиков из SQLite + данные подарков
 const { checkAuth } = require('./_lib/admin-auth');
-const { getAdminSubscribersList } = require('./_lib/db');
+const { getAdminSubscribersList, getGiftHistory } = require('./_lib/db');
 const fs = require('fs');
 const path = require('path');
 
@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
     };
 
     // Добавляем данные подарков
-    const subscribers = rows.map(s => {
+    const subscribers = await Promise.all(rows.map(async s => {
       stats.by_tariff[s.tariff] = (stats.by_tariff[s.tariff] || 0) + 1;
       if (s.is_ambassador) stats.ambassadors++;
       if (s.subscription_status === 'активно') stats.active++;
@@ -51,6 +51,16 @@ module.exports = async (req, res) => {
       if (giftData && giftData.windows) {
         const claimed = giftData.windows.filter(w => w.status === 'claimed');
         const total = giftData.windows.length;
+
+        // История из БД (содержит адреса)
+        let historyByWindow = {};
+        try {
+          const history = await getGiftHistory(s.telegram_id);
+          history.forEach(h => {
+            if (h.window_num != null) historyByWindow[h.window_num] = h.address || null;
+          });
+        } catch {}
+
         gifts = {
           totalWindows: total,
           claimed: claimed.length,
@@ -64,12 +74,13 @@ module.exports = async (req, res) => {
             end: w.end,
             status: w.status,
             claimedAt: w.claimedAt || null,
+            address: historyByWindow[w.num] || null,
           })),
         };
       }
 
       return { ...s, gifts };
-    });
+    }));
 
     return res.status(200).json({ success: true, subscribers, stats });
   } catch (error) {
