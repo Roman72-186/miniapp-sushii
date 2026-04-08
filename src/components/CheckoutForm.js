@@ -190,6 +190,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
             body: JSON.stringify({
               telegram_id: telegramId,
               address: deliveryType === 'pickup' ? selectedPickup?.address || null : null,
+              gift_name: giftItem.product.cleanName || giftItem.product.name || null,
             }),
           });
           giftClaim = await claimRes.json();

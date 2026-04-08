@@ -103,6 +103,7 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN partner_code TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN notes TEXT'); } catch {}
   try { _db.exec('ALTER TABLE gift_history ADD COLUMN address TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE gift_history ADD COLUMN gift_name TEXT'); } catch {}
 
   return _db;
 }
@@ -606,16 +607,16 @@ function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Gift History ────────────────────────────────────────
 
-function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy, address }) {
+function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy, address, giftName }) {
   getDb().prepare(`
-    INSERT INTO gift_history (telegram_id, gift_type, claimed_at, claimed_ts, window_num, granted_by, address)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(String(telegramId), giftType, claimedAt, claimedTs, windowNum || null, grantedBy || 'user', address || null);
+    INSERT INTO gift_history (telegram_id, gift_type, claimed_at, claimed_ts, window_num, granted_by, address, gift_name)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(String(telegramId), giftType, claimedAt, claimedTs, windowNum || null, grantedBy || 'user', address || null, giftName || null);
 }
 
 function getGiftHistory(telegramId) {
   return getDb().prepare(`
-    SELECT id, gift_type, claimed_at, claimed_ts, window_num, granted_by, address
+    SELECT id, gift_type, gift_name, claimed_at, claimed_ts, window_num, granted_by, address
     FROM gift_history
     WHERE telegram_id = ?
     ORDER BY claimed_ts DESC
@@ -625,7 +626,7 @@ function getGiftHistory(telegramId) {
 
 function getGiftOrders(limit = 300) {
   return getDb().prepare(`
-    SELECT gh.id, gh.telegram_id, gh.gift_type, gh.claimed_at, gh.claimed_ts,
+    SELECT gh.id, gh.telegram_id, gh.gift_type, gh.gift_name, gh.claimed_at, gh.claimed_ts,
            gh.window_num, gh.granted_by, gh.address,
            u.name, u.phone, u.tariff
     FROM gift_history gh

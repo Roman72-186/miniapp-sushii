@@ -170,19 +170,23 @@ function ProfilePage() {
             </div>
 
             {/* История подарков */}
-            {giftHistory && giftHistory.length > 0 && (
+            {giftHistory !== null && (
               <div className="shop-profile__section">
                 <div className="shop-profile__label" style={{ marginBottom: 10 }}>🎁 История подарков</div>
-                <ul className="profile-gift-list">
-                  {giftHistory.map((g, i) => (
-                    <li key={i} className="profile-gift-item">
-                      <span className="profile-gift-type">{g.gift_type === 'roll' ? 'Ролл' : 'Сет'}</span>
-                      <span className="profile-gift-date">{g.claimed_at}</span>
-                      {g.address && <span className="profile-gift-address">{g.address}</span>}
-                      {g.granted_by === 'admin' && <span className="profile-gift-badge">от админа</span>}
-                    </li>
-                  ))}
-                </ul>
+                {giftHistory.length === 0 ? (
+                  <div style={{ color: '#888', fontSize: 13 }}>Подарков пока не было</div>
+                ) : (
+                  <ul className="profile-gift-list">
+                    {giftHistory.map((g, i) => (
+                      <li key={i} className="profile-gift-item">
+                        <span className="profile-gift-type">{g.gift_name || (g.gift_type === 'roll' ? 'Ролл' : 'Сет')}</span>
+                        <span className="profile-gift-date">{g.claimed_at}</span>
+                        {g.address && <span className="profile-gift-address">{g.address}</span>}
+                        {g.granted_by === 'admin' && <span className="profile-gift-badge">от админа</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 

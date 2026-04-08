@@ -101,7 +101,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
           await fetch('/api/claim-gift', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId, address: selectedPickup.address }),
+            body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId, address: selectedPickup.address, gift_name: product.name || null }),
           });
         } catch (claimErr) {
           console.error('[claim-gift] Сетевая ошибка:', claimErr.message);
