@@ -103,7 +103,9 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ telegram_id: telegramId, contact_id: contactId, address: selectedPickup.address }),
           });
-        } catch (_) { /* не блокируем успех заказа */ }
+        } catch (claimErr) {
+          console.error('[claim-gift] Сетевая ошибка:', claimErr.message);
+        }
         sync(true);
       }
 
