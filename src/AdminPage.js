@@ -789,7 +789,7 @@ function AdminPage() {
                       <div style={styles.giftsWindows}>
                         {s.gifts.windows.filter(w => w.claimedAt).map(w => (
                           <span key={w.num} style={styles.giftClaimed}>
-                            #{w.num} {w.claimedAt}
+                            #{w.num} {w.claimedAt}{w.address ? ` — ${w.address}` : ''}
                           </span>
                         ))}
                       </div>

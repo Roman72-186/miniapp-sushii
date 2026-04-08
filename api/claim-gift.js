@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id } = req.body || {};
+  const { telegram_id, address } = req.body || {};
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
   try {
@@ -52,6 +52,7 @@ module.exports = async (req, res) => {
         claimedTs: new Date().toISOString(),
         windowNum: windowInArray.num,
         grantedBy: windowInArray.grantedBy || 'user',
+        address: address || null,
       });
     } catch (histErr) {
       console.error('gift_history insert error:', histErr.message);

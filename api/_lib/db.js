@@ -102,6 +102,7 @@ function getDb() {
   // Миграции: добавить новые колонки если нет
   try { _db.exec('ALTER TABLE users ADD COLUMN partner_code TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN notes TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE gift_history ADD COLUMN address TEXT'); } catch {}
 
   return _db;
 }
@@ -605,16 +606,16 @@ function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Gift History ────────────────────────────────────────
 
-function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy }) {
+function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy, address }) {
   getDb().prepare(`
-    INSERT INTO gift_history (telegram_id, gift_type, claimed_at, claimed_ts, window_num, granted_by)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(String(telegramId), giftType, claimedAt, claimedTs, windowNum || null, grantedBy || 'user');
+    INSERT INTO gift_history (telegram_id, gift_type, claimed_at, claimed_ts, window_num, granted_by, address)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(String(telegramId), giftType, claimedAt, claimedTs, windowNum || null, grantedBy || 'user', address || null);
 }
 
 function getGiftHistory(telegramId) {
   return getDb().prepare(`
-    SELECT gift_type, claimed_at, claimed_ts, window_num, granted_by
+    SELECT id, gift_type, claimed_at, claimed_ts, window_num, granted_by, address
     FROM gift_history
     WHERE telegram_id = ?
     ORDER BY claimed_ts DESC
