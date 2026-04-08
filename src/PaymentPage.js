@@ -74,7 +74,10 @@ function PaymentPage() {
   const { telegramId, phone: userPhone, loading: userLoading } = useUser();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [months, setMonths] = useState(1);
+  const [months, setMonths] = useState(() => {
+    const m = Number(new URLSearchParams(window.location.search).get('months'));
+    return [1, 3, 5].includes(m) ? m : 1;
+  });
   const [priceTable, setPriceTable] = useState(DEFAULT_PRICE_TABLE);
   const [phoneInput, setPhoneInput] = useState('');
   // Проверяем что телефон российский (7XXXXXXXXXX)
