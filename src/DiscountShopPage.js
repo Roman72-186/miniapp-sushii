@@ -247,6 +247,7 @@ function DiscountShopPage() {
   const [giftView, setGiftView] = useState(initialView);
   const [modalProduct, setModalProduct] = useState(null);
   const [lockedPopup, setLockedPopup] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [giftStatus, setGiftStatus] = useState(null);
   const [giftStatusLoading, setGiftStatusLoading] = useState(true);
   const [adminGrants, setAdminGrants] = useState({ roll: false, set: false });
@@ -740,9 +741,20 @@ function DiscountShopPage() {
         </div>
       </div>
 
-      {/* <PromoBanner /> */}
+      <div className="shop-search">
+        <input
+          className="shop-search__input"
+          type="text"
+          placeholder="🔍 Поиск по меню..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button className="shop-search__clear" onClick={() => setSearchQuery('')}>✕</button>
+        )}
+      </div>
 
-      <nav className="shop-tabs" ref={tabsNavRef}>
+      {!searchQuery && <nav className="shop-tabs" ref={tabsNavRef}>
         {DISCOUNT_CATEGORIES.map(category => (
           <button
             key={category.id}
@@ -754,7 +766,7 @@ function DiscountShopPage() {
             <span className="shop-tabs__name">{category.tab}</span>
           </button>
         ))}
-      </nav>
+      </nav>}
 
       {loading ? (
         <BrandLoader text="Загружаем меню" />
@@ -762,6 +774,28 @@ function DiscountShopPage() {
         <div className="shop-error">
           <span className="shop-error__text">{error}</span>
           <button className="shop-error__retry" onClick={refetch}>Попробовать снова</button>
+        </div>
+      ) : searchQuery ? (
+        <div>
+          {(() => {
+            const q = searchQuery.toLowerCase();
+            const found = products.filter(p => p.name.toLowerCase().includes(q));
+            if (found.length === 0) return <p className="shop-search__empty">Ничего не найдено</p>;
+            return (
+              <div className="shop-grid" style={{ padding: '0 12px' }}>
+                {found.map(product => (
+                  <ShopProductCard
+                    key={product.id}
+                    product={product}
+                    quantity={getQuantity(product.id)}
+                    onAdd={cart.addItem}
+                    onUpdateQuantity={cart.updateQuantity}
+                    onImageClick={item => setModalProduct({ ...item, description: item.description || getProductDescription(item.name) })}
+                  />
+                ))}
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <div>
