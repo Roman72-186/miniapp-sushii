@@ -1,7 +1,7 @@
 // POST /api/auth/set-password — Установка/сброс пароля после OTP верификации
 
 const bcrypt = require('bcrypt');
-const { getUserByPhone } = require('../_lib/db');
+const { getUserByPhone, getUser, upsertUser } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
 const otpStore = require('./_otp-store');
@@ -55,10 +55,15 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Ошибка сохранения пароля' });
     }
 
-    // Находим пользователя в SQLite
-    const user = await getUserByPhone(phone);
+    // Находим пользователя в SQLite; если нового — создаём
+    let user = await getUserByPhone(phone);
     if (!user) {
-      return res.status(404).json({ error: 'Пользователь не найден' });
+      const webId = 'web_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+      await upsertUser({ telegram_id: webId, phone });
+      user = await getUser(webId);
+    }
+    if (!user) {
+      return res.status(500).json({ error: 'Не удалось создать пользователя' });
     }
 
     const token = generateToken(user);
