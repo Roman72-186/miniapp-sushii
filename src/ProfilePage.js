@@ -181,133 +181,146 @@ function ProfilePage() {
         </div>
       ) : (
         <div className="shop-profile">
-          <div className="shop-profile__block">
-            {/* Заголовок кабинета */}
-            <div className="shop-profile__header">
-              🍣 КАБИНЕТ СУШИ-ХАУС 39
-            </div>
+          <div className="shop-profile__header">🍣 КАБИНЕТ СУШИ-ХАУС 39</div>
 
-            {/* Профиль */}
-            <div className="shop-profile__section">
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">👤 Имя:</span>
-                <span className="shop-profile__value" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  {profile?.name || '—'}
-                  {tarif && (
-                    <span className={`profile-tariff-badge${tarif === '9990' ? ' profile-tariff-badge--gold' : ''}`}>
-                      {tarif === '9990' ? 'АМБА' : `${tarif} ₽`}
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">📱 Контакт:</span>
-                <span className="shop-profile__value">{formatPhone(profile?.phone)}</span>
-              </div>
+          {/* Карточка 1: Профиль */}
+          <div className="shop-profile__card">
+            <div className="shop-profile__row">
+              <span className="shop-profile__label">👤 Имя:</span>
+              <span className="shop-profile__value" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {profile?.name || '—'}
+                {tarif && (
+                  <span className={`profile-tariff-badge${tarif === '9990' ? ' profile-tariff-badge--gold' : ''}`}>
+                    {tarif === '9990' ? 'АМБА' : `${tarif} ₽`}
+                  </span>
+                )}
+              </span>
             </div>
+            <div className="shop-profile__row">
+              <span className="shop-profile__label">📱 Контакт:</span>
+              <span className="shop-profile__value">{formatPhone(profile?.phone)}</span>
+            </div>
+          </div>
 
-            {/* Подписка */}
-            <div className="shop-profile__section">
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">📋 Статус подписки:</span>
-                <span className="shop-profile__value" style={{ color: profile?.статусСписания === 'активно' ? '#3CC8A1' : '#999' }}>
-                  {profile?.статусСписания || 'неактивно'}
-                </span>
-              </div>
-              {(tarif === '490' || tarif === '1190') && giftWindows && (() => {
-                const { currentStatus, daysLeft } = giftWindows;
-                const type = tarif === '490' ? 'ролл' : 'сет';
-                if (currentStatus === 'available') {
+          {/* Карточка 2: Подписка */}
+          <div className="shop-profile__card">
+            <div className="shop-profile__card-title">Подписка</div>
+            <div className="shop-profile__row">
+              <span className="shop-profile__label">📋 Статус:</span>
+              <span className="shop-profile__value" style={{ color: profile?.статусСписания === 'активно' ? '#3CC8A1' : '#999' }}>
+                {profile?.статусСписания || 'неактивно'}
+              </span>
+            </div>
+            <div className="shop-profile__row">
+              <span className="shop-profile__label">🔒 Действует до:</span>
+              <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
+            </div>
+            {(tarif === '490' || tarif === '1190') && giftWindows && (() => {
+              const { currentStatus, daysLeft } = giftWindows;
+              const type = tarif === '490' ? 'ролл' : 'сет';
+              if (currentStatus === 'available') {
+                return (
+                  <div className="shop-profile__row">
+                    <span className="shop-profile__label">🎁 Подарок:</span>
+                    <span className="shop-profile__value" style={{ color: '#3CC8A1' }}>{type} доступен сейчас!</span>
+                  </div>
+                );
+              }
+              if ((currentStatus === 'claimed' || currentStatus === 'waiting') && daysLeft > 0) {
+                return (
+                  <div className="shop-profile__row">
+                    <span className="shop-profile__label">🎁 Подарок:</span>
+                    <span className="shop-profile__value" style={{ color: '#aaa' }}>через {daysLeft} дн.</span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+            {tarif && tarif !== '9990' && (
+              <button
+                onClick={() => setShowTariffModal(true)}
+                style={{
+                  marginTop: 10,
+                  width: '100%',
+                  padding: '11px 16px',
+                  background: 'rgba(60,200,161,0.08)',
+                  border: '1px solid rgba(60,200,161,0.4)',
+                  borderRadius: 12,
+                  color: '#3CC8A1',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  boxShadow: '0 3px 14px rgba(60,200,161,0.22)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Изменить тариф / продлить →
+              </button>
+            )}
+          </div>
+
+          {/* Карточка 3: Автопродление */}
+          <div className="shop-profile__card">
+            <div className="shop-profile__row">
+              <span className="shop-profile__label">♻️ Автопродление:</span>
+              <span className="shop-profile__value" style={{ color: profile?.payment_method_id ? '#3CC8A1' : '#999' }}>
+                {profile?.payment_method_id ? 'активно' : 'отключено'}
+              </span>
+            </div>
+            <div className="shop-profile__row">
+              <span className="shop-profile__label">💳 Способ оплаты:</span>
+              <span className="shop-profile__value">ЮKassa</span>
+            </div>
+          </div>
+
+          {/* Карточка 4: История заказов */}
+          <div className="shop-profile__card">
+            <div className="shop-profile__card-title">История заказов</div>
+            {orderHistory === null ? (
+              <div style={{ color: '#888', fontSize: 13 }}>Загрузка...</div>
+            ) : orderHistory.length === 0 ? (
+              <div style={{ color: '#888', fontSize: 13 }}>Заказов пока не было</div>
+            ) : (
+              <ul className="profile-gift-list">
+                {orderHistory.map((o, i) => {
+                  let products = [];
+                  try { products = JSON.parse(o.products_json || '[]'); } catch {}
+                  const productNames = products.map(p => p.name).filter(Boolean).join(', ') || '—';
+                  const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '—';
+                  const typeLabel = o.order_type === 'gift' ? '🎁 Подарок' : '🏷 Со скидкой';
+                  const deliveryLabel = o.delivery_type === 'delivery' ? '🚗 Доставка' : '🏪 Самовывоз';
                   return (
-                    <div className="shop-profile__row">
-                      <span className="shop-profile__label">🎁 Подарок:</span>
-                      <span className="shop-profile__value" style={{ color: '#3CC8A1' }}>{type} доступен сейчас!</span>
-                    </div>
+                    <li key={i} className="profile-gift-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                        <span className="profile-gift-type" style={{ fontSize: 13 }}>{productNames}</span>
+                        <span className="profile-gift-date">{date}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: o.order_type === 'gift' ? '#3CC8A1' : '#888' }}>{typeLabel}</span>
+                        <span style={{ fontSize: 11, color: '#888' }}>{deliveryLabel}</span>
+                        {o.total_price > 0 && <span style={{ fontSize: 11, color: '#888' }}>{o.total_price}₽</span>}
+                      </div>
+                      {o.address && <span className="profile-gift-address" style={{ fontSize: 11 }}>{o.address}</span>}
+                    </li>
                   );
-                }
-                if ((currentStatus === 'claimed' || currentStatus === 'waiting') && daysLeft > 0) {
-                  return (
-                    <div className="shop-profile__row">
-                      <span className="shop-profile__label">🎁 Подарок:</span>
-                      <span className="shop-profile__value" style={{ color: '#aaa' }}>через {daysLeft} дн.</span>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">🔒 Действует до:</span>
-                <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
-              </div>
-              {tarif && tarif !== '9990' && (
-                <button
-                  onClick={() => setShowTariffModal(true)}
-                  style={{
-                    marginTop: 10,
-                    width: '100%',
-                    padding: '11px 16px',
-                    background: 'rgba(60,200,161,0.08)',
-                    border: '1px solid rgba(60,200,161,0.4)',
-                    borderRadius: 12,
-                    color: '#3CC8A1',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    boxShadow: '0 3px 14px rgba(60,200,161,0.22)',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  Изменить тариф / продлить →
-                </button>
-              )}
-            </div>
-
-            {/* История заказов */}
+                })}
+              </ul>
+            )}
             <div className="shop-profile__section">
-              <div className="shop-profile__label" style={{ marginBottom: 10 }}>📋 История заказов</div>
-              {orderHistory === null ? (
-                <div style={{ color: '#888', fontSize: 13 }}>Загрузка...</div>
-              ) : orderHistory.length === 0 ? (
-                <div style={{ color: '#888', fontSize: 13 }}>Заказов пока не было</div>
-              ) : (
-                <ul className="profile-gift-list">
-                  {orderHistory.map((o, i) => {
-                    let products = [];
-                    try { products = JSON.parse(o.products_json || '[]'); } catch {}
-                    const productNames = products.map(p => p.name).filter(Boolean).join(', ') || '—';
-                    const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '—';
-                    const typeLabel = o.order_type === 'gift' ? '🎁 Подарок' : '🏷 Со скидкой';
-                    const deliveryLabel = o.delivery_type === 'delivery' ? '🚗 Доставка' : '🏪 Самовывоз';
-                    return (
-                      <li key={i} className="profile-gift-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                          <span className="profile-gift-type" style={{ fontSize: 13 }}>{productNames}</span>
-                          <span className="profile-gift-date">{date}</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 11, color: o.order_type === 'gift' ? '#3CC8A1' : '#888' }}>{typeLabel}</span>
-                          <span style={{ fontSize: 11, color: '#888' }}>{deliveryLabel}</span>
-                          {o.total_price > 0 && <span style={{ fontSize: 11, color: '#888' }}>{o.total_price}₽</span>}
-                        </div>
-                        {o.address && <span className="profile-gift-address" style={{ fontSize: 11 }}>{o.address}</span>}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
+              <div className="shop-profile__row">
+                <span className="shop-profile__label">⏰ Принимаем заказы:</span>
+                <span className="shop-profile__value">с 10:00 до 21:50</span>
+              </div>
             </div>
+          </div>
 
-            {/* Амбассадор */}
+          {/* Карточка 5: Реферальная программа */}
+          <div className="shop-profile__card">
             {hasTag('амба') ? (
               <>
-                <div className="shop-profile__section">
-                  <div className="shop-profile__ambassador-badge">
-                    АМБАССАДОР
-                  </div>
-                </div>
+                <div className="shop-profile__ambassador-badge">АМБАССАДОР</div>
 
-                {/* Счётчики */}
                 <div className="shop-profile__section">
                   <div className="amb-panel__counters">
                     <div className="amb-panel__counter">
@@ -325,7 +338,6 @@ function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Прогресс-бар уровня 2 */}
                 <div className="shop-profile__section">
                   {(() => {
                     const ambCount = referrals?.ambassadors_count || 0;
@@ -363,7 +375,6 @@ function ProfilePage() {
                   })()}
                 </div>
 
-                {/* Список рефералов */}
                 <div className="shop-profile__section">
                   <div className="amb-panel__referrals-title">Приглашённые</div>
                   {referrals === null ? (
@@ -394,7 +405,6 @@ function ProfilePage() {
                   )}
                 </div>
 
-                {/* Реферальная ссылка */}
                 {refLink && (
                   <div className="shop-profile__section">
                     <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
@@ -412,7 +422,6 @@ function ProfilePage() {
                   </div>
                 )}
 
-                {/* Заработок */}
                 <div className="shop-profile__section">
                   <div className="amb-panel__earnings">
                     <div className="amb-panel__earnings-title">Заработок</div>
@@ -441,7 +450,6 @@ function ProfilePage() {
                   </div>
                 </div>
 
-                {/* История начислений */}
                 {transactions && transactions.length > 0 && (
                   <div className="shop-profile__section">
                     <div className="amb-panel__referrals-title">История начислений</div>
@@ -473,7 +481,6 @@ function ProfilePage() {
                   </div>
                 )}
 
-                {/* Баланс */}
                 <div className="shop-profile__section">
                   <div className="shop-profile__row">
                     <span className="shop-profile__label">Баланс к выплате:</span>
@@ -488,49 +495,45 @@ function ProfilePage() {
               </>
             ) : (
               <>
-                {/* Рефералы + баланс SHC */}
-                <div className="shop-profile__section">
-                  <div className="shop-profile__referral-desc">
-                    Приглашай друзей — получай <strong>20%</strong> от их подписки в SHC баллах. <strong>100%</strong> заказа оплачивается баллами: накопил 3000 баллов — получил роллов на <strong>3000 ₽</strong>
-                  </div>
-                  {profile?.balance_shc > 0 && (
-                    <div className="shop-profile__shc-balance">
-                      {profile.balance_shc} SHC = {profile.balance_shc}₽ скидки на следующий заказ
-                    </div>
-                  )}
-                  <div className="amb-panel__counters">
-                    <div className="amb-panel__counter">
-                      <span className="amb-panel__counter-value">
-                        {shcData ? shcData.friends_count : (referrals === null ? '...' : referrals?.referrals_count ?? 0)}
-                      </span>
-                      <span className="amb-panel__counter-label">Друзей</span>
-                    </div>
-                    <div className="amb-panel__counter">
-                      <span className="amb-panel__counter-value" style={{ color: '#3CC8A1' }}>
-                        {shcData ? shcData.total : (profile?.balance_shc || 0)}
-                      </span>
-                      <span className="amb-panel__counter-label">SHC</span>
-                    </div>
-                  </div>
-                  {refLink && (
-                    <>
-                      <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
-                      <div className="shop-profile__partner-code" style={{ fontSize: 12, wordBreak: 'break-all' }}>
-                        sushi-house-39.ru/?invited_by={telegramId}
-                      </div>
-                      <div className="shop-profile__partner-code-actions">
-                        <button className="shop-profile__invite-btn" onClick={handleCopyLink}>
-                          {copiedLink ? 'Скопировано!' : 'Скопировать'}
-                        </button>
-                        <button className="shop-profile__invite-btn" onClick={handleShareLink}>
-                          Поделиться
-                        </button>
-                      </div>
-                    </>
-                  )}
+                <div className="shop-profile__card-title">Реферальная программа</div>
+                <div className="shop-profile__referral-desc">
+                  Приглашай друзей — получай <strong>20%</strong> от их подписки в SHC баллах. <strong>100%</strong> заказа оплачивается баллами: накопил 3000 баллов — получил роллов на <strong>3000 ₽</strong>
                 </div>
-
-                {/* История SHC бонусов */}
+                {profile?.balance_shc > 0 && (
+                  <div className="shop-profile__shc-balance">
+                    {profile.balance_shc} SHC = {profile.balance_shc}₽ скидки на следующий заказ
+                  </div>
+                )}
+                <div className="amb-panel__counters" style={{ marginTop: 10 }}>
+                  <div className="amb-panel__counter">
+                    <span className="amb-panel__counter-value">
+                      {shcData ? shcData.friends_count : (referrals === null ? '...' : referrals?.referrals_count ?? 0)}
+                    </span>
+                    <span className="amb-panel__counter-label">Друзей</span>
+                  </div>
+                  <div className="amb-panel__counter">
+                    <span className="amb-panel__counter-value" style={{ color: '#3CC8A1' }}>
+                      {shcData ? shcData.total : (profile?.balance_shc || 0)}
+                    </span>
+                    <span className="amb-panel__counter-label">SHC</span>
+                  </div>
+                </div>
+                {refLink && (
+                  <div className="shop-profile__section">
+                    <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
+                    <div className="shop-profile__partner-code" style={{ fontSize: 12, wordBreak: 'break-all' }}>
+                      sushi-house-39.ru/?invited_by={telegramId}
+                    </div>
+                    <div className="shop-profile__partner-code-actions">
+                      <button className="shop-profile__invite-btn" onClick={handleCopyLink}>
+                        {copiedLink ? 'Скопировано!' : 'Скопировать'}
+                      </button>
+                      <button className="shop-profile__invite-btn" onClick={handleShareLink}>
+                        Поделиться
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {bonuses && bonuses.length > 0 && (
                   <div className="shop-profile__section">
                     <div className="amb-panel__referrals-title">Начисления SHC</div>
@@ -560,7 +563,6 @@ function ProfilePage() {
                     )}
                   </div>
                 )}
-
                 <div className="shop-profile__section">
                   <div className="shop-profile__hint">
                     +50 SHC за каждого друга. Бонусы на порогах: 5, 10, 50, 100 друзей
@@ -568,33 +570,11 @@ function ProfilePage() {
                 </div>
               </>
             )}
+          </div>
 
-            {/* Автопродление */}
-            <div className="shop-profile__section">
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">♻️ Автопродление:</span>
-                <span className="shop-profile__value" style={{ color: profile?.payment_method_id ? '#3CC8A1' : '#999' }}>
-                  {profile?.payment_method_id ? 'активно' : 'отключено'}
-                </span>
-              </div>
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">💳 Способ оплаты:</span>
-                <span className="shop-profile__value">ЮKassa</span>
-              </div>
-            </div>
-
-            {/* Часы работы */}
-            <div className="shop-profile__section">
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">⏰ Принимаем заказы</span>
-              </div>
-              <div className="shop-profile__row">
-                <span className="shop-profile__value">с 10:00 до 21:50</span>
-              </div>
-            </div>
-
-            {/* VIP-клуб */}
-            <div className="shop-profile__section">
+          {/* Карточка 6: Кнопки */}
+          <div className="shop-profile__card">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
                 className="shop-profile__vip-btn"
                 disabled={vipLoading}
@@ -632,25 +612,12 @@ function ProfilePage() {
               >
                 {vipLoading ? '⏳ Проверяем...' : '🔗 VIP-клуб Суши-Хаус'}
               </button>
-            </div>
-
-            {/* Поддержка */}
-            <div className="shop-profile__section">
-              <div className="shop-profile__note">
-                💬 Если возникают сложности — смело пишите в поддержку бота. Мы всегда на связи и поможем разобраться!
-              </div>
-              <div className="shop-profile__buttons">
-                <a className="shop-profile__link-btn" href="https://t.me/roman_chatbots" target="_blank" rel="noopener noreferrer">
-                  🛠 Техническая поддержка
-                </a>
-                <a className="shop-profile__link-btn shop-profile__link-btn--admin" href="https://t.me/romansonel" target="_blank" rel="noopener noreferrer">
-                  👨‍💼 Администратор
-                </a>
-              </div>
-            </div>
-
-            {/* Настройки */}
-            <div className="shop-profile__section">
+              <a className="shop-profile__link-btn" href="https://t.me/roman_chatbots" target="_blank" rel="noopener noreferrer">
+                🛠 Техническая поддержка
+              </a>
+              <a className="shop-profile__link-btn shop-profile__link-btn--admin" href="https://t.me/romansonel" target="_blank" rel="noopener noreferrer">
+                👨‍💼 Администратор
+              </a>
               <button
                 className="shop-profile__link-btn"
                 onClick={() => {

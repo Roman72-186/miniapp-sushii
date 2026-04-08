@@ -1592,9 +1592,13 @@ body.shop-body {
 
 /* === Профиль — кабинет === */
 .shop-profile {
-  padding: 16px;
+  padding: 12px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
+/* Старый единый блок (не используется в новой версии) */
 .shop-profile__block {
   background: #1a1a1a;
   border-radius: 20px;
@@ -1604,20 +1608,44 @@ body.shop-body {
     -5px -5px 14px #272727;
 }
 
-.shop-profile__header {
-  font-size: 12px;
+/* Отдельные карточки */
+.shop-profile__card {
+  background: #1a1a1a;
+  border-radius: 18px;
+  overflow: hidden;
+  padding: 14px 18px;
+  box-shadow:
+    6px 6px 16px #0d0d0d,
+    -4px -4px 12px #252525;
+}
+
+/* Заголовок карточки (мини-лейбл) */
+.shop-profile__card-title {
+  font-size: 11px;
   font-weight: 700;
   color: #3CC8A1;
-  padding: 16px 18px 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.shop-profile__header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3CC8A1;
+  padding: 2px;
   text-align: center;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  opacity: 0.9;
+  opacity: 0.65;
 }
 
+/* Внутрикарточный разделитель */
 .shop-profile__section {
+  padding-top: 10px;
+  margin-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 14px 18px;
 }
 
 .shop-profile__row {
