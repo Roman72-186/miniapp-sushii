@@ -55,14 +55,14 @@ function ProfilePage() {
     '9990': { label: '9990 ₽',     desc: 'Амбассадор (разовый)' },
   };
 
-  // Загружаем подарочные окна когда модалка открывается
+  // Загружаем подарочные окна сразу при загрузке профиля
   useEffect(() => {
-    if (!showTariffModal || !telegramId) return;
+    if (!telegramId) return;
     fetch(`/api/get-gift-windows?telegram_id=${telegramId}`)
       .then(r => r.json())
       .then(data => { if (data.success) setGiftWindows(data.data); })
       .catch(() => {});
-  }, [showTariffModal, telegramId]);
+  }, [telegramId]);
 
   // Есть ли незабранный сет
   const hasUnclaimedSet = giftWindows?.windows?.some(
@@ -214,22 +214,27 @@ function ProfilePage() {
                   {profile?.статусСписания || 'неактивно'}
                 </span>
               </div>
-              {tarif && (
-                <div className="shop-profile__row">
-                  <span className="shop-profile__label">💎 Тариф:</span>
-                  <span className="shop-profile__value" style={{ color: '#eaeaf8', fontWeight: 600 }}>
-                    {TARIFF_INFO[tarif]?.label || `${tarif}₽`}
-                  </span>
-                </div>
-              )}
-              {tarif && TARIFF_INFO[tarif]?.desc && (
-                <div className="shop-profile__row" style={{ opacity: 0.65 }}>
-                  <span className="shop-profile__label" />
-                  <span className="shop-profile__value" style={{ fontSize: 12 }}>
-                    {TARIFF_INFO[tarif].desc}
-                  </span>
-                </div>
-              )}
+              {(tarif === '490' || tarif === '1190') && giftWindows && (() => {
+                const { currentStatus, daysLeft } = giftWindows;
+                const type = tarif === '490' ? 'ролл' : 'сет';
+                if (currentStatus === 'available') {
+                  return (
+                    <div className="shop-profile__row">
+                      <span className="shop-profile__label">🎁 Подарок:</span>
+                      <span className="shop-profile__value" style={{ color: '#3CC8A1' }}>{type} доступен сейчас!</span>
+                    </div>
+                  );
+                }
+                if ((currentStatus === 'claimed' || currentStatus === 'waiting') && daysLeft > 0) {
+                  return (
+                    <div className="shop-profile__row">
+                      <span className="shop-profile__label">🎁 Подарок:</span>
+                      <span className="shop-profile__value" style={{ color: '#aaa' }}>через {daysLeft} дн.</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               <div className="shop-profile__row">
                 <span className="shop-profile__label">🔒 Действует до:</span>
                 <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
@@ -486,7 +491,7 @@ function ProfilePage() {
                 {/* Рефералы + баланс SHC */}
                 <div className="shop-profile__section">
                   <div className="shop-profile__referral-desc">
-                    Приглашай друзей → получай <strong>20% от их подписки</strong> в SHC баллах → оплачивай до <strong>100%</strong> своего заказа
+                    Приглашай друзей — получай <strong>20%</strong> от их подписки в SHC баллах. <strong>100%</strong> заказа оплачивается баллами: накопил 3000 баллов — получил роллов на <strong>3000 ₽</strong>
                   </div>
                   {profile?.balance_shc > 0 && (
                     <div className="shop-profile__shc-balance">
