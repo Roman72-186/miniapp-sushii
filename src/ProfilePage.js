@@ -67,11 +67,14 @@ function ProfilePage() {
   }, [telegramId]);
 
   useEffect(() => {
-    if (!telegramId) return;
+    if (!telegramId) {
+      setGiftHistory([]);
+      return;
+    }
     fetch(`/api/get-gift-history?telegram_id=${telegramId}`)
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.success) setGiftHistory(data.history); })
-      .catch(() => {});
+      .then(data => { setGiftHistory(data?.success ? data.history : []); })
+      .catch(() => setGiftHistory([]));
   }, [telegramId]);
 
   const refLink = telegramId ? `https://sushi-house-39.ru/?invited_by=${telegramId}` : null;
@@ -170,25 +173,25 @@ function ProfilePage() {
             </div>
 
             {/* История подарков */}
-            {giftHistory !== null && (
-              <div className="shop-profile__section">
-                <div className="shop-profile__label" style={{ marginBottom: 10 }}>🎁 История подарков</div>
-                {giftHistory.length === 0 ? (
-                  <div style={{ color: '#888', fontSize: 13 }}>Подарков пока не было</div>
-                ) : (
-                  <ul className="profile-gift-list">
-                    {giftHistory.map((g, i) => (
-                      <li key={i} className="profile-gift-item">
-                        <span className="profile-gift-type">{g.gift_name || (g.gift_type === 'roll' ? 'Ролл' : 'Сет')}</span>
-                        <span className="profile-gift-date">{g.claimed_at}</span>
-                        {g.address && <span className="profile-gift-address">{g.address}</span>}
-                        {g.granted_by === 'admin' && <span className="profile-gift-badge">от админа</span>}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
+            <div className="shop-profile__section">
+              <div className="shop-profile__label" style={{ marginBottom: 10 }}>🎁 История подарков</div>
+              {giftHistory === null ? (
+                <div style={{ color: '#888', fontSize: 13 }}>Загрузка...</div>
+              ) : giftHistory.length === 0 ? (
+                <div style={{ color: '#888', fontSize: 13 }}>Подарков пока не было</div>
+              ) : (
+                <ul className="profile-gift-list">
+                  {giftHistory.map((g, i) => (
+                    <li key={i} className="profile-gift-item">
+                      <span className="profile-gift-type">{g.gift_name || (g.gift_type === 'roll' ? 'Ролл' : 'Сет')}</span>
+                      <span className="profile-gift-date">{g.claimed_at}</span>
+                      {g.address && <span className="profile-gift-address">{g.address}</span>}
+                      {g.granted_by === 'admin' && <span className="profile-gift-badge">от админа</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
             {/* Амбассадор */}
             {hasTag('амба') ? (
