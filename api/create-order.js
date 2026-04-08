@@ -2,7 +2,7 @@
 
 const { createOrder } = require('./_lib/frontpad');
 const { readUserCache } = require('./_lib/user-cache');
-const { getUser, updateBalance } = require('./_lib/db');
+const { getUser, updateBalance, insertOrder } = require('./_lib/db');
 const { geocode } = require('./_lib/geocoder');
 const { findNearestStore } = require('./_lib/nearest-store');
 
@@ -209,6 +209,31 @@ module.exports = async (req, res) => {
         success: false,
         error: orderResult.error?.message || 'Ошибка создания заказа в Frontpad',
       });
+    }
+
+    // Сохраняем заказ в БД
+    if (telegram_id) {
+      try {
+        const isPickupOrder = isPickup || delivery_type === 'pickup';
+        const orderAddress = isPickupOrder
+          ? (body.pickup_point_address || client.street || null)
+          : ([client.street, client.home].filter(Boolean).join(', ') || null);
+        const productsList = products.map(p => ({ name: p.name || String(p.id), qty: p.quantity || 1, price: p.price || 0 }));
+        const total = products.reduce((sum, p) => sum + (p.price || 0) * (p.quantity || 1), 0);
+        await insertOrder({
+          telegramId: telegram_id,
+          frontpadOrderId: String(orderResult.data.orderId || ''),
+          frontpadOrderNumber: String(orderResult.data.orderNumber || ''),
+          orderType: body.order_type || 'discount',
+          deliveryType: isPickupOrder ? 'pickup' : 'delivery',
+          address: orderAddress,
+          productsJson: JSON.stringify(productsList),
+          totalPrice: Math.round(total),
+          clientName: client.name || null,
+        });
+      } catch (saveErr) {
+        console.error('[ORDER] Ошибка сохранения в БД:', saveErr.message);
+      }
     }
 
     return res.status(200).json({

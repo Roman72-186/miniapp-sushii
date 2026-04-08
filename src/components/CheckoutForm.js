@@ -169,6 +169,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
             paymentLabel,
           ].filter(Boolean).join(' | '),
           telegram_id: telegramId || '',
+          order_type: 'discount',
           shc_used: shcApplied > 0 ? shcApplied : undefined,
         }),
       });

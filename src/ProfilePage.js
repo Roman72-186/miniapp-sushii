@@ -19,7 +19,7 @@ function ProfilePage() {
   const [transactions, setTransactions] = useState(null);
   const [showAllTxns, setShowAllTxns] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [giftHistory, setGiftHistory] = useState(null);
+  const [orderHistory, setOrderHistory] = useState(null);
 
   // Загружаем рефералов (по telegram_id, fallback на contact_id)
   useEffect(() => {
@@ -68,13 +68,13 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!telegramId) {
-      setGiftHistory([]);
+      setOrderHistory([]);
       return;
     }
-    fetch(`/api/get-gift-history?telegram_id=${telegramId}`)
+    fetch(`/api/get-order-history?telegram_id=${telegramId}`)
       .then(r => r.ok ? r.json() : null)
-      .then(data => { setGiftHistory(data?.success ? data.history : []); })
-      .catch(() => setGiftHistory([]));
+      .then(data => { setOrderHistory(data?.success ? data.orders : []); })
+      .catch(() => setOrderHistory([]));
   }, [telegramId]);
 
   const refLink = telegramId ? `https://sushi-house-39.ru/?invited_by=${telegramId}` : null;
@@ -172,23 +172,37 @@ function ProfilePage() {
               </div>
             </div>
 
-            {/* История подарков */}
+            {/* История заказов */}
             <div className="shop-profile__section">
-              <div className="shop-profile__label" style={{ marginBottom: 10 }}>🎁 История подарков</div>
-              {giftHistory === null ? (
+              <div className="shop-profile__label" style={{ marginBottom: 10 }}>📋 История заказов</div>
+              {orderHistory === null ? (
                 <div style={{ color: '#888', fontSize: 13 }}>Загрузка...</div>
-              ) : giftHistory.length === 0 ? (
-                <div style={{ color: '#888', fontSize: 13 }}>Подарков пока не было</div>
+              ) : orderHistory.length === 0 ? (
+                <div style={{ color: '#888', fontSize: 13 }}>Заказов пока не было</div>
               ) : (
                 <ul className="profile-gift-list">
-                  {giftHistory.map((g, i) => (
-                    <li key={i} className="profile-gift-item">
-                      <span className="profile-gift-type">{g.gift_name || (g.gift_type === 'roll' ? 'Ролл' : 'Сет')}</span>
-                      <span className="profile-gift-date">{g.claimed_at}</span>
-                      {g.address && <span className="profile-gift-address">{g.address}</span>}
-                      {g.granted_by === 'admin' && <span className="profile-gift-badge">от админа</span>}
-                    </li>
-                  ))}
+                  {orderHistory.map((o, i) => {
+                    let products = [];
+                    try { products = JSON.parse(o.products_json || '[]'); } catch {}
+                    const productNames = products.map(p => p.name).filter(Boolean).join(', ') || '—';
+                    const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '—';
+                    const typeLabel = o.order_type === 'gift' ? '🎁 Подарок' : '🏷 Со скидкой';
+                    const deliveryLabel = o.delivery_type === 'delivery' ? '🚗 Доставка' : '🏪 Самовывоз';
+                    return (
+                      <li key={i} className="profile-gift-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                          <span className="profile-gift-type" style={{ fontSize: 13 }}>{productNames}</span>
+                          <span className="profile-gift-date">{date}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11, color: o.order_type === 'gift' ? '#3CC8A1' : '#888' }}>{typeLabel}</span>
+                          <span style={{ fontSize: 11, color: '#888' }}>{deliveryLabel}</span>
+                          {o.total_price > 0 && <span style={{ fontSize: 11, color: '#888' }}>{o.total_price}₽</span>}
+                        </div>
+                        {o.address && <span className="profile-gift-address" style={{ fontSize: 11 }}>{o.address}</span>}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

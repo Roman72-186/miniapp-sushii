@@ -86,6 +86,7 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
           datetime: '',
           comment: `Подписка — ${product.name} | Самовывоз: ${selectedPickup.address}`,
           telegram_id: telegramId || '',
+          order_type: 'gift',
         }),
       });
 
