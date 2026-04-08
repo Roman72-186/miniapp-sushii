@@ -3,6 +3,8 @@
 
 const { checkAuth } = require('../_lib/admin-auth');
 const { getUserByPhone, getUser, upsertUser } = require('../_lib/db');
+const { readGiftWindows, writeGiftWindows } = require('../_lib/blob-store');
+const { formatDDMMYYYY, addDays, todayUTC } = require('../_lib/gift-windows');
 
 function normalizePhone(raw) {
   if (!raw) return null;
@@ -27,7 +29,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
   if (!checkAuth(req, res)) return;
 
-  const { name, phone, tariff, months, end_date } = req.body || {};
+  const { name, phone, tariff, months, end_date, gift_rolls, gift_sets } = req.body || {};
 
   if (!phone) return res.status(400).json({ error: 'Номер телефона обязателен' });
   if (!tariff) return res.status(400).json({ error: 'Тариф обязателен' });
@@ -73,9 +75,53 @@ module.exports = async (req, res) => {
 
     const user = await getUser(telegram_id);
 
+    // Выдача подарков
+    let gifts_granted = 0;
+    const rollsCount = Math.min(Math.max(Number(gift_rolls) || 0, 0), 50);
+    const setsCount  = Math.min(Math.max(Number(gift_sets)  || 0, 0), 50);
+
+    const grantGift = async (type) => {
+      const days = type === 'set' ? 30 : 15;
+      const today = todayUTC();
+      const end   = addDays(today, days);
+      const newWindow = {
+        num: 1,
+        start: formatDDMMYYYY(today),
+        end: formatDDMMYYYY(end),
+        status: 'available',
+        claimedAt: null,
+        grantedBy: 'admin',
+        grantType: type,
+      };
+      let stored = await readGiftWindows(telegram_id);
+      if (stored && stored.windows && stored.windows.length > 0) {
+        newWindow.num = Math.max(...stored.windows.map(w => w.num)) + 1;
+        stored.windows.push(newWindow);
+        stored.updatedAt = new Date().toISOString();
+      } else {
+        stored = {
+          telegram_id: String(telegram_id),
+          tarif: type === 'set' ? '1190' : '490',
+          startDate: newWindow.start,
+          endDate: newWindow.end,
+          windowDays: days,
+          totalWindows: 1,
+          windows: [newWindow],
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      stored.totalWindows = stored.windows.length;
+      await writeGiftWindows(telegram_id, stored);
+      gifts_granted++;
+    };
+
+    for (let i = 0; i < rollsCount; i++) await grantGift('roll');
+    for (let i = 0; i < setsCount; i++)  await grantGift('set');
+
     return res.status(200).json({
       success: true,
       message: isNew ? 'Пользователь создан' : 'Подписка обновлена',
+      gifts_granted,
       user: {
         telegram_id: user.telegram_id,
         name: user.name,
