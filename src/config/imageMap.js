@@ -27,7 +27,7 @@ const IMAGE_MAP = {
   'каппа маки': '/img/kappa_maki.PNG',
   'киото чикен': '/img/kioto_chiken.PNG',
   'краб дуэт гриль': '/new_roll/Краб дуэт гриль.jpg',
-  'запеченный лосось файр': '/img/losos_fair.PNG',
+  'запеченный лосось файр': '/new_roll/Запеченный лосось файер.jpg',
   'манхеттен': '/img/manheten.PNG',
   'мидии маки гриль': '/img/midii_maki_gril.PNG',
   'мидии терияки': '/img/midii_teriaki.PNG',
