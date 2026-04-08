@@ -11,8 +11,9 @@ function ProfilePage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, profile, contactId, hasTag } = useUser();
+  const { telegramId, loading: userLoading, profile, contactId, hasTag, tarif } = useUser();
   const [referrals, setReferrals] = useState(null);
+  const [showTariffModal, setShowTariffModal] = useState(false);
   const [showAllReferrals, setShowAllReferrals] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
   const [earnings, setEarnings] = useState(null);
@@ -45,6 +46,18 @@ function ProfilePage() {
   const [shcData, setShcData] = useState(null);
   const [bonuses, setBonuses] = useState(null);
   const [showAllBonuses, setShowAllBonuses] = useState(false);
+
+  const TARIFF_INFO = {
+    '290':  { label: '290 ₽/мес',  desc: 'Скидки 30% на роллы, 20% на сеты' },
+    '490':  { label: '490 ₽/мес',  desc: 'Скидки + 2 ролла в подарок каждые 15 дней' },
+    '1190': { label: '1190 ₽/мес', desc: 'Скидки + сет/мес + кофе' },
+    '9990': { label: '9990 ₽',     desc: 'Амбассадор (разовый)' },
+  };
+
+  const handleTariffNavigate = (price) => {
+    const tid = telegramId ? `?telegram_id=${telegramId}` : '';
+    window.location.href = `/pay/${price}${tid}`;
+  };
 
   // Загружаем транзакции и SHC бонусы для всех пользователей
   useEffect(() => {
@@ -166,10 +179,46 @@ function ProfilePage() {
                   {profile?.статусСписания || 'неактивно'}
                 </span>
               </div>
+              {tarif && (
+                <div className="shop-profile__row">
+                  <span className="shop-profile__label">💎 Тариф:</span>
+                  <span className="shop-profile__value" style={{ color: '#eaeaf8', fontWeight: 600 }}>
+                    {TARIFF_INFO[tarif]?.label || `${tarif}₽`}
+                  </span>
+                </div>
+              )}
+              {tarif && TARIFF_INFO[tarif]?.desc && (
+                <div className="shop-profile__row" style={{ opacity: 0.65 }}>
+                  <span className="shop-profile__label" />
+                  <span className="shop-profile__value" style={{ fontSize: 12 }}>
+                    {TARIFF_INFO[tarif].desc}
+                  </span>
+                </div>
+              )}
               <div className="shop-profile__row">
                 <span className="shop-profile__label">🔒 Действует до:</span>
                 <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
               </div>
+              {tarif && tarif !== '9990' && (
+                <button
+                  onClick={() => setShowTariffModal(true)}
+                  style={{
+                    marginTop: 10,
+                    width: '100%',
+                    padding: '10px 16px',
+                    background: 'rgba(60,200,161,0.1)',
+                    border: '1px solid #3CC8A1',
+                    borderRadius: 10,
+                    color: '#3CC8A1',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                  }}
+                >
+                  Изменить тариф / продлить →
+                </button>
+              )}
             </div>
 
             {/* История заказов */}
@@ -572,6 +621,101 @@ function ProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Модалка выбора/смены тарифа */}
+      {showTariffModal && (
+        <>
+          <div className="product-modal-overlay" onClick={() => setShowTariffModal(false)} />
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: '#1a1a2e',
+            borderRadius: '20px 20px 0 0',
+            padding: '16px 16px 40px',
+            zIndex: 251,
+            maxWidth: 480,
+            margin: '0 auto',
+            boxShadow: '0 -4px 24px rgba(0,0,0,0.5)',
+          }}>
+            {/* Handle */}
+            <div style={{ textAlign: 'center', marginBottom: 14 }}>
+              <span style={{ display: 'inline-block', width: 40, height: 4, background: '#333355', borderRadius: 2 }} />
+            </div>
+            <h3 style={{ color: '#eaeaf8', margin: '0 0 4px', fontSize: 16, fontWeight: 700 }}>Тарифы подписки</h3>
+            {tarif && (
+              <p style={{ color: '#8888aa', fontSize: 13, margin: '0 0 16px' }}>
+                Текущий: {TARIFF_INFO[tarif]?.label}
+              </p>
+            )}
+
+            {/* Другие тарифы */}
+            {['290', '490', '1190'].filter(t => t !== tarif).map(t => (
+              <button
+                key={t}
+                onClick={() => handleTariffNavigate(t)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '12px 16px',
+                  marginBottom: 10,
+                  background: t === '1190' ? 'rgba(0,229,255,0.07)' : '#1e1e38',
+                  border: t === '1190' ? '1px solid #00e5ff' : '1px solid #30305a',
+                  borderRadius: 12,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ color: t === '1190' ? '#00e5ff' : '#eaeaf8', fontWeight: 700, fontSize: 15 }}>
+                  {TARIFF_INFO[t]?.label}
+                  {t === '1190' && <span style={{ fontSize: 11, marginLeft: 8, opacity: 0.8 }}>★ Лучший</span>}
+                </div>
+                <div style={{ color: '#8888aa', fontSize: 12, marginTop: 3 }}>{TARIFF_INFO[t]?.desc}</div>
+              </button>
+            ))}
+
+            {/* Продление текущего */}
+            {tarif && tarif !== '9990' && (
+              <button
+                onClick={() => handleTariffNavigate(tarif)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '12px 16px',
+                  marginTop: 4,
+                  background: 'rgba(60,200,161,0.07)',
+                  border: '1px solid #3CC8A1',
+                  borderRadius: 12,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ color: '#3CC8A1', fontWeight: 700, fontSize: 14 }}>↻ Продлить текущий тариф</div>
+                <div style={{ color: '#8888aa', fontSize: 12, marginTop: 3 }}>{TARIFF_INFO[tarif]?.desc}</div>
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowTariffModal(false)}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '10px',
+                marginTop: 14,
+                background: 'transparent',
+                border: '1px solid #30305a',
+                borderRadius: 10,
+                color: '#8888aa',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              Закрыть
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
