@@ -179,7 +179,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         throw new Error(data.error || 'Ошибка создания заказа');
       }
 
-      // Если в заказе есть подарок — фиксируем его получение
+      // Если в заказе есть подарок — фиксируем его получение (только после успеха Frontpad)
       const giftItem = items.find(item => item?.product?.gift);
       let giftClaim = null;
       if (giftItem && telegramId) {
@@ -187,10 +187,18 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           const claimRes = await fetch('/api/claim-gift', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ telegram_id: telegramId }),
+            body: JSON.stringify({
+              telegram_id: telegramId,
+              address: deliveryType === 'pickup' ? selectedPickup?.address || null : null,
+            }),
           });
           giftClaim = await claimRes.json();
-        } catch (_) { /* не блокируем успех заказа */ }
+          if (!claimRes.ok || !giftClaim?.success) {
+            console.error('[claim-gift] Ошибка фиксации подарка:', giftClaim);
+          }
+        } catch (claimErr) {
+          console.error('[claim-gift] Сетевая ошибка:', claimErr.message);
+        }
       }
 
       onSuccess(data.orderNumber || data.orderId, { giftClaim });
