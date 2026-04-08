@@ -113,7 +113,7 @@ export function UserProvider({ children }) {
   const logout = useCallback(() => {
     localStorage.removeItem(WEB_TOKEN_KEY);
     localStorage.removeItem(WEB_USER_ID_KEY);
-    window.location.href = '/login';
+    window.location.href = '/';
   }, []);
 
   useEffect(() => {
