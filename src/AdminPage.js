@@ -351,13 +351,23 @@ function AdminPage() {
     setPricingSaving(false);
   };
 
+  // Коэффициенты скидок (из базового тарифа 290: 750/290 и 1200/290)
+  const MONTH_RATIO_3 = 750 / 290;  // ~2.586 → −13.8% от полной цены
+  const MONTH_RATIO_5 = 1200 / 290; // ~4.138 → −17.2% от полной цены
+
   const updatePrice = (tarif, field, value) => {
+    const numVal = Number(value) || 0;
     setPricing(prev => {
       const updated = { ...prev };
       if (field === 'price') {
-        updated[tarif] = { ...updated[tarif], price: Number(value) || 0, months: { ...updated[tarif].months, 1: Number(value) || 0 } };
+        const months = { ...updated[tarif].months, 1: numVal };
+        if (tarif !== '9990') {
+          months[3] = Math.round(numVal * MONTH_RATIO_3 / 10) * 10;
+          months[5] = Math.round(numVal * MONTH_RATIO_5 / 10) * 10;
+        }
+        updated[tarif] = { ...updated[tarif], price: numVal, months };
       } else {
-        updated[tarif] = { ...updated[tarif], months: { ...updated[tarif].months, [field]: Number(value) || 0 } };
+        updated[tarif] = { ...updated[tarif], months: { ...updated[tarif].months, [field]: numVal } };
       }
       return updated;
     });
@@ -932,7 +942,7 @@ function AdminPage() {
               <div style={{ color: '#333', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
                 Тариф {tarif}₽ {tarif === '9990' ? '(Амбассадор)' : ''}
               </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <div style={styles.priceField}>
                   <label style={styles.priceLabel}>1 мес</label>
                   <input
@@ -945,7 +955,7 @@ function AdminPage() {
                 {tarif !== '9990' && (
                   <>
                     <div style={styles.priceField}>
-                      <label style={styles.priceLabel}>3 мес</label>
+                      <label style={{ ...styles.priceLabel, color: '#3CC8A1' }}>3 мес ↺</label>
                       <input
                         type="number"
                         value={data.months?.[3] || ''}
@@ -954,7 +964,7 @@ function AdminPage() {
                       />
                     </div>
                     <div style={styles.priceField}>
-                      <label style={styles.priceLabel}>5 мес</label>
+                      <label style={{ ...styles.priceLabel, color: '#3CC8A1' }}>5 мес ↺</label>
                       <input
                         type="number"
                         value={data.months?.[5] || ''}
@@ -965,6 +975,11 @@ function AdminPage() {
                   </>
                 )}
               </div>
+              {tarif !== '9990' && (
+                <div style={{ fontSize: 11, color: '#555577', marginTop: 4 }}>
+                  ↺ пересчитываются автоматически при смене цены за 1 мес (−14% и −17%)
+                </div>
+              )}
             </div>
           ))}
 
