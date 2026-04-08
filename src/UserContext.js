@@ -52,11 +52,15 @@ export function UserProvider({ children }) {
   }, []);
 
   // --- Финальный telegramId: JWT > Telegram WebApp > URL param ---
+  // web_ ID из URL не принимаем — веб-пользователь должен иметь JWT в localStorage.
+  // Иначе любой, у кого есть ссылка с ?telegram_id=web_..., мог бы открыть чужой кабинет.
   const telegramId = useMemo(() => {
     if (webAuth?.id) return webAuth.id;
     if (tgUser?.id) return tgUser.id;
     const params = new URLSearchParams(window.location.search);
-    return params.get('telegram_id') || null;
+    const urlId = params.get('telegram_id');
+    if (urlId && !urlId.startsWith('web_')) return urlId;
+    return null;
   }, [webAuth, tgUser]);
 
   // true если пользователь вошёл через веб (не Telegram)
