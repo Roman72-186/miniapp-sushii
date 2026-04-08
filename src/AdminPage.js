@@ -1227,6 +1227,7 @@ const styles = {
     background: CP.bg,
     minHeight: '100vh',
     boxSizing: 'border-box',
+    overflowX: 'hidden',
   },
   loginCard: {
     maxWidth: 320,
@@ -1512,6 +1513,7 @@ const styles = {
     gap: 7,
     fontSize: 11,
     color: CP.muted,
+    wordBreak: 'break-all',
   },
   // Gifts
   giftsRow: {
@@ -1547,6 +1549,7 @@ const styles = {
     gap: 4,
     marginBottom: 10,
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   grantInput: {
     flex: 1,
@@ -1595,6 +1598,7 @@ const styles = {
     display: 'flex',
     gap: 4,
     marginTop: 6,
+    flexWrap: 'wrap',
   },
   tariffBtnActive: {
     padding: '4px 9px',
