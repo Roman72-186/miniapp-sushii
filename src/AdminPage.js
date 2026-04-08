@@ -2,6 +2,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from './UserContext';
 
+// Подключаем Montserrat через Google Fonts
+if (typeof document !== 'undefined' && !document.getElementById('montserrat-font')) {
+  const link = document.createElement('link');
+  link.id = 'montserrat-font';
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap';
+  document.head.appendChild(link);
+}
+
 const API = '';
 
 function AdminPage() {
@@ -1128,7 +1137,7 @@ function AdminPage() {
                 <div key={o.id} style={{ ...styles.subCard, marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ color: o.gift_type === 'roll' ? CP.cyan : CP.green, fontWeight: 700, fontSize: 13 }}>
-                      {o.gift_type === 'roll' ? 'Ролл' : 'Сет'}
+                      {o.gift_name || (o.gift_type === 'roll' ? 'Ролл' : 'Сет')}
                     </span>
                     <span style={{ color: CP.muted, fontSize: 12 }}>{o.claimed_at}</span>
                   </div>
@@ -1170,7 +1179,7 @@ const styles = {
     maxWidth: 480,
     margin: '0 auto',
     padding: 12,
-    fontFamily: '"Courier New", Courier, monospace',
+    fontFamily: '"Montserrat", "Segoe UI", Arial, sans-serif',
     color: CP.text,
     background: CP.bg,
     minHeight: '100vh',
