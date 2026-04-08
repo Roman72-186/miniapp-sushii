@@ -33,7 +33,7 @@ function LandingPage() {
   const { telegramId, loading: userLoading, profile, sync } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem('splash_shown'));
 
   // Проверяем активную подписку
   const hasActiveSubscription = React.useMemo(() => {
@@ -103,7 +103,7 @@ function LandingPage() {
             style={{ width: '100%', display: 'block' }}
           />
           <button
-            onClick={() => setShowSplash(false)}
+            onClick={() => { sessionStorage.setItem('splash_shown', '1'); setShowSplash(false); }}
             aria-label="Оформить подписку"
             style={{
               position: 'absolute',

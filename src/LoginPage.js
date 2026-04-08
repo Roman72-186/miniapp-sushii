@@ -1,7 +1,6 @@
 // src/LoginPage.js — Вход в веб-версию: телефон + пароль, сброс через Email OTP
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser } from './UserContext';
 import './shop.css';
 
 const WEB_TOKEN_KEY = 'web_token';
@@ -21,13 +20,10 @@ function LoginPage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { loginByPhone } = useUser();
-
-  // 'phone' | 'password' | 'email' | 'otp' | 'set-password' | 'name'
+  // 'phone' | 'password' | 'email' | 'otp' | 'set-password'
   const [step, setStep] = useState('phone');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -79,7 +75,8 @@ function LoginPage() {
         setEmail('');
         setStep('email');
       } else if (data.isExistingUser === false) {
-        setStep('name');
+        setEmail('');
+        setStep('email');
       } else {
         localStorage.setItem(WEB_TOKEN_KEY, data.token);
         localStorage.setItem(WEB_USER_ID_KEY, data.userId);
@@ -207,28 +204,12 @@ function LoginPage() {
     }
   };
 
-  // Шаг 5: регистрация нового пользователя
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError('');
-    if (!name.trim()) { setError('Введите ваше имя'); return; }
-    setLoading(true);
-    try {
-      await loginByPhone(normalizePhone(phone), name.trim());
-    } catch (err) {
-      setError(err.message || 'Ошибка регистрации');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const subtitle = {
     phone: 'Введите номер телефона для входа',
     password: 'Введите пароль',
     email: 'Введите email для получения кода',
     otp: 'Введите код из письма',
     'set-password': 'Создайте пароль для входа',
-    name: 'Как вас зовут?',
   }[step];
 
   return (
@@ -492,44 +473,6 @@ function LoginPage() {
           </form>
         )}
 
-        {/* ШАГ 5: Имя (новый пользователь) */}
-        {step === 'name' && (
-          <form onSubmit={handleRegister}>
-            <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 12, color: '#9fb0c3', fontSize: 14 }}>
-                Телефон: <span style={{ color: '#fff' }}>+{normalizePhone(phone)}</span>
-              </div>
-              <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Ваше имя</label>
-                <input
-                  className="shop-form-field__input"
-                  type="text"
-                  placeholder="Имя"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  autoFocus
-                  disabled={loading}
-                />
-              </div>
-            </div>
-            {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
-            <button
-              type="submit"
-              className="shop-payment__btn"
-              style={{ marginTop: 16 }}
-              disabled={loading || !name.trim()}
-            >
-              {loading ? 'Входим...' : 'Войти'}
-            </button>
-            <button
-              type="button"
-              style={{ background: 'none', border: 'none', color: '#9fb0c3', fontSize: 14, cursor: 'pointer', display: 'block', margin: '12px auto 0' }}
-              onClick={() => { setStep('phone'); setError(''); }}
-            >
-              ← Изменить номер
-            </button>
-          </form>
-        )}
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 24, paddingBottom: 24 }}>
