@@ -33,6 +33,7 @@ function LandingPage() {
   const { telegramId, loading: userLoading, profile, sync } = useUser();
   const [redirecting, setRedirecting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   // Проверяем активную подписку
   const hasActiveSubscription = React.useMemo(() => {
@@ -95,7 +96,36 @@ function LandingPage() {
     );
   }
 
-  // Нет подписки — показываем тарифы
+  // Нет подписки — сначала splash, потом тарифы
+  if (showSplash) {
+    return (
+      <div className="shop-page" style={{ padding: 0 }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: 480, margin: '0 auto' }}>
+          <img
+            src="/photo_2026-04-08_17-42-09.jpg"
+            alt="Суши-Хаус 39 — подписка"
+            style={{ width: '100%', display: 'block' }}
+          />
+          <button
+            onClick={() => setShowSplash(false)}
+            aria-label="Оформить подписку"
+            style={{
+              position: 'absolute',
+              bottom: '2%',
+              left: '8%',
+              right: '8%',
+              height: '9%',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              borderRadius: 40,
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="shop-page">
       {paymentSuccess && (
