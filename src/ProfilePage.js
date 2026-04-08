@@ -190,8 +190,15 @@ function ProfilePage() {
             {/* Профиль */}
             <div className="shop-profile__section">
               <div className="shop-profile__row">
-                <span className="shop-profile__label">👤 Профиль:</span>
-                <span className="shop-profile__value">{profile?.name || '—'}</span>
+                <span className="shop-profile__label">👤 Имя:</span>
+                <span className="shop-profile__value" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  {profile?.name || '—'}
+                  {tarif && (
+                    <span className={`profile-tariff-badge${tarif === '9990' ? ' profile-tariff-badge--gold' : ''}`}>
+                      {tarif === '9990' ? 'АМБА' : `${tarif} ₽`}
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="shop-profile__row">
                 <span className="shop-profile__label">📱 Контакт:</span>
@@ -233,15 +240,17 @@ function ProfilePage() {
                   style={{
                     marginTop: 10,
                     width: '100%',
-                    padding: '10px 16px',
-                    background: 'rgba(60,200,161,0.1)',
-                    border: '1px solid #3CC8A1',
-                    borderRadius: 10,
+                    padding: '11px 16px',
+                    background: 'rgba(60,200,161,0.08)',
+                    border: '1px solid rgba(60,200,161,0.4)',
+                    borderRadius: 12,
                     color: '#3CC8A1',
                     fontSize: 14,
                     fontWeight: 600,
                     cursor: 'pointer',
                     textAlign: 'center',
+                    boxShadow: '0 3px 14px rgba(60,200,161,0.22)',
+                    transition: 'all 0.2s',
                   }}
                 >
                   Изменить тариф / продлить →

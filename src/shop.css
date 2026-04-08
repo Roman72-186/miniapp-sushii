@@ -1596,27 +1596,33 @@ body.shop-body {
 }
 
 .shop-profile__block {
-  background: #2a2a2e;
-  border-radius: 16px;
+  background: #1a1a1a;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow:
+    8px 8px 20px #0d0d0d,
+    -5px -5px 14px #272727;
 }
 
 .shop-profile__header {
-  font-size: 17px;
+  font-size: 12px;
   font-weight: 700;
-  color: #fff;
-  padding: 16px;
+  color: #3CC8A1;
+  padding: 16px 18px 12px;
   text-align: center;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity: 0.9;
 }
 
 .shop-profile__section {
-  border-top: 1px solid #3a3a3e;
-  padding: 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 14px 18px;
 }
 
 .shop-profile__row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   margin-bottom: 4px;
 }
@@ -1626,15 +1632,15 @@ body.shop-body {
 }
 
 .shop-profile__label {
-  font-size: 14px;
-  color: #999;
+  font-size: 13px;
+  color: #777;
   white-space: nowrap;
 }
 
 .shop-profile__value {
   font-size: 14px;
   font-weight: 700;
-  color: #fff;
+  color: #e8e8e8;
 }
 
 .shop-profile__hint {
@@ -1668,25 +1674,32 @@ body.shop-body {
 .shop-profile__link-btn {
   display: block;
   width: 100%;
-  padding: 10px;
-  background: #3a3a3e;
-  color: #fff;
+  padding: 11px;
+  background: #1a1a1a;
+  color: #bbb;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  box-shadow:
+    4px 4px 10px #0d0d0d,
+    -3px -3px 8px #272727;
 }
 
 .shop-profile__link-btn:hover {
-  opacity: 0.85;
+  color: #3CC8A1;
+  box-shadow:
+    5px 5px 12px #0a0a0a,
+    -3px -3px 10px #2a2a2a,
+    0 0 14px rgba(60, 200, 161, 0.18);
 }
 
 .shop-profile__link-btn--admin {
-  background: #3a3a3e;
+  color: #999;
 }
 
 .shop-profile__vip-btn {
@@ -1695,19 +1708,24 @@ body.shop-body {
   background: linear-gradient(135deg, #f5923a, #e67e22);
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  box-shadow:
+    0 4px 16px rgba(230, 126, 34, 0.38),
+    0 2px 8px rgba(230, 126, 34, 0.22);
 }
 
 .shop-profile__vip-btn:hover {
-  opacity: 0.85;
+  box-shadow:
+    0 6px 20px rgba(230, 126, 34, 0.52),
+    0 3px 10px rgba(230, 126, 34, 0.32);
 }
 
 .shop-profile__vip-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: wait;
 }
 
@@ -1716,17 +1734,45 @@ body.shop-body {
   margin-top: 10px;
   padding: 10px;
   background: #3CC8A1;
-  color: #fff;
+  color: #051a12;
   border: none;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  box-shadow:
+    0 3px 12px rgba(60, 200, 161, 0.38),
+    0 2px 6px rgba(60, 200, 161, 0.22);
 }
 
 .shop-profile__invite-btn:hover {
-  opacity: 0.85;
+  box-shadow:
+    0 5px 16px rgba(60, 200, 161, 0.52),
+    0 3px 8px rgba(60, 200, 161, 0.32);
+}
+
+/* Плашка тарифа рядом с именем */
+.profile-tariff-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, #2aad86, #3CC8A1);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #051a12;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(60, 200, 161, 0.5);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.profile-tariff-badge--gold {
+  background: linear-gradient(135deg, #c9972a, #e0b84a);
+  color: #1a0f00;
+  box-shadow: 0 2px 8px rgba(212, 168, 67, 0.5);
 }
 
 /* === Страница настроек === */
