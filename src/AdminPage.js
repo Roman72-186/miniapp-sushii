@@ -1204,15 +1204,15 @@ function AdminPage() {
 // ─── Styles (светлая тема, mobile-first) ─────────────
 // ── Cyberpunk palette ─────────────────────────────────────────
 const CP = {
-  bg:       '#07070f',
-  surface:  '#0e0e1a',
-  card:     '#13131f',
-  border:   '#1e1e30',
+  bg:       '#10102a',
+  surface:  '#181835',
+  card:     '#1e1e3e',
+  border:   '#30305a',
   cyan:     '#00e5ff',
-  cyanDim:  '#00aabb',
+  cyanDim:  '#00bbdd',
   pink:     '#ff2d78',
-  text:     '#d0d0e8',
-  muted:    '#5a5a7a',
+  text:     '#eaeaf8',
+  muted:    '#8888aa',
   green:    '#00ff9f',
   yellow:   '#ffd600',
 };
@@ -1221,11 +1221,12 @@ const styles = {
   container: {
     maxWidth: 480,
     margin: '0 auto',
-    padding: 12,
+    padding: '12px 14px 60px',
     fontFamily: '"Montserrat", "Segoe UI", Arial, sans-serif',
     color: CP.text,
     background: CP.bg,
     minHeight: '100vh',
+    boxSizing: 'border-box',
   },
   loginCard: {
     maxWidth: 320,
