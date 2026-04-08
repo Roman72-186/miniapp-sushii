@@ -63,6 +63,8 @@ function AdminPage() {
   const [addName, setAddName] = useState('');
   const [addPhone, setAddPhone] = useState('');
   const [addTariff, setAddTariff] = useState('290');
+  const [addGiftRolls, setAddGiftRolls] = useState(0);
+  const [addGiftSets, setAddGiftSets] = useState(0);
   const [addEndDate, setAddEndDate] = useState(() => {
     const d = new Date(); d.setDate(d.getDate() + 30);
     return d.toISOString().split('T')[0];
@@ -481,6 +483,8 @@ function AdminPage() {
           phone: addPhone.trim(),
           tariff: addTariff,
           end_date: addEndDate,
+          gift_rolls: Number(addGiftRolls) || 0,
+          gift_sets: Number(addGiftSets) || 0,
         }),
       });
       const data = await res.json();
@@ -489,6 +493,8 @@ function AdminPage() {
         setAddPhone('');
         setAddName('');
         setAddTariff('290');
+        setAddGiftRolls(0);
+        setAddGiftSets(0);
         const d = new Date(); d.setDate(d.getDate() + 30);
         setAddEndDate(d.toISOString().split('T')[0]);
       }
@@ -1009,6 +1015,28 @@ function AdminPage() {
                 <option value="9990">9990 ₽ — Амбассадор</option>
               </select>
 
+              <label style={styles.fieldLabel}>Подарочные роллы (шт.)</label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                placeholder="0"
+                value={addGiftRolls}
+                onChange={e => setAddGiftRolls(e.target.value)}
+                style={styles.input}
+              />
+
+              <label style={styles.fieldLabel}>Подарочные сеты (шт.)</label>
+              <input
+                type="number"
+                min="0"
+                max="50"
+                placeholder="0"
+                value={addGiftSets}
+                onChange={e => setAddGiftSets(e.target.value)}
+                style={styles.input}
+              />
+
               <label style={styles.fieldLabel}>Подписка активна до *</label>
               <input
                 type="date"
@@ -1046,6 +1074,9 @@ function AdminPage() {
                     <div><b>Телефон:</b> {addResult.user.phone}</div>
                     <div><b>Тариф:</b> {addResult.user.tariff} ₽</div>
                     <div><b>Период:</b> {addResult.user.subscription_start} — {addResult.user.subscription_end}</div>
+                    {addResult.gifts_granted > 0 && (
+                      <div><b>Подарки:</b> {addResult.gifts_granted} шт. выдано</div>
+                    )}
                     <div style={{ color: '#999', marginTop: 2 }}>ID: {addResult.user.telegram_id}</div>
                   </div>
                 )}
