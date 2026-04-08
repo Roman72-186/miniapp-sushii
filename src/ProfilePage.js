@@ -54,9 +54,12 @@ function ProfilePage() {
     '9990': { label: '9990 ₽',     desc: 'Амбассадор (разовый)' },
   };
 
-  const handleTariffNavigate = (price) => {
-    const tid = telegramId ? `?telegram_id=${telegramId}` : '';
-    window.location.href = `/pay/${price}${tid}`;
+  const handleTariffNavigate = (price, months) => {
+    const params = new URLSearchParams();
+    if (telegramId) params.set('telegram_id', telegramId);
+    if (months && months > 1) params.set('months', months);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    window.location.href = `/pay/${price}${qs}`;
   };
 
   // Загружаем транзакции и SHC бонусы для всех пользователей
@@ -676,25 +679,36 @@ function ProfilePage() {
               </button>
             ))}
 
-            {/* Продление текущего */}
+            {/* Продление текущего — 1/3/5 месяцев */}
             {tarif && tarif !== '9990' && (
-              <button
-                onClick={() => handleTariffNavigate(tarif)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '12px 16px',
-                  marginTop: 4,
-                  background: 'rgba(60,200,161,0.07)',
-                  border: '1px solid #3CC8A1',
-                  borderRadius: 12,
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ color: '#3CC8A1', fontWeight: 700, fontSize: 14 }}>↻ Продлить текущий тариф</div>
-                <div style={{ color: '#8888aa', fontSize: 12, marginTop: 3 }}>{TARIFF_INFO[tarif]?.desc}</div>
-              </button>
+              <div style={{ marginTop: 4 }}>
+                <div style={{ color: '#8888aa', fontSize: 12, marginBottom: 8 }}>↻ Продлить текущий тариф ({TARIFF_INFO[tarif]?.label})</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[
+                    { months: 1, label: '1 мес' },
+                    { months: 3, label: '3 мес' },
+                    { months: 5, label: '5 мес' },
+                  ].map(({ months, label }) => (
+                    <button
+                      key={months}
+                      onClick={() => handleTariffNavigate(tarif, months)}
+                      style={{
+                        flex: 1,
+                        padding: '10px 4px',
+                        background: 'rgba(60,200,161,0.07)',
+                        border: '1px solid #3CC8A1',
+                        borderRadius: 10,
+                        color: '#3CC8A1',
+                        fontWeight: 700,
+                        fontSize: 14,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
 
             <button
