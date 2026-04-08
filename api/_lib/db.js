@@ -91,12 +91,27 @@ function getDb() {
       FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
     );
 
+    CREATE TABLE IF NOT EXISTS orders (
+      id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+      telegram_id           TEXT NOT NULL,
+      frontpad_order_id     TEXT,
+      frontpad_order_number TEXT,
+      order_type            TEXT NOT NULL DEFAULT 'discount',
+      delivery_type         TEXT NOT NULL DEFAULT 'pickup',
+      address               TEXT,
+      products_json         TEXT,
+      total_price           INTEGER DEFAULT 0,
+      client_name           TEXT,
+      created_at            TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_referral_bonuses_user ON referral_bonuses(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_invited_by ON users(invited_by);
     CREATE INDEX IF NOT EXISTS idx_payments_telegram_id ON payments(telegram_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_ambassador ON transactions(ambassador_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_referral ON transactions(referral_id);
     CREATE INDEX IF NOT EXISTS idx_gift_history_telegram ON gift_history(telegram_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_telegram ON orders(telegram_id);
   `);
 
   // Миграции: добавить новые колонки если нет
@@ -605,6 +620,49 @@ function adminApplyUserTagAction(telegramId, action, tag) {
   throw new Error('invalid_tag');
 }
 
+// ─── Orders ─────────────────────────────────────────────
+
+function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName }) {
+  getDb().prepare(`
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    String(telegramId),
+    frontpadOrderId || null,
+    frontpadOrderNumber || null,
+    orderType || 'discount',
+    deliveryType || 'pickup',
+    address || null,
+    productsJson || null,
+    totalPrice || 0,
+    clientName || null,
+  );
+}
+
+function getOrderHistory(telegramId, limit = 50) {
+  return getDb().prepare(`
+    SELECT id, order_type, delivery_type, address, products_json, total_price,
+           client_name, frontpad_order_number, created_at
+    FROM orders
+    WHERE telegram_id = ?
+    ORDER BY created_at DESC
+    LIMIT ?
+  `).all(String(telegramId), limit);
+}
+
+function getAdminOrders(limit = 500) {
+  return getDb().prepare(`
+    SELECT o.id, o.telegram_id, o.order_type, o.delivery_type, o.address,
+           o.products_json, o.total_price, o.client_name, o.created_at,
+           o.frontpad_order_number,
+           u.name as user_name, u.phone as user_phone, u.tariff
+    FROM orders o
+    LEFT JOIN users u ON o.telegram_id = u.telegram_id
+    ORDER BY o.created_at DESC
+    LIMIT ?
+  `).all(limit);
+}
+
 // ─── Gift History ────────────────────────────────────────
 
 function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy, address, giftName }) {
@@ -639,6 +697,9 @@ function getGiftOrders(limit = 300) {
 module.exports = {
   getDb,
   upsertUser,
+  insertOrder,
+  getOrderHistory,
+  getAdminOrders,
   insertGiftHistory,
   getGiftHistory,
   getUser,

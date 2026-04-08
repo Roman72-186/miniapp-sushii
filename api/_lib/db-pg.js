@@ -447,6 +447,51 @@ async function adminApplyUserTagAction(telegramId, action, tag) {
   throw new Error('invalid_tag');
 }
 
+// ─── Orders ──────────────────────────────────────────────────
+
+async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName }) {
+  await query(`
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  `, [
+    String(telegramId),
+    frontpadOrderId || null,
+    frontpadOrderNumber || null,
+    orderType || 'discount',
+    deliveryType || 'pickup',
+    address || null,
+    productsJson || null,
+    totalPrice || 0,
+    clientName || null,
+  ]);
+}
+
+async function getOrderHistory(telegramId, limit = 50) {
+  const res = await query(`
+    SELECT id, order_type, delivery_type, address, products_json, total_price,
+           client_name, frontpad_order_number, created_at
+    FROM orders
+    WHERE telegram_id = $1
+    ORDER BY created_at DESC
+    LIMIT $2
+  `, [String(telegramId), limit]);
+  return res.rows;
+}
+
+async function getAdminOrders(limit = 500) {
+  const res = await query(`
+    SELECT o.id, o.telegram_id, o.order_type, o.delivery_type, o.address,
+           o.products_json, o.total_price, o.client_name, o.created_at,
+           o.frontpad_order_number,
+           u.name as user_name, u.phone as user_phone, u.tariff
+    FROM orders o
+    LEFT JOIN users u ON o.telegram_id = u.telegram_id
+    ORDER BY o.created_at DESC
+    LIMIT $1
+  `, [limit]);
+  return res.rows;
+}
+
 // ─── Gift History ────────────────────────────────────────────
 
 async function insertGiftHistory({ telegramId, giftType, claimedAt, claimedTs, windowNum, grantedBy, address, giftName }) {
@@ -529,6 +574,9 @@ module.exports = {
   pool,
   query,
   upsertUser,
+  insertOrder,
+  getOrderHistory,
+  getAdminOrders,
   insertGiftHistory,
   getGiftHistory,
   getGiftOrders,

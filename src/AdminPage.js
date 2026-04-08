@@ -1126,30 +1126,42 @@ function AdminPage() {
             const q = giftOrdersSearch.trim().toLowerCase();
             const filtered = q
               ? giftOrders.filter(o =>
-                  (o.name || '').toLowerCase().includes(q) ||
-                  (o.phone || '').includes(q) ||
+                  (o.client_name || o.user_name || '').toLowerCase().includes(q) ||
+                  (o.user_phone || '').includes(q) ||
                   (o.address || '').toLowerCase().includes(q)
                 )
               : giftOrders;
             return filtered.length === 0
               ? <p style={styles.muted}>Нет заказов</p>
-              : filtered.map(o => (
-                <div key={o.id} style={{ ...styles.subCard, marginBottom: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ color: o.gift_type === 'roll' ? CP.cyan : CP.green, fontWeight: 700, fontSize: 13 }}>
-                      {o.gift_name || (o.gift_type === 'roll' ? 'Ролл' : 'Сет')}
-                    </span>
-                    <span style={{ color: CP.muted, fontSize: 12 }}>{o.claimed_at}</span>
+              : filtered.map(o => {
+                let products = [];
+                try { products = JSON.parse(o.products_json || '[]'); } catch {}
+                const productNames = products.map(p => p.name).filter(Boolean).join(', ') || '—';
+                const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '—';
+                const isGift = o.order_type === 'gift';
+                return (
+                  <div key={o.id} style={{ ...styles.subCard, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ color: isGift ? CP.green : CP.cyan, fontWeight: 700, fontSize: 13 }}>
+                        {productNames}
+                      </span>
+                      <span style={{ color: CP.muted, fontSize: 12 }}>{date}</span>
+                    </div>
+                    <div style={{ fontSize: 13, color: CP.text, marginBottom: 2 }}>
+                      {o.client_name || o.user_name || '—'}
+                      {o.user_tariff && <span style={{ color: CP.muted, marginLeft: 6, fontSize: 11 }}>{o.user_tariff}₽</span>}
+                      <span style={{ color: isGift ? CP.green : CP.cyan, marginLeft: 6, fontSize: 11 }}>
+                        {isGift ? '🎁 Подарок' : '🏷 Со скидкой'}
+                      </span>
+                      {o.total_price > 0 && <span style={{ color: CP.muted, marginLeft: 6, fontSize: 11 }}>{o.total_price}₽</span>}
+                    </div>
+                    {o.user_phone && <div style={{ fontSize: 12, color: CP.muted }}>{o.user_phone}</div>}
+                    {o.address && <div style={{ fontSize: 12, color: CP.yellow, marginTop: 2 }}>
+                      {o.delivery_type === 'delivery' ? '🚗 ' : '🏪 '}{o.address}
+                    </div>}
                   </div>
-                  <div style={{ fontSize: 13, color: CP.text, marginBottom: 2 }}>
-                    {o.name || '—'}
-                    {o.tariff && <span style={{ color: CP.muted, marginLeft: 6, fontSize: 11 }}>{o.tariff}₽</span>}
-                    {o.granted_by === 'admin' && <span style={{ color: CP.pink, marginLeft: 6, fontSize: 11 }}>от админа</span>}
-                  </div>
-                  {o.phone && <div style={{ fontSize: 12, color: CP.muted }}>{o.phone}</div>}
-                  {o.address && <div style={{ fontSize: 12, color: CP.yellow, marginTop: 2 }}>{o.address}</div>}
-                </div>
-              ));
+                );
+              });
           })()}
           {!giftOrders && !giftOrdersLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
         </div>

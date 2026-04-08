@@ -25,6 +25,7 @@ app.all('/api/send-bot-message', require('./api/send-bot-message'));
 app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 app.all('/api/nearest-store', require('./api/nearest-store'));
 app.all('/api/get-gift-history', require('./api/get-gift-history'));
+app.all('/api/get-order-history', require('./api/get-order-history'));
 
 // Auth API
 app.all('/api/auth/login-by-phone', require('./api/auth/login-by-phone'));
