@@ -14,6 +14,7 @@ function ProfilePage() {
   const { telegramId, loading: userLoading, profile, contactId, hasTag, tarif } = useUser();
   const [referrals, setReferrals] = useState(null);
   const [showTariffModal, setShowTariffModal] = useState(false);
+  const [giftWindows, setGiftWindows] = useState(null);
   const [showAllReferrals, setShowAllReferrals] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
   const [earnings, setEarnings] = useState(null);
@@ -53,6 +54,30 @@ function ProfilePage() {
     '1190': { label: '1190 ₽/мес', desc: 'Скидки + сет/мес + кофе' },
     '9990': { label: '9990 ₽',     desc: 'Амбассадор (разовый)' },
   };
+
+  // Загружаем подарочные окна когда модалка открывается
+  useEffect(() => {
+    if (!showTariffModal || !telegramId) return;
+    fetch(`/api/get-gift-windows?telegram_id=${telegramId}`)
+      .then(r => r.json())
+      .then(data => { if (data.success) setGiftWindows(data.data); })
+      .catch(() => {});
+  }, [showTariffModal, telegramId]);
+
+  // Есть ли незабранный сет
+  const hasUnclaimedSet = giftWindows?.windows?.some(
+    w => w.status === 'available' && w.grantType === 'set'
+  ) || false;
+
+  // Дней до конца текущей подписки
+  const daysLeft = (() => {
+    if (!profile?.датаОКОНЧАНИЯ) return null;
+    const parts = profile.датаОКОНЧАНИЯ.split('.');
+    if (parts.length !== 3) return null;
+    const end = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+    const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  })();
 
   const handleTariffNavigate = (price, months) => {
     const params = new URLSearchParams();
@@ -654,7 +679,7 @@ function ProfilePage() {
               </p>
             )}
 
-            {/* Другие тарифы */}
+            {/* Повышение тарифа */}
             {['290', '490', '1190'].filter(t => Number(t) > Number(tarif)).map(t => (
               <button
                 key={t}
@@ -678,6 +703,46 @@ function ProfilePage() {
                 <div style={{ color: '#8888aa', fontSize: 12, marginTop: 3 }}>{TARIFF_INFO[t]?.desc}</div>
               </button>
             ))}
+
+            {/* Понижение тарифа для 1190 */}
+            {tarif === '1190' && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ color: '#8888aa', fontSize: 12, marginBottom: 8 }}>↓ Перейти на более низкий тариф</div>
+                {hasUnclaimedSet ? (
+                  <div style={{
+                    padding: '12px 14px',
+                    background: 'rgba(255,150,0,0.08)',
+                    border: '1px solid rgba(255,150,0,0.4)',
+                    borderRadius: 12,
+                    color: '#ffaa44',
+                    fontSize: 13,
+                  }}>
+                    🎁 У вас есть незабранный сет. Получите его сначала — осталось {daysLeft !== null ? `${daysLeft} дн.` : 'несколько дней'}. После этого можно сменить тариф.
+                  </div>
+                ) : (
+                  ['490', '290'].map(t => (
+                    <button
+                      key={t}
+                      onClick={() => handleTariffNavigate(t)}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '11px 16px',
+                        marginBottom: 8,
+                        background: '#1a1a2a',
+                        border: '1px solid #30305a',
+                        borderRadius: 12,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{ color: '#eaeaf8', fontWeight: 600, fontSize: 14 }}>{TARIFF_INFO[t]?.label}</div>
+                      <div style={{ color: '#8888aa', fontSize: 12, marginTop: 2 }}>{TARIFF_INFO[t]?.desc}</div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
 
             {/* Продление текущего — 1/3/5 месяцев */}
             {tarif && tarif !== '9990' && (

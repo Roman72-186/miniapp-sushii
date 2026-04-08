@@ -80,14 +80,31 @@ module.exports = async (req, res) => {
 
     const isOneTime = String(tarif) === '9990';
     const now = new Date();
-    const endDate = new Date(now);
-    endDate.setDate(endDate.getDate() + 30 * months);
 
-    // 1. Читаем кэш + SQLite для телефона
+    // 1. Читаем кэш + SQLite для телефона (раньше — чтобы знать текущую подписку)
     let cached = null;
     try { cached = await readUserCache(telegramId); } catch (_) {}
 
     const dbUser = await getUser(telegramId);
+
+    // Если продление того же тарифа при активной подписке — считаем от текущей даты окончания
+    let endDateBase = now;
+    let isRenewal = false;
+    if (!isOneTime && dbUser &&
+        String(dbUser.tariff) === String(tarif) &&
+        dbUser.subscription_status === 'активно' &&
+        dbUser.subscription_end) {
+      const parts = dbUser.subscription_end.split('.');
+      if (parts.length === 3) {
+        const existing = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+        if (existing > now) {
+          endDateBase = existing;
+          isRenewal = true;
+        }
+      }
+    }
+    const endDate = new Date(endDateBase);
+    endDate.setDate(endDate.getDate() + 30 * months);
 
     // 2. Создать заказ во Frontpad для учёта подписки
     try {
@@ -133,7 +150,7 @@ module.exports = async (req, res) => {
         tariff: String(tarif),
         is_ambassador: isOneTime ? true : undefined,
         subscription_status: isOneTime ? undefined : 'активно',
-        subscription_start: isOneTime ? undefined : formatDate(now),
+        subscription_start: (isOneTime || isRenewal) ? undefined : formatDate(now),
         subscription_end: isOneTime ? undefined : formatDate(endDate),
         payment_method_id: isOneTime ? undefined : (paymentMethodId || undefined),
       });
@@ -146,6 +163,8 @@ module.exports = async (req, res) => {
         months,
         yookassa_payment_id: payment.id || null,
       });
+
+      // Амбассадорские комиссии (processCommissions) — отключены намеренно
 
       // Начисляем 20% SHC пригласившему (если плательщик — чей-то реферал)
       if (!isOneTime && paymentAmount > 0) {
