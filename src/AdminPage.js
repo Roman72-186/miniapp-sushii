@@ -1043,7 +1043,7 @@ function AdminPage() {
                 value={addEndDate}
                 onChange={e => setAddEndDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                style={{ ...styles.input, marginBottom: 18 }}
+                style={{ ...styles.input, marginBottom: 18, colorScheme: 'dark', maxWidth: '100%', WebkitAppearance: 'none', appearance: 'none' }}
                 required
               />
 
@@ -1775,7 +1775,8 @@ const styles = {
   },
   dateInput: {
     flex: 1,
-    minWidth: 120,
+    minWidth: 0,
+    maxWidth: '100%',
     padding: '4px 7px',
     background: CP.surface,
     border: `1px solid ${CP.border}`,
@@ -1783,6 +1784,9 @@ const styles = {
     color: CP.text,
     fontSize: 12,
     colorScheme: 'dark',
+    WebkitAppearance: 'none',
+    appearance: 'none',
+    boxSizing: 'border-box',
   },
   applyBtn: {
     padding: '5px 12px',
