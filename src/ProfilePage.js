@@ -652,7 +652,7 @@ function ProfilePage() {
             )}
 
             {/* Другие тарифы */}
-            {['290', '490', '1190'].filter(t => t !== tarif).map(t => (
+            {['290', '490', '1190'].filter(t => Number(t) > Number(tarif)).map(t => (
               <button
                 key={t}
                 onClick={() => handleTariffNavigate(t)}
