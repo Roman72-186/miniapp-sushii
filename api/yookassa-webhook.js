@@ -80,6 +80,7 @@ module.exports = async (req, res) => {
 
     const isOneTime = String(tarif) === '9990';
     const now = new Date();
+    const paymentAmount = Number(payment.amount?.value) || 0;
 
     // 1. Читаем кэш + SQLite для телефона (раньше — чтобы знать текущую подписку)
     let cached = null;
@@ -120,11 +121,10 @@ module.exports = async (req, res) => {
         const fpResult = await frontpadRequest('new_order', {
           'product[0]': productId,
           'product_kol[0]': '1',
-          'product_price[0]': '1',
+          'product_price[0]': String(Math.round(paymentAmount)),
           'hook_status[0]': '10',
           name: 'Подписка',
           phone: fullPhone,
-          sale: '100',
           descr: `Подписка за ${tarif} срок ${monthsLabel}`,
         });
 
@@ -142,8 +142,6 @@ module.exports = async (req, res) => {
 
     // 3. SQLite: записываем платёж + начисляем комиссии
     try {
-      const paymentAmount = Number(payment.amount?.value) || 0;
-
       // Обновляем пользователя в SQLite
       await upsertUser({
         telegram_id: String(telegramId),
