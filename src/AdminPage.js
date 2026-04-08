@@ -36,6 +36,9 @@ function AdminPage() {
   const [editingNotes, setEditingNotes] = useState({}); // {telegram_id: 'текст'}
   const [dashStats, setDashStats] = useState(null);
   const [dashLoading, setDashLoading] = useState(false);
+  const [giftOrders, setGiftOrders] = useState(null);
+  const [giftOrdersLoading, setGiftOrdersLoading] = useState(false);
+  const [giftOrdersSearch, setGiftOrdersSearch] = useState('');
 
   // Banners state
   const [banners, setBanners] = useState([]);
@@ -135,6 +138,7 @@ function AdminPage() {
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
     if (loggedIn && tab === 'pricing' && !pricing) loadPricing();
     if (loggedIn && tab === 'stats') loadStats();
+    if (loggedIn && tab === 'orders') loadGiftOrders();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Сохранение товара
@@ -296,6 +300,17 @@ function AdminPage() {
       if (data.success) setDashStats(data.stats);
     } catch (_) {}
     setDashLoading(false);
+  }, [headers]);
+
+  // Загрузка заказов подарков
+  const loadGiftOrders = useCallback(async () => {
+    setGiftOrdersLoading(true);
+    try {
+      const res = await fetch(`${API}/api/admin/gift-orders`, { headers: headers() });
+      const data = await res.json();
+      if (data.success) setGiftOrders(data.orders);
+    } catch (_) {}
+    setGiftOrdersLoading(false);
   }, [headers]);
 
   // Загрузка цен
@@ -536,6 +551,7 @@ function AdminPage() {
           { id: 'pricing',     label: '◎ Цены' },
           { id: 'stats',       label: '◉ Статистика' },
           { id: 'add',         label: '⊕ Добавить' },
+          { id: 'orders',      label: '◷ Заказы' },
         ].map(({ id, label }) => (
           <button
             key={id}
@@ -1078,6 +1094,55 @@ function AdminPage() {
             </div>
           )}
           {!dashStats && !dashLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
+        </div>
+      )}
+
+      {/* ─── Orders Tab ─── */}
+      {tab === 'orders' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <h3 style={styles.addTitle}>Заказы подписчиков</h3>
+            <button style={styles.btnSmall} onClick={loadGiftOrders} disabled={giftOrdersLoading}>
+              {giftOrdersLoading ? '...' : 'Обновить'}
+            </button>
+          </div>
+          <input
+            style={{ ...styles.input, marginBottom: 10, fontSize: 12 }}
+            placeholder="Поиск по имени, телефону, адресу..."
+            value={giftOrdersSearch}
+            onChange={e => setGiftOrdersSearch(e.target.value)}
+          />
+          {giftOrdersLoading && <p style={styles.muted}>Загрузка...</p>}
+          {giftOrders && (() => {
+            const q = giftOrdersSearch.trim().toLowerCase();
+            const filtered = q
+              ? giftOrders.filter(o =>
+                  (o.name || '').toLowerCase().includes(q) ||
+                  (o.phone || '').includes(q) ||
+                  (o.address || '').toLowerCase().includes(q)
+                )
+              : giftOrders;
+            return filtered.length === 0
+              ? <p style={styles.muted}>Нет заказов</p>
+              : filtered.map(o => (
+                <div key={o.id} style={{ ...styles.subCard, marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ color: o.gift_type === 'roll' ? CP.cyan : CP.green, fontWeight: 700, fontSize: 13 }}>
+                      {o.gift_type === 'roll' ? 'Ролл' : 'Сет'}
+                    </span>
+                    <span style={{ color: CP.muted, fontSize: 12 }}>{o.claimed_at}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: CP.text, marginBottom: 2 }}>
+                    {o.name || '—'}
+                    {o.tariff && <span style={{ color: CP.muted, marginLeft: 6, fontSize: 11 }}>{o.tariff}₽</span>}
+                    {o.granted_by === 'admin' && <span style={{ color: CP.pink, marginLeft: 6, fontSize: 11 }}>от админа</span>}
+                  </div>
+                  {o.phone && <div style={{ fontSize: 12, color: CP.muted }}>{o.phone}</div>}
+                  {o.address && <div style={{ fontSize: 12, color: CP.yellow, marginTop: 2 }}>{o.address}</div>}
+                </div>
+              ));
+          })()}
+          {!giftOrders && !giftOrdersLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
         </div>
       )}
     </div>
