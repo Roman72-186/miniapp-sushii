@@ -465,6 +465,19 @@ async function getGiftHistory(telegramId) {
   return res.rows;
 }
 
+async function getGiftOrders(limit = 300) {
+  const res = await query(`
+    SELECT gh.id, gh.telegram_id, gh.gift_type, gh.claimed_at, gh.claimed_ts,
+           gh.window_num, gh.granted_by, gh.address,
+           u.name, u.phone, u.tariff
+    FROM gift_history gh
+    LEFT JOIN users u ON gh.telegram_id = u.telegram_id
+    ORDER BY gh.claimed_ts DESC
+    LIMIT $1
+  `, [limit]);
+  return res.rows;
+}
+
 // ─── Дополнительные функции для API ──────────────────────────
 
 async function getUserByPhone(phone) {
@@ -518,6 +531,7 @@ module.exports = {
   upsertUser,
   insertGiftHistory,
   getGiftHistory,
+  getGiftOrders,
   getUser,
   getUserByContactId,
   getUserByPhone,
