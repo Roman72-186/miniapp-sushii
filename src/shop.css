@@ -1421,6 +1421,31 @@ body.shop-body {
   font-weight: 600;
 }
 
+.shop-shc-block--locked {
+  opacity: 0.75;
+}
+
+.shop-shc-block__hint {
+  font-size: 12px;
+  color: #888899;
+  margin-top: 4px;
+}
+
+.shop-shc-block__progress {
+  height: 4px;
+  background: #2a2a2e;
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.shop-shc-block__progress > div {
+  height: 100%;
+  background: #3CC8A1;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
 /* === Страница успеха === */
 .shop-success {
   display: flex;

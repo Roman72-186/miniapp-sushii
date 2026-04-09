@@ -522,7 +522,9 @@ function ProfilePage() {
                 </div>
                 {profile?.balance_shc > 0 && (
                   <div className="shop-profile__shc-balance">
-                    {profile.balance_shc} SHC = {profile.balance_shc}₽ скидки на следующий заказ
+                    {profile.balance_shc >= 900
+                      ? `${profile.balance_shc} SHC = ${profile.balance_shc}₽ скидки на следующий заказ`
+                      : `${profile.balance_shc} / 900 SHC — ещё ${900 - profile.balance_shc} до списания`}
                   </div>
                 )}
                 <div className="amb-panel__counters" style={{ marginTop: 10 }}>
