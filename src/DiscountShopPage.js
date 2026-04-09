@@ -779,7 +779,7 @@ function DiscountShopPage() {
         <div>
           {(() => {
             const q = searchQuery.toLowerCase();
-            const found = products.filter(p => p.name.toLowerCase().includes(q));
+            const found = products.filter(p => !p.gift && p.name.toLowerCase().includes(q));
             if (found.length === 0) return <p className="shop-search__empty">Ничего не найдено</p>;
             return (
               <div className="shop-grid" style={{ padding: '0 12px' }}>
