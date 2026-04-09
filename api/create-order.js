@@ -171,11 +171,14 @@ module.exports = async (req, res) => {
           et: client.et || '',
         };
 
-    // Списание SHC баллов
+    // Списание SHC баллов (минимум 900 для активации)
     const shcToUse = Number(shc_used) || 0;
     if (shcToUse > 0 && telegram_id) {
       const dbUser = await getUser(telegram_id);
       const userBalance = dbUser?.balance_shc || 0;
+      if (userBalance < 900) {
+        return res.status(400).json({ success: false, error: 'Минимум 900 SHC для списания' });
+      }
       if (shcToUse > userBalance) {
         return res.status(400).json({ success: false, error: 'Недостаточно SHC баллов' });
       }
