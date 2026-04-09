@@ -499,7 +499,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
       </form>
 
       {/* SHC баллы */}
-      {shcBalance >= 900 && (
+      {shcBalance >= 3000 && (
         <div className="shop-shc-block">
           <div className="shop-shc-block__header">
             <span className="shop-shc-block__label">Баланс SHC: <strong>{shcBalance}</strong> баллов = {shcBalance}₽</span>
@@ -529,14 +529,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
       )}
 
       {/* SHC баллы — прогресс до порога 900 */}
-      {shcBalance > 0 && shcBalance < 900 && (
+      {shcBalance > 0 && shcBalance < 3000 && (
         <div className="shop-shc-block shop-shc-block--locked">
           <div className="shop-shc-block__header">
-            <span className="shop-shc-block__label">SHC баллы: <strong>{shcBalance}</strong> / 900</span>
+            <span className="shop-shc-block__label">SHC баллы: <strong>{shcBalance}</strong> / 3000</span>
           </div>
-          <div className="shop-shc-block__hint">Ещё {900 - shcBalance} баллов — и сможете оплачивать заказы</div>
+          <div className="shop-shc-block__hint">Ещё {3000 - shcBalance} баллов — и сможете оплачивать заказы</div>
           <div className="shop-shc-block__progress">
-            <div style={{ width: `${Math.round((shcBalance / 900) * 100)}%` }} />
+            <div style={{ width: `${Math.round((shcBalance / 3000) * 100)}%` }} />
           </div>
         </div>
       )}
