@@ -176,8 +176,8 @@ module.exports = async (req, res) => {
     if (shcToUse > 0 && telegram_id) {
       const dbUser = await getUser(telegram_id);
       const userBalance = dbUser?.balance_shc || 0;
-      if (userBalance < 900) {
-        return res.status(400).json({ success: false, error: 'Минимум 900 SHC для списания' });
+      if (userBalance < 3000) {
+        return res.status(400).json({ success: false, error: 'Минимум 3000 SHC для списания' });
       }
       if (shcToUse > userBalance) {
         return res.status(400).json({ success: false, error: 'Недостаточно SHC баллов' });
