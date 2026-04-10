@@ -68,12 +68,25 @@ function ProfilePage() {
   const [shcData, setShcData] = useState(null);
   const [bonuses, setBonuses] = useState(null);
   const [showAllBonuses, setShowAllBonuses] = useState(false);
+  const [showShcInfo, setShowShcInfo] = useState(false);
 
   const TARIFF_INFO = {
-    '290':  { label: '290 ₽/мес',  desc: 'Скидки 30% на роллы, 20% на сеты' },
-    '490':  { label: '490 ₽/мес',  desc: 'Скидки + 2 ролла в подарок каждые 15 дней' },
-    '1190': { label: '1190 ₽/мес', desc: 'Скидки + сет/мес + кофе' },
-    '9990': { label: '9990 ₽',     desc: 'Амбассадор (разовый)' },
+    '290':  {
+      label: '290 ₽/мес',
+      desc: 'Скидка 30% на все роллы и запечённые, 20% на сеты. Доступ к скидочному меню в приложении.',
+    },
+    '490':  {
+      label: '690 ₽/мес',
+      desc: 'Все скидки тарифа 290₽, плюс 2 ролла в подарок каждые 15 дней — выбираешь из всего меню.',
+    },
+    '1190': {
+      label: '1390 ₽/мес',
+      desc: 'Все скидки и подарочные роллы, плюс 1 сет в подарок каждые 30 дней и кофе. Лучший вариант.',
+    },
+    '9990': {
+      label: '9990 ₽',
+      desc: 'Амбассадор — разовый платёж. Комиссия 30% с платежей приглашённых подписчиков.',
+    },
   };
 
   // Загружаем подарочные окна сразу при загрузке профиля
@@ -212,7 +225,7 @@ function ProfilePage() {
                 {profile?.name || '—'}
                 {tarif && (
                   <span className={`profile-tariff-badge${tarif === '9990' ? ' profile-tariff-badge--gold' : ''}`}>
-                    {tarif === '9990' ? 'АМБА' : `${tarif} ₽`}
+                    {tarif === '9990' ? 'АМБА' : `${{ '290': '290', '490': '690', '1190': '1390' }[tarif] || tarif} ₽`}
                   </span>
                 )}
               </span>
@@ -520,6 +533,13 @@ function ProfilePage() {
                 <div className="shop-profile__referral-desc">
                   Приглашай друзей — получай <strong>20%</strong> от их подписки в SHC баллах. <strong>100%</strong> заказа оплачивается баллами: накопил 3000 баллов — получил роллов на <strong>3000 ₽</strong>
                 </div>
+                <button
+                  className="shop-profile__invite-btn"
+                  onClick={() => setShowShcInfo(true)}
+                  style={{ marginTop: 8, width: '100%' }}
+                >
+                  Как работает система SHC?
+                </button>
                 {profile?.balance_shc > 0 && (
                   <div className="shop-profile__shc-balance">
                     {profile.balance_shc >= 3000
@@ -586,11 +606,6 @@ function ProfilePage() {
                     )}
                   </div>
                 )}
-                <div className="shop-profile__section">
-                  <div className="shop-profile__hint">
-                    +50 SHC за каждого друга. Бонусы на порогах: 5, 10, 50, 100 друзей
-                  </div>
-                </div>
               </>
             )}
           </div>
@@ -792,6 +807,72 @@ function ProfilePage() {
                 width: '100%',
                 padding: '10px',
                 marginTop: 14,
+                background: 'transparent',
+                border: '1px solid #30305a',
+                borderRadius: 10,
+                color: '#8888aa',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              Закрыть
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Модалка: как работает система SHC */}
+      {showShcInfo && (
+        <>
+          <div className="product-modal-overlay" onClick={() => setShowShcInfo(false)} />
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: '#1a1a2e',
+            borderRadius: '20px 20px 0 0',
+            padding: '20px 16px 40px',
+            zIndex: 1000,
+            maxHeight: '80vh',
+            overflowY: 'auto',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ color: '#3CC8A1', margin: 0, fontSize: 16, fontWeight: 700 }}>Система SHC баллов</h3>
+              <button
+                onClick={() => setShowShcInfo(false)}
+                style={{ background: 'transparent', border: 'none', color: '#8888aa', fontSize: 20, cursor: 'pointer', padding: 4 }}
+              >✕</button>
+            </div>
+
+            <div style={{ fontSize: 13, color: '#8888aa', lineHeight: 1.8 }}>
+              <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6, marginTop: 0 }}>Как зарабатывать SHC</p>
+              <p style={{ marginTop: 0, marginBottom: 12 }}>
+                Поделись своей реферальной ссылкой с другом. Когда он оплатит подписку — тебе автоматически начислится <strong style={{ color: '#3CC8A1' }}>20% от суммы его платежа</strong> в SHC баллах.
+              </p>
+
+              <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6 }}>Примеры начислений</p>
+              <p style={{ marginTop: 0, marginBottom: 4 }}>• Друг оплатил 290 ₽ → тебе <strong style={{ color: '#3CC8A1' }}>58 SHC</strong></p>
+              <p style={{ marginTop: 0, marginBottom: 4 }}>• Друг оплатил 690 ₽ → тебе <strong style={{ color: '#3CC8A1' }}>138 SHC</strong></p>
+              <p style={{ marginTop: 0, marginBottom: 12 }}>• Друг оплатил 1 390 ₽ → тебе <strong style={{ color: '#3CC8A1' }}>278 SHC</strong></p>
+
+              <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6 }}>Как тратить SHC</p>
+              <p style={{ marginTop: 0, marginBottom: 12 }}>
+                1 SHC = 1 ₽ скидки на заказ. Минимальный порог для списания — <strong style={{ color: '#3CC8A1' }}>3 000 SHC</strong>. Можно оплатить до <strong style={{ color: '#3CC8A1' }}>100%</strong> стоимости заказа.
+              </p>
+
+              <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6 }}>Как пригласить друга</p>
+              <p style={{ marginTop: 0, marginBottom: 0 }}>
+                Скопируй свою реферальную ссылку в разделе выше и отправь другу. После его регистрации и оплаты баллы зачисляются автоматически.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowShcInfo(false)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                marginTop: 20,
                 background: 'transparent',
                 border: '1px solid #30305a',
                 borderRadius: 10,
