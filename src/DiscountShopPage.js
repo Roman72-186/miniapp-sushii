@@ -111,7 +111,7 @@ function useDiscountMenu() {
                   sku: item.sku,
                   category: category.id,
                   gift: true,
-                  image: getProductImage(item.name),
+                  image: item.image || getProductImage(item.name),
                   description: item.description || null,
                 };
               }

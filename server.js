@@ -50,6 +50,7 @@ app.all('/api/admin/add-user-manual', require('./api/admin/add-user-manual'));
 app.all('/api/admin/user-tags', require('./api/admin-user-tags'));
 app.all('/api/admin/set-subscription', require('./api/admin-set-subscription'));
 app.all('/api/admin/gift-orders', require('./api/admin-gift-orders'));
+app.all('/api/admin/add-product', require('./api/admin-add-product'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {
@@ -62,6 +63,13 @@ function noCacheHeaders(res, filePath) {
 
 // Serve product overrides from persistent volume (admin edits), then React build
 app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: noCacheHeaders }));
+app.use('/data/product-images', express.static(
+  path.join(__dirname, 'data', 'product-images'),
+  { setHeaders: (res, fp) => {
+    if (/\.(jpg|jpeg|png|webp)$/i.test(fp))
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+  }}
+));
 app.use(express.static(path.join(__dirname, 'data', 'products'), { setHeaders: noCacheHeaders }));
 
 // Admin pages — serve BEFORE React build
