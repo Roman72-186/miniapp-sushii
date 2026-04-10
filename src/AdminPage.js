@@ -82,8 +82,6 @@ function AdminPage() {
   const [newImagePreview, setNewImagePreview] = useState(null);
   const [newAddToSub, setNewAddToSub] = useState(false);
   const [newSubSku, setNewSubSku] = useState('');
-  const [newAddTo490, setNewAddTo490] = useState(false);
-  const [newSku490, setNewSku490] = useState('');
   const [newProductLoading, setNewProductLoading] = useState(false);
   const [newProductResult, setNewProductResult] = useState(null);
 
@@ -494,6 +492,8 @@ function AdminPage() {
     setNewImagePreview(imageData);
   };
 
+  const isGiftCat = (catId) => catId === 'gift-roll' || catId === 'gift-set';
+
   const addProduct = async (e) => {
     e.preventDefault();
     setNewProductLoading(true);
@@ -506,13 +506,10 @@ function AdminPage() {
           categoryId: newCatId,
           name: newName.trim(),
           sku: newSku.trim(),
-          price: Number(newPrice),
+          ...(!isGiftCat(newCatId) ? { price: Number(newPrice) } : {}),
           description: newDesc.trim() || undefined,
           imageData: newImagePreview || undefined,
-          addToSub: newAddToSub,
-          subSku: newSubSku.trim() || undefined,
-          addTo490: newAddTo490,
-          sku490: newSku490.trim() || undefined,
+          ...(!isGiftCat(newCatId) ? { addToSub: newAddToSub, subSku: newSubSku.trim() || undefined } : {}),
         }),
       });
       const data = await res.json();
@@ -521,7 +518,6 @@ function AdminPage() {
         setNewName(''); setNewSku(''); setNewPrice('');
         setNewDesc(''); setNewImagePreview(null);
         setNewAddToSub(false); setNewSubSku('');
-        setNewAddTo490(false); setNewSku490('');
       }
     } catch {
       setNewProductResult({ success: false, error: 'Ошибка соединения' });
@@ -639,7 +635,7 @@ function AdminPage() {
       </div>
       <div style={styles.subTabs}>
         {(group === 'content'
-          ? [{ id: 'products', label: '⬡ Товары' }, { id: 'banners', label: '▣ Баннеры' }, { id: 'pricing', label: '◎ Цены' }, { id: 'add-product', label: '⊞ Товар+' }]
+          ? [{ id: 'products', label: '⬡ Товары' }, { id: 'banners', label: '▣ Баннеры' }, { id: 'pricing', label: '◎ Цены' }, { id: 'add-product', label: '⊕ Добавить' }]
           : [{ id: 'subscribers', label: '◈ Подписчики' }, { id: 'orders', label: '◷ Заказы' }, { id: 'add', label: '⊕ Добавить' }, { id: 'stats', label: '◉ Статистика' }]
         ).map(({ id, label }) => (
           <button
@@ -1220,19 +1216,30 @@ function AdminPage() {
       {tab === 'add-product' && (
         <div>
           <div style={styles.addCard}>
-            <h3 style={styles.addTitle}>Добавить товар</h3>
-            <form onSubmit={addProduct}>
-              <label style={styles.fieldLabel}>Категория *</label>
-              <select
-                value={newCatId}
-                onChange={e => { setNewCatId(e.target.value); setNewAddTo490(false); }}
-                style={styles.input}
-              >
-                <option value="rolls">Холодные роллы</option>
-                <option value="zaproll">Запечённые роллы</option>
-                <option value="sets">Сеты</option>
-              </select>
+            <h3 style={styles.addTitle}>Добавить позицию</h3>
 
+            {/* Выбор категории — 5 кнопок */}
+            <label style={styles.fieldLabel}>Категория</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+              {[
+                { id: 'rolls',    label: 'Холодные роллы' },
+                { id: 'zaproll', label: 'Запечённые' },
+                { id: 'sets',    label: 'Сеты' },
+                { id: 'gift-roll', label: '🎁 Подарочный ролл' },
+                { id: 'gift-set',  label: '🎁 Подарочный сет' },
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  style={newCatId === cat.id ? styles.catBtnActive : styles.catBtn}
+                  onClick={() => { setNewCatId(cat.id); setNewAddToSub(false); setNewSubSku(''); }}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={addProduct}>
               <label style={styles.fieldLabel}>Название *</label>
               <input
                 type="text"
@@ -1243,7 +1250,9 @@ function AdminPage() {
                 required
               />
 
-              <label style={styles.fieldLabel}>Артикул Frontpad *</label>
+              <label style={styles.fieldLabel}>
+                {isGiftCat(newCatId) ? 'ID в Frontpad *' : 'Артикул Frontpad *'}
+              </label>
               <input
                 type="text"
                 placeholder="Например: 1234"
@@ -1253,16 +1262,27 @@ function AdminPage() {
                 required
               />
 
-              <label style={styles.fieldLabel}>Цена без скидки (₽) *</label>
-              <input
-                type="number"
-                min="0"
-                placeholder="Например: 750"
-                value={newPrice}
-                onChange={e => setNewPrice(e.target.value)}
-                style={styles.input}
-                required
-              />
+              {/* Цена — только для обычных категорий */}
+              {!isGiftCat(newCatId) && (
+                <>
+                  <label style={styles.fieldLabel}>Цена без скидки (₽) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Например: 750"
+                    value={newPrice}
+                    onChange={e => setNewPrice(e.target.value)}
+                    style={styles.input}
+                    required
+                  />
+                </>
+              )}
+
+              {isGiftCat(newCatId) && (
+                <div style={{ padding: '8px 12px', background: 'rgba(60,200,161,0.07)', borderRadius: 8, marginBottom: 10, fontSize: 12, color: AP.muted }}>
+                  Цена: <b style={{ color: AP.accent }}>0 ₽</b> (подарок)
+                </div>
+              )}
 
               <label style={styles.fieldLabel}>Описание (необязательно)</label>
               <input
@@ -1293,52 +1313,28 @@ function AdminPage() {
                 </div>
               )}
 
-              <div style={{ padding: '10px 12px', background: 'rgba(60,200,161,0.06)', borderRadius: 10, marginBottom: 10, border: '1px solid rgba(60,200,161,0.15)' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: newAddToSub ? 8 : 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={newAddToSub}
-                    onChange={e => setNewAddToSub(e.target.checked)}
-                  />
-                  <span style={{ fontSize: 12, color: AP.text, fontWeight: 600 }}>В скидочный магазин</span>
-                </label>
-                {newAddToSub && (
-                  <div>
-                    <label style={styles.fieldLabel}>Артикул для скидочного каталога *</label>
-                    <input
-                      type="text"
-                      placeholder="4-значный артикул"
-                      value={newSubSku}
-                      onChange={e => setNewSubSku(e.target.value)}
-                      style={{ ...styles.input, marginBottom: 0 }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {(newCatId === 'rolls' || newCatId === 'sets') && (
+              {/* Скидочный каталог — только для обычных категорий */}
+              {!isGiftCat(newCatId) && (
                 <div style={{ padding: '10px 12px', background: 'rgba(60,200,161,0.06)', borderRadius: 10, marginBottom: 10, border: '1px solid rgba(60,200,161,0.15)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: newAddTo490 ? 8 : 0 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: newAddToSub ? 8 : 0 }}>
                     <input
                       type="checkbox"
-                      checked={newAddTo490}
-                      onChange={e => setNewAddTo490(e.target.checked)}
+                      checked={newAddToSub}
+                      onChange={e => setNewAddToSub(e.target.checked)}
                     />
-                    <span style={{ fontSize: 12, color: AP.text, fontWeight: 600 }}>
-                      {newCatId === 'rolls' ? 'В подарочные роллы (тариф 490)' : 'В подарочные сеты (тариф 1190)'}
-                    </span>
+                    <span style={{ fontSize: 12, color: AP.text, fontWeight: 600 }}>Добавить в скидочный магазин</span>
                   </label>
-                  {newAddTo490 && (
-                    <div>
-                      <label style={styles.fieldLabel}>Артикул для подарочного каталога *</label>
+                  {newAddToSub && (
+                    <>
+                      <label style={styles.fieldLabel}>Артикул для скидочного каталога *</label>
                       <input
                         type="text"
                         placeholder="4-значный артикул"
-                        value={newSku490}
-                        onChange={e => setNewSku490(e.target.value)}
+                        value={newSubSku}
+                        onChange={e => setNewSubSku(e.target.value)}
                         style={{ ...styles.input, marginBottom: 0 }}
                       />
-                    </div>
+                    </>
                   )}
                 </div>
               )}
@@ -1346,9 +1342,12 @@ function AdminPage() {
               <button
                 type="submit"
                 style={styles.btnPrimary}
-                disabled={newProductLoading || !newName.trim() || !newSku.trim() || !newPrice}
+                disabled={
+                  newProductLoading || !newName.trim() || !newSku.trim() ||
+                  (!isGiftCat(newCatId) && !newPrice)
+                }
               >
-                {newProductLoading ? 'Добавление...' : 'Добавить товар'}
+                {newProductLoading ? 'Добавление...' : 'Добавить позицию'}
               </button>
             </form>
 
@@ -1362,10 +1361,19 @@ function AdminPage() {
                 fontSize: 13,
               }}>
                 <div style={{ fontWeight: 700 }}>
-                  {newProductResult.success ? `✓ Добавлен: ${newProductResult.name}` : `✗ ${newProductResult.error}`}
+                  {newProductResult.success
+                    ? `✓ Добавлено: ${newProductResult.name}`
+                    : `✗ ${newProductResult.error}`}
                 </div>
+                {newProductResult.addedTo && (
+                  <div style={{ fontSize: 11, color: AP.muted, marginTop: 4 }}>
+                    Каталог: {newProductResult.addedTo.join(', ')}
+                  </div>
+                )}
                 {newProductResult.imagePath && (
-                  <div style={{ fontSize: 11, color: AP.muted, marginTop: 4 }}>Фото: {newProductResult.imagePath}</div>
+                  <div style={{ fontSize: 11, color: AP.muted, marginTop: 2 }}>
+                    Фото: {newProductResult.imagePath}
+                  </div>
                 )}
               </div>
             )}
