@@ -73,6 +73,20 @@ function AdminPage() {
   const [addLoading, setAddLoading] = useState(false);
   const [addResult, setAddResult] = useState(null);
 
+  // Add product state
+  const [newCatId, setNewCatId] = useState('rolls');
+  const [newName, setNewName] = useState('');
+  const [newSku, setNewSku] = useState('');
+  const [newPrice, setNewPrice] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newImagePreview, setNewImagePreview] = useState(null);
+  const [newAddToSub, setNewAddToSub] = useState(false);
+  const [newSubSku, setNewSubSku] = useState('');
+  const [newAddTo490, setNewAddTo490] = useState(false);
+  const [newSku490, setNewSku490] = useState('');
+  const [newProductLoading, setNewProductLoading] = useState(false);
+  const [newProductResult, setNewProductResult] = useState(null);
+
   const headers = useCallback(() => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
@@ -475,6 +489,46 @@ function AdminPage() {
     setBannerUploading(null);
   };
 
+  const handleNewProductImage = async (file) => {
+    const imageData = await cropToAspect(file, 1);
+    setNewImagePreview(imageData);
+  };
+
+  const addProduct = async (e) => {
+    e.preventDefault();
+    setNewProductLoading(true);
+    setNewProductResult(null);
+    try {
+      const res = await fetch(`${API}/api/admin/add-product`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          categoryId: newCatId,
+          name: newName.trim(),
+          sku: newSku.trim(),
+          price: Number(newPrice),
+          description: newDesc.trim() || undefined,
+          imageData: newImagePreview || undefined,
+          addToSub: newAddToSub,
+          subSku: newSubSku.trim() || undefined,
+          addTo490: newAddTo490,
+          sku490: newSku490.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      setNewProductResult(data);
+      if (data.success) {
+        setNewName(''); setNewSku(''); setNewPrice('');
+        setNewDesc(''); setNewImagePreview(null);
+        setNewAddToSub(false); setNewSubSku('');
+        setNewAddTo490(false); setNewSku490('');
+      }
+    } catch {
+      setNewProductResult({ success: false, error: 'Ошибка соединения' });
+    }
+    setNewProductLoading(false);
+  };
+
   const logout = () => {
     setToken('');
     setLoggedIn(false);
@@ -585,7 +639,7 @@ function AdminPage() {
       </div>
       <div style={styles.subTabs}>
         {(group === 'content'
-          ? [{ id: 'products', label: '⬡ Товары' }, { id: 'banners', label: '▣ Баннеры' }, { id: 'pricing', label: '◎ Цены' }]
+          ? [{ id: 'products', label: '⬡ Товары' }, { id: 'banners', label: '▣ Баннеры' }, { id: 'pricing', label: '◎ Цены' }, { id: 'add-product', label: '⊞ Товар+' }]
           : [{ id: 'subscribers', label: '◈ Подписчики' }, { id: 'orders', label: '◷ Заказы' }, { id: 'add', label: '⊕ Добавить' }, { id: 'stats', label: '◉ Статистика' }]
         ).map(({ id, label }) => (
           <button
@@ -1159,6 +1213,163 @@ function AdminPage() {
             </div>
           )}
           {!dashStats && !dashLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
+        </div>
+      )}
+
+      {/* ─── Add Product Tab ─── */}
+      {tab === 'add-product' && (
+        <div>
+          <div style={styles.addCard}>
+            <h3 style={styles.addTitle}>Добавить товар</h3>
+            <form onSubmit={addProduct}>
+              <label style={styles.fieldLabel}>Категория *</label>
+              <select
+                value={newCatId}
+                onChange={e => { setNewCatId(e.target.value); setNewAddTo490(false); }}
+                style={styles.input}
+              >
+                <option value="rolls">Холодные роллы</option>
+                <option value="zaproll">Запечённые роллы</option>
+                <option value="sets">Сеты</option>
+              </select>
+
+              <label style={styles.fieldLabel}>Название *</label>
+              <input
+                type="text"
+                placeholder="Название товара"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                style={styles.input}
+                required
+              />
+
+              <label style={styles.fieldLabel}>Артикул Frontpad *</label>
+              <input
+                type="text"
+                placeholder="Например: 1234"
+                value={newSku}
+                onChange={e => setNewSku(e.target.value)}
+                style={styles.input}
+                required
+              />
+
+              <label style={styles.fieldLabel}>Цена без скидки (₽) *</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Например: 750"
+                value={newPrice}
+                onChange={e => setNewPrice(e.target.value)}
+                style={styles.input}
+                required
+              />
+
+              <label style={styles.fieldLabel}>Описание (необязательно)</label>
+              <input
+                type="text"
+                placeholder="Состав или краткое описание"
+                value={newDesc}
+                onChange={e => setNewDesc(e.target.value)}
+                style={styles.input}
+              />
+
+              <label style={styles.fieldLabel}>Фото товара</label>
+              <label style={{ ...styles.grantBtn, display: 'inline-block', marginBottom: 10, cursor: 'pointer' }}>
+                Выбрать фото
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => { if (e.target.files[0]) handleNewProductImage(e.target.files[0]); }}
+                />
+              </label>
+              {newImagePreview && (
+                <div style={{ marginBottom: 10 }}>
+                  <img
+                    src={newImagePreview}
+                    alt="preview"
+                    style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, boxShadow: NEU.card }}
+                  />
+                </div>
+              )}
+
+              <div style={{ padding: '10px 12px', background: 'rgba(60,200,161,0.06)', borderRadius: 10, marginBottom: 10, border: '1px solid rgba(60,200,161,0.15)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: newAddToSub ? 8 : 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={newAddToSub}
+                    onChange={e => setNewAddToSub(e.target.checked)}
+                  />
+                  <span style={{ fontSize: 12, color: AP.text, fontWeight: 600 }}>В скидочный магазин</span>
+                </label>
+                {newAddToSub && (
+                  <div>
+                    <label style={styles.fieldLabel}>Артикул для скидочного каталога *</label>
+                    <input
+                      type="text"
+                      placeholder="4-значный артикул"
+                      value={newSubSku}
+                      onChange={e => setNewSubSku(e.target.value)}
+                      style={{ ...styles.input, marginBottom: 0 }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {(newCatId === 'rolls' || newCatId === 'sets') && (
+                <div style={{ padding: '10px 12px', background: 'rgba(60,200,161,0.06)', borderRadius: 10, marginBottom: 10, border: '1px solid rgba(60,200,161,0.15)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: newAddTo490 ? 8 : 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={newAddTo490}
+                      onChange={e => setNewAddTo490(e.target.checked)}
+                    />
+                    <span style={{ fontSize: 12, color: AP.text, fontWeight: 600 }}>
+                      {newCatId === 'rolls' ? 'В подарочные роллы (тариф 490)' : 'В подарочные сеты (тариф 1190)'}
+                    </span>
+                  </label>
+                  {newAddTo490 && (
+                    <div>
+                      <label style={styles.fieldLabel}>Артикул для подарочного каталога *</label>
+                      <input
+                        type="text"
+                        placeholder="4-значный артикул"
+                        value={newSku490}
+                        onChange={e => setNewSku490(e.target.value)}
+                        style={{ ...styles.input, marginBottom: 0 }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                style={styles.btnPrimary}
+                disabled={newProductLoading || !newName.trim() || !newSku.trim() || !newPrice}
+              >
+                {newProductLoading ? 'Добавление...' : 'Добавить товар'}
+              </button>
+            </form>
+
+            {newProductResult && (
+              <div style={{
+                marginTop: 14,
+                padding: '12px 14px',
+                borderRadius: 10,
+                background: newProductResult.success ? 'rgba(60,200,161,0.1)' : 'rgba(255,77,106,0.1)',
+                color: newProductResult.success ? AP.accent : AP.danger,
+                fontSize: 13,
+              }}>
+                <div style={{ fontWeight: 700 }}>
+                  {newProductResult.success ? `✓ Добавлен: ${newProductResult.name}` : `✗ ${newProductResult.error}`}
+                </div>
+                {newProductResult.imagePath && (
+                  <div style={{ fontSize: 11, color: AP.muted, marginTop: 4 }}>Фото: {newProductResult.imagePath}</div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

@@ -54,7 +54,7 @@ function saveCatalog(filePath, data) {
   fs.writeFileSync(dataPath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-module.exports = async (req, res) => {
+const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -160,3 +160,8 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
   }
 };
+
+module.exports = handler;
+module.exports.readCatalog = readCatalog;
+module.exports.saveCatalog = saveCatalog;
+module.exports.CATALOGS = CATALOGS;
