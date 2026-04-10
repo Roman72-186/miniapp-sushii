@@ -544,7 +544,7 @@ function ProfilePage() {
                   <div className="shop-profile__shc-balance">
                     {profile.balance_shc >= 3000
                       ? `${profile.balance_shc} SHC = ${profile.balance_shc}₽ скидки на следующий заказ`
-                      : `${profile.balance_shc} / 3000 SHC — ещё ${3000 - profile.balance_shc} до списания`}
+                      : `${profile.balance_shc} / 3000 SHC — ещё ${3000 - profile.balance_shc}`}
                   </div>
                 )}
                 <div className="amb-panel__counters" style={{ marginTop: 10 }}>
