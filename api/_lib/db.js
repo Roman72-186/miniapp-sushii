@@ -119,6 +119,8 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN notes TEXT'); } catch {}
   try { _db.exec('ALTER TABLE gift_history ADD COLUMN address TEXT'); } catch {}
   try { _db.exec('ALTER TABLE gift_history ADD COLUMN gift_name TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN last_address TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN last_pickup_point TEXT'); } catch {}
 
   return _db;
 }
@@ -193,6 +195,12 @@ function updateBalance(telegramId, amount) {
     UPDATE users SET balance_shc = balance_shc + ?, updated_at = datetime('now')
     WHERE telegram_id = ?
   `).run(amount, String(telegramId));
+}
+
+function updateLastAddress(telegramId, lastAddress, lastPickupPoint) {
+  getDb().prepare(
+    "UPDATE users SET last_address = ?, last_pickup_point = ?, updated_at = datetime('now') WHERE telegram_id = ?"
+  ).run(lastAddress || null, lastPickupPoint || null, String(telegramId));
 }
 
 function getReferrals(telegramId) {
@@ -733,4 +741,5 @@ module.exports = {
   getAllUsersForStats,
   getMonthRevenue,
   getGiftOrders,
+  updateLastAddress,
 };

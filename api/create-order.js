@@ -2,7 +2,7 @@
 
 const { createOrder } = require('./_lib/frontpad');
 const { readUserCache } = require('./_lib/user-cache');
-const { getUser, updateBalance, insertOrder } = require('./_lib/db');
+const { getUser, updateBalance, insertOrder, updateLastAddress } = require('./_lib/db');
 const { geocode } = require('./_lib/geocoder');
 const { findNearestStore } = require('./_lib/nearest-store');
 
@@ -73,6 +73,7 @@ module.exports = async (req, res) => {
       telegram_id,
       pickup_point_id,
       shc_used,
+      persons,
     } = body;
 
     if (!products || !products.length) {
@@ -234,6 +235,13 @@ module.exports = async (req, res) => {
           totalPrice: Math.round(total),
           clientName: client.name || null,
         });
+
+        // Сохраняем последний адрес для автозаполнения
+        const addrJson = !isPickupOrder
+          ? JSON.stringify({ street: client.street, home: client.home, apart: client.apart, pod: client.pod, et: client.et })
+          : null;
+        const pickupId = isPickupOrder ? (pickup_point_id || null) : null;
+        try { await updateLastAddress(telegram_id, addrJson, pickupId); } catch {}
       } catch (saveErr) {
         console.error('[ORDER] Ошибка сохранения в БД:', saveErr.message);
       }

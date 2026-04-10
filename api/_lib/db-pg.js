@@ -420,6 +420,13 @@ async function setUserNotes(telegramId, notes) {
   );
 }
 
+async function updateLastAddress(telegramId, lastAddress, lastPickupPoint) {
+  await query(
+    'UPDATE users SET last_address = $1, last_pickup_point = $2, updated_at = NOW() WHERE telegram_id = $3',
+    [lastAddress || null, lastPickupPoint || null, String(telegramId)]
+  );
+}
+
 async function setUserTariff(telegramId, tariff) {
   await query(
     'UPDATE users SET tariff = $1, updated_at = NOW() WHERE telegram_id = $2',
@@ -608,6 +615,7 @@ module.exports = {
   adminApplyUserTagAction,
   extendSubscription,
   setUserNotes,
+  updateLastAddress,
   getAdminSubscribersList,
   getMonthRevenue,
 };
