@@ -1,5 +1,7 @@
 // src/components/CheckoutForm.js — Форма оформления заказа (тёмная тема)
 
+const LS_CHECKOUT_KEY = 'sushii_last_checkout';
+
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '../UserContext';
 import { isShopOpen, getTimeSlots } from '../utils/timeUtils';
@@ -50,17 +52,34 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [pod, setPod] = useState('');
   const [et, setEt] = useState('');
   const [comment, setComment] = useState('');
+  const [persons, setPersons] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [nearestStore, setNearestStore] = useState(null);
   const [nearestLoading, setNearestLoading] = useState(false);
   const shopOpen = useMemo(() => isShopOpen(), []);
 
-  // Автозаполнение имени и телефона из контекста пользователя
+  // Автозаполнение имени, телефона и адреса из контекста/localStorage
   useEffect(() => {
     if (listItemName && !name) setName(listItemName);
     if (userPhone && !phone) setPhone(normalizePhone(userPhone));
-  }, [listItemName, userPhone]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Адрес: localStorage (свежее) → profile.last_address (из БД)
+    try {
+      const raw = localStorage.getItem(LS_CHECKOUT_KEY);
+      const saved = raw ? JSON.parse(raw) : null;
+      const addr = saved || (profile?.last_address ? JSON.parse(profile.last_address) : null);
+      if (addr) {
+        if (addr.street) setStreet(addr.street);
+        if (addr.home)   setHome(addr.home);
+        if (addr.apart)  setApart(addr.apart);
+        if (addr.pod)    setPod(addr.pod);
+        if (addr.et)     setEt(addr.et);
+      }
+      const lastPickup = saved?.pickupPoint || profile?.last_pickup_point || null;
+      if (lastPickup) setPickupPoint(lastPickup);
+    } catch {}
+  }, [listItemName, userPhone, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Доступные слоты времени
   const timeSlots = useMemo(() => getTimeSlots(), []);
@@ -164,12 +183,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           datetime: timeType === 'scheduled' ? buildDatetime(scheduledTime) : '',
           comment: [
             comment.trim(),
+            persons > 1 ? `Персон: ${persons}` : '',
             deliveryType === 'pickup' ? `Самовывоз: ${pickupAddress}` : '',
             timeLabel,
             paymentLabel,
           ].filter(Boolean).join(' | '),
           telegram_id: telegramId || '',
           order_type: 'discount',
+          persons,
           shc_used: shcApplied > 0 ? shcApplied : undefined,
         }),
       });
@@ -202,6 +223,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           console.error('[claim-gift] Сетевая ошибка:', claimErr.message);
         }
       }
+
+      // Сохраняем адрес для автозаполнения при следующем заказе
+      try {
+        const toSave = deliveryType === 'delivery'
+          ? { street: street.trim(), home: home.trim(), apart: apart.trim(), pod: pod.trim(), et: et.trim(), pickupPoint }
+          : { pickupPoint };
+        localStorage.setItem(LS_CHECKOUT_KEY, JSON.stringify(toSave));
+      } catch {}
 
       onSuccess(data.orderNumber || data.orderId, { giftClaim });
     } catch (err) {
@@ -486,6 +515,27 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
                   value={comment}
                   onChange={e => setComment(e.target.value)}
                 />
+              </div>
+            </div>
+
+            <div className="shop-form-row shop-form-row--single" style={{ marginTop: 12 }}>
+              <div className="shop-form-field">
+                <label className="shop-form-field__label">Количество персон</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button
+                    type="button"
+                    className="shop-form-field__input"
+                    style={{ width: 36, padding: 0, textAlign: 'center', cursor: 'pointer', flexShrink: 0 }}
+                    onClick={() => setPersons(p => Math.max(1, p - 1))}
+                  >−</button>
+                  <span style={{ minWidth: 20, textAlign: 'center', fontWeight: 600, fontSize: 16 }}>{persons}</span>
+                  <button
+                    type="button"
+                    className="shop-form-field__input"
+                    style={{ width: 36, padding: 0, textAlign: 'center', cursor: 'pointer', flexShrink: 0 }}
+                    onClick={() => setPersons(p => Math.min(20, p + 1))}
+                  >+</button>
+                </div>
               </div>
             </div>
           </div>
