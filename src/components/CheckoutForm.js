@@ -1,12 +1,12 @@
 // src/components/CheckoutForm.js — Форма оформления заказа (тёмная тема)
 
-const LS_CHECKOUT_KEY = 'sushii_last_checkout';
-
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '../UserContext';
 import { isShopOpen, getTimeSlots } from '../utils/timeUtils';
 import { normalizePhone } from '../utils/phone';
 import { PICKUP_POINTS } from '../config/pickupPoints';
+
+const LS_CHECKOUT_KEY = 'sushii_last_checkout';
 
 /**
  * Формирует datetime строку для Frontpad (YYYY-MM-DD HH:MM:SS)
