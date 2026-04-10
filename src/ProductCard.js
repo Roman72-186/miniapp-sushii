@@ -69,6 +69,7 @@ function ProductCard({ product, telegramId }) {
         src={imageSrc}
         alt={product.name}
         className="product-img"
+        loading="lazy"
         onError={() => setImgError(true)}
       />
       <div className="product-info">
