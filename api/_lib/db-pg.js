@@ -268,7 +268,20 @@ async function processReferralSHC(referralTelegramId, subscriptionAmount) {
   if (!inviter) return null;
 
   const shcAmount = Math.round(subscriptionAmount * 0.20);
-  await updateBalance(inviter.telegram_id, shcAmount);
+
+  await withTransaction(async (client) => {
+    await client.query(`
+      INSERT INTO referral_bonuses
+        (user_id, referral_id, base_amount, threshold_bonus, total_amount, friends_count, achievement)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [
+      String(inviter.telegram_id), String(referralTelegramId),
+      shcAmount, 0, shcAmount, 0,
+      `20% от подписки ${subscriptionAmount}₽`,
+    ]);
+    await updateBalance(inviter.telegram_id, shcAmount, client);
+  });
+
   return { inviter_id: inviter.telegram_id, shc: shcAmount };
 }
 
@@ -291,8 +304,9 @@ async function processReferralBonus(inviterTelegramId, referralTelegramId) {
   const inviter = await getUser(inviterTelegramId);
   if (!inviter) return null;
 
+  // friends_count > 0 — признак join-бонуса (subscription-бонусы пишутся с friends_count = 0)
   const existing = await query(
-    'SELECT id FROM referral_bonuses WHERE user_id = $1 AND referral_id = $2',
+    'SELECT id FROM referral_bonuses WHERE user_id = $1 AND referral_id = $2 AND friends_count > 0',
     [String(inviterTelegramId), String(referralTelegramId)]
   );
   if (existing.rows.length > 0) return null;
