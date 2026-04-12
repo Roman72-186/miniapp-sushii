@@ -129,7 +129,8 @@ function SettingsPage() {
               )}
             </div>
 
-            {/* Отмена автосписания */}
+            {/* Отмена автосписания — только если активно */}
+            {profile?.payment_method_id && (
             <div className="pf-accordion__item">
               <button className="pf-accordion__hdr pf-accordion__hdr--danger" onClick={() => toggle('cancel')}>
                 <span>🚫 Отмена автосписания</span>
@@ -175,6 +176,7 @@ function SettingsPage() {
                 </div>
               )}
             </div>
+            )}
 
           </div>
         </div>
