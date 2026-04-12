@@ -50,6 +50,11 @@ function AdminPage() {
   const [giftOrdersLoading, setGiftOrdersLoading] = useState(false);
   const [giftOrdersSearch, setGiftOrdersSearch] = useState('');
 
+  // Referrals state
+  const [referralData, setReferralData] = useState(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [referralSearch, setReferralSearch] = useState('');
+
   // Banners state
   const [banners, setBanners] = useState([]);
   const [bannersLoading, setBannersLoading] = useState(false);
@@ -163,6 +168,7 @@ function AdminPage() {
     if (loggedIn && tab === 'pricing' && !pricing) loadPricing();
     if (loggedIn && tab === 'stats') loadStats();
     if (loggedIn && tab === 'orders') loadGiftOrders();
+    if (loggedIn && tab === 'referrals') loadReferralData();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Сохранение товара
@@ -335,6 +341,16 @@ function AdminPage() {
       if (data.success) setGiftOrders(data.orders);
     } catch (_) {}
     setGiftOrdersLoading(false);
+  }, [headers]);
+
+  const loadReferralData = useCallback(async () => {
+    setReferralLoading(true);
+    try {
+      const res = await fetch(`${API}/api/admin/referrals`, { headers: headers() });
+      const data = await res.json();
+      if (data.success) setReferralData(data);
+    } catch (_) {}
+    setReferralLoading(false);
   }, [headers]);
 
   // Загрузка цен
@@ -636,7 +652,7 @@ function AdminPage() {
       <div style={styles.subTabs}>
         {(group === 'content'
           ? [{ id: 'products', label: '⬡ Товары' }, { id: 'banners', label: '▣ Баннеры' }, { id: 'pricing', label: '◎ Цены' }, { id: 'add-product', label: '⊕ Добавить' }]
-          : [{ id: 'subscribers', label: '◈ Подписчики' }, { id: 'orders', label: '◷ Заказы' }, { id: 'add', label: '⊕ Добавить' }, { id: 'stats', label: '◉ Статистика' }]
+          : [{ id: 'subscribers', label: '◈ Подписчики' }, { id: 'orders', label: '◷ Заказы' }, { id: 'add', label: '⊕ Добавить' }, { id: 'stats', label: '◉ Статистика' }, { id: 'referrals', label: '⇄ Рефералы' }]
         ).map(({ id, label }) => (
           <button
             key={id}
@@ -1450,6 +1466,103 @@ function AdminPage() {
               });
           })()}
           {!giftOrders && !giftOrdersLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
+        </div>
+      )}
+
+      {/* ─── Referrals Tab ─── */}
+      {tab === 'referrals' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <span style={{ color: AP.text, fontWeight: 600 }}>Реферальная система</span>
+            <button style={styles.btnSmall} onClick={loadReferralData} disabled={referralLoading}>
+              {referralLoading ? '...' : '↺ Обновить'}
+            </button>
+          </div>
+
+          {referralLoading && <p style={styles.muted}>Загрузка...</p>}
+
+          {referralData && (() => {
+            const searchLow = referralSearch.toLowerCase();
+            const filteredTop = referralData.topReferrers.filter(r =>
+              !searchLow ||
+              (r.name || '').toLowerCase().includes(searchLow) ||
+              (r.phone || '').includes(referralSearch) ||
+              String(r.telegram_id).includes(referralSearch)
+            );
+
+            return (
+              <>
+                {/* Поиск */}
+                <input
+                  style={{ ...styles.input, marginBottom: 14, width: '100%', boxSizing: 'border-box' }}
+                  placeholder="Поиск по имени, телефону..."
+                  value={referralSearch}
+                  onChange={e => setReferralSearch(e.target.value)}
+                />
+
+                {/* Топ рефереров */}
+                <div style={{ color: AP.accent, fontWeight: 600, marginBottom: 8, fontSize: 13 }}>
+                  👥 Топ рефереров ({filteredTop.length})
+                </div>
+                {filteredTop.length === 0 && <p style={styles.muted}>Нет данных</p>}
+                {filteredTop.map(r => (
+                  <div key={r.telegram_id} style={{ ...styles.subCard, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <span style={{ color: AP.text, fontWeight: 600 }}>{r.name || '—'}</span>
+                        {r.tariff && (
+                          <span style={{ ...styles.badge, marginLeft: 8 }}>{r.tariff}₽</span>
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'right', fontSize: 12 }}>
+                        <div style={{ color: AP.accent }}>👥 {r.referrals_count} реф.</div>
+                        <div style={{ color: AP.yellow }}>💎 {Math.round(r.shc_earned)} SHC</div>
+                      </div>
+                    </div>
+                    {r.phone && <div style={{ fontSize: 12, color: AP.muted, marginTop: 2 }}>{r.phone}</div>}
+                    <div style={{ fontSize: 11, color: AP.muted }}>ID: {r.telegram_id} · баланс: {Math.round(r.balance_shc || 0)} SHC</div>
+                  </div>
+                ))}
+
+                {/* Последние начисления */}
+                <div style={{ color: AP.accent, fontWeight: 600, margin: '18px 0 8px', fontSize: 13 }}>
+                  💎 Последние начисления SHC ({referralData.recentBonuses.length})
+                </div>
+                {referralData.recentBonuses.filter(b =>
+                  !searchLow ||
+                  (b.user_name || '').toLowerCase().includes(searchLow) ||
+                  (b.referral_name || '').toLowerCase().includes(searchLow) ||
+                  String(b.user_id).includes(referralSearch)
+                ).map(b => {
+                  const isSubscription = b.friends_count === 0;
+                  return (
+                    <div key={b.id} style={{ ...styles.subCard, marginBottom: 6, padding: '8px 12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: 13 }}>
+                          <span style={{ color: isSubscription ? AP.warn : AP.accent }}>
+                            {isSubscription ? '📈' : '🤝'} +{Math.round(b.total_amount)} SHC
+                          </span>
+                          <span style={{ color: AP.muted, marginLeft: 8, fontSize: 11 }}>
+                            {b.achievement || (isSubscription ? '20% от подписки' : `${b.friends_count} друг`)}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 11, color: AP.muted }}>
+                          {(b.created_at || '').slice(0, 10)}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 11, color: AP.muted, marginTop: 3 }}>
+                        <span style={{ color: AP.text }}>{b.user_name || b.user_id}</span>
+                        {' ← '}
+                        <span>{b.referral_name || b.referral_id}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            );
+          })()}
+
+          {!referralData && !referralLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
         </div>
       )}
     </div>

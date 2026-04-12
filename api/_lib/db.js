@@ -723,6 +723,31 @@ function getGiftOrders(limit = 300) {
   `).all(limit);
 }
 
+function getAdminTopReferrers(limit = 20) {
+  return getDb().prepare(`
+    SELECT u.telegram_id, u.name, u.phone, u.tariff, u.balance_shc,
+           (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id) AS referrals_count,
+           COALESCE((SELECT SUM(rb.total_amount) FROM referral_bonuses rb WHERE rb.user_id = u.telegram_id), 0) AS shc_earned
+    FROM users u
+    WHERE (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id) > 0
+    ORDER BY referrals_count DESC
+    LIMIT ?
+  `).all(limit);
+}
+
+function getAdminRecentBonuses(limit = 50) {
+  return getDb().prepare(`
+    SELECT rb.id, rb.user_id, rb.referral_id, rb.total_amount, rb.friends_count, rb.achievement, rb.created_at,
+           u.name AS user_name,
+           ref.name AS referral_name
+    FROM referral_bonuses rb
+    LEFT JOIN users u ON u.telegram_id = rb.user_id
+    LEFT JOIN users ref ON ref.telegram_id = rb.referral_id
+    ORDER BY rb.created_at DESC
+    LIMIT ?
+  `).all(limit);
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -763,4 +788,6 @@ module.exports = {
   getMonthRevenue,
   getGiftOrders,
   updateLastAddress,
+  getAdminTopReferrers,
+  getAdminRecentBonuses,
 };
