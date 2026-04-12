@@ -561,14 +561,19 @@ async function getLastPayment(telegramId) {
 
 async function getAdminSubscribersList() {
   const res = await query(`
-    SELECT telegram_id, name, phone, tariff, is_ambassador,
-           subscription_status, subscription_start, subscription_end,
-           balance_shc, notes, created_at, updated_at
-    FROM users
-    WHERE tariff IS NOT NULL
+    SELECT u.telegram_id, u.name, u.phone, u.tariff, u.is_ambassador,
+           u.subscription_status, u.subscription_start, u.subscription_end,
+           u.balance_shc, u.notes, u.created_at, u.updated_at,
+           u.invited_by,
+           inv.name AS invited_by_name,
+           (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id) AS referrals_count,
+           COALESCE((SELECT SUM(rb.total_amount) FROM referral_bonuses rb WHERE rb.user_id = u.telegram_id), 0) AS shc_earned
+    FROM users u
+    LEFT JOIN users inv ON inv.telegram_id = u.invited_by
+    WHERE u.tariff IS NOT NULL
     ORDER BY
-      CASE tariff WHEN '9990' THEN 1 WHEN '1190' THEN 2 WHEN '490' THEN 3 WHEN '290' THEN 4 ELSE 5 END,
-      updated_at DESC
+      CASE u.tariff WHEN '9990' THEN 1 WHEN '1190' THEN 2 WHEN '490' THEN 3 WHEN '290' THEN 4 ELSE 5 END,
+      u.updated_at DESC
   `);
   return res.rows;
 }
