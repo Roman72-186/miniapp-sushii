@@ -22,7 +22,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { phone: rawPhone, code, password } = req.body || {};
+  const { phone: rawPhone, code, password, name } = req.body || {};
   if (!rawPhone || !code || !password) {
     return res.status(400).json({ error: 'Укажите телефон, код и новый пароль' });
   }
@@ -59,8 +59,11 @@ module.exports = async (req, res) => {
     let user = await getUserByPhone(phone);
     if (!user) {
       const webId = 'web_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
-      await upsertUser({ telegram_id: webId, phone });
+      await upsertUser({ telegram_id: webId, phone, name: name || null });
       user = await getUser(webId);
+    } else if (name) {
+      await upsertUser({ telegram_id: user.telegram_id, name });
+      user = await getUser(user.telegram_id);
     }
     if (!user) {
       return res.status(500).json({ error: 'Не удалось создать пользователя' });

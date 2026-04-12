@@ -38,9 +38,11 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const shcBalance = profile?.balance_shc || 0;
   const [shcApplied, setShcApplied] = useState(0);
   const effectiveTotal = Math.max(0, total - shcApplied);
-  const [deliveryType, setDeliveryType] = useState(() =>
-    items.some(item => item?.product?.gift) ? 'pickup' : 'delivery'
-  );
+  const [deliveryType, setDeliveryType] = useState(() => {
+    const hasGift = items.some(item => item?.product?.gift);
+    const hasNonGift = items.some(item => !item?.product?.gift);
+    return (hasGift && !hasNonGift) ? 'pickup' : 'delivery';
+  });
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [timeType, setTimeType] = useState('asap');
   const [payment, setPayment] = useState('cash');
@@ -64,11 +66,13 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
     if (listItemName && !name) setName(listItemName);
     if (userPhone && !phone) setPhone(normalizePhone(userPhone));
 
-    // Адрес: localStorage (свежее) → profile.last_address (из БД)
+    // Адрес: localStorage (свежее, если там есть улица) → profile.last_address (из БД)
     try {
       const raw = localStorage.getItem(LS_CHECKOUT_KEY);
-      const saved = raw ? JSON.parse(raw) : null;
-      const addr = saved || (profile?.last_address ? JSON.parse(profile.last_address) : null);
+      const localData = raw ? JSON.parse(raw) : null;
+      const profileAddr = profile?.last_address ? JSON.parse(profile.last_address) : null;
+      // localStorage имеет приоритет только если там сохранён адрес доставки (есть street)
+      const addr = (localData?.street ? localData : null) || profileAddr;
       if (addr) {
         if (addr.street) setStreet(addr.street);
         if (addr.home)   setHome(addr.home);
@@ -76,7 +80,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         if (addr.pod)    setPod(addr.pod);
         if (addr.et)     setEt(addr.et);
       }
-      const lastPickup = saved?.pickupPoint || profile?.last_pickup_point || null;
+      const lastPickup = localData?.pickupPoint || profile?.last_pickup_point || null;
       if (lastPickup) setPickupPoint(lastPickup);
     } catch {}
   }, [listItemName, userPhone, profile]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -90,12 +94,17 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
     () => items.some(item => item?.product?.gift),
     [items]
   );
+  const hasNonGiftItems = useMemo(
+    () => items.some(item => !item?.product?.gift),
+    [items]
+  );
+  const hasOnlyGiftItems = hasGiftItems && !hasNonGiftItems;
 
   useEffect(() => {
-    if (hasGiftItems && deliveryType !== 'pickup') {
+    if (hasOnlyGiftItems && deliveryType !== 'pickup') {
       setDeliveryType('pickup');
     }
-  }, [deliveryType, hasGiftItems]);
+  }, [deliveryType, hasOnlyGiftItems]);
 
   // Определение ближайшей точки при вводе адреса доставки
   const nearestTimerRef = useRef(null);
@@ -272,9 +281,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         <div className="shop-form-section">
           <h3 className="shop-form-section__title">Способ получения заказа</h3>
           <div className="shop-form-section__block">
-            {hasGiftItems && (
+            {hasOnlyGiftItems && (
               <div className="shop-radio-hint" style={{ marginBottom: 12 }}>
                 Подарки по подписке доступны только на самовывоз.
+              </div>
+            )}
+            {hasGiftItems && hasNonGiftItems && (
+              <div className="shop-radio-hint" style={{ marginBottom: 12 }}>
+                Подарок по подписке будет включён в ваш заказ.
               </div>
             )}
             <div className="shop-radio-group">
@@ -283,7 +297,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
                   type="radio"
                   name="delivery"
                   checked={deliveryType === 'delivery'}
-                  disabled={hasGiftItems}
+                  disabled={hasOnlyGiftItems}
                   onChange={() => setDeliveryType('delivery')}
                 />
                 Доставка

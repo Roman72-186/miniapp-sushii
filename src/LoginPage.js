@@ -30,6 +30,9 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [name, setName] = useState('');
+  const [isNewUser, setIsNewUser] = useState(false);
+
   const [pdnConsent, setPdnConsent] = useState(false);
 
   // OTP resend countdown
@@ -76,6 +79,7 @@ function LoginPage() {
         setStep('email');
       } else if (data.isExistingUser === false) {
         setEmail('');
+        setIsNewUser(true);
         setStep('email');
       } else {
         localStorage.setItem(WEB_TOKEN_KEY, data.token);
@@ -176,6 +180,7 @@ function LoginPage() {
   const handleForgotPassword = () => {
     setError('');
     setEmail('');
+    setIsNewUser(false);
     setStep('email');
   };
 
@@ -183,6 +188,7 @@ function LoginPage() {
   const handleSetPassword = async (e) => {
     e.preventDefault();
     setError('');
+    if (isNewUser && !name.trim()) { setError('Укажите имя'); return; }
     if (password.length < 6) { setError('Пароль должен быть не менее 6 символов'); return; }
     if (password !== passwordConfirm) { setError('Пароли не совпадают'); return; }
     setLoading(true);
@@ -190,7 +196,12 @@ function LoginPage() {
       const resp = await fetch('/api/auth/set-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: normalizePhone(phone), code, password }),
+        body: JSON.stringify({
+          phone: normalizePhone(phone),
+          code,
+          password,
+          name: isNewUser ? name.trim() : undefined,
+        }),
       });
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Ошибка сохранения пароля'); return; }
@@ -437,6 +448,20 @@ function LoginPage() {
               <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14 }}>
                 Создайте пароль для быстрого входа в следующий раз
               </div>
+              {isNewUser && (
+                <div className="shop-form-field">
+                  <label className="shop-form-field__label">Ваше имя</label>
+                  <input
+                    className="shop-form-field__input"
+                    type="text"
+                    placeholder="Как вас зовут?"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    autoFocus
+                    disabled={loading}
+                  />
+                </div>
+              )}
               <div className="shop-form-field">
                 <label className="shop-form-field__label">Новый пароль</label>
                 <input
@@ -445,7 +470,7 @@ function LoginPage() {
                   placeholder="Минимум 6 символов"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  autoFocus
+                  autoFocus={!isNewUser}
                   disabled={loading}
                 />
               </div>
@@ -466,7 +491,7 @@ function LoginPage() {
               type="submit"
               className="shop-payment__btn"
               style={{ marginTop: 16 }}
-              disabled={loading || password.length < 6 || !passwordConfirm}
+              disabled={loading || (isNewUser && !name.trim()) || password.length < 6 || !passwordConfirm}
             >
               {loading ? 'Сохраняем...' : 'Сохранить и войти'}
             </button>
