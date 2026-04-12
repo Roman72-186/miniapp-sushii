@@ -540,27 +540,36 @@ function ProfilePage() {
                 >
                   Как работает система SHC?
                 </button>
-                {profile?.balance_shc > 0 && (
-                  <div className="shop-profile__shc-balance">
-                    {profile.balance_shc >= 3000
-                      ? `${profile.balance_shc} SHC = ${profile.balance_shc}₽ скидки на следующий заказ`
-                      : `${profile.balance_shc} / 3000 SHC — ещё ${3000 - profile.balance_shc}`}
-                  </div>
-                )}
-                <div className="amb-panel__counters" style={{ marginTop: 10 }}>
-                  <div className="amb-panel__counter">
-                    <span className="amb-panel__counter-value">
-                      {shcData ? shcData.friends_count : (referrals === null ? '...' : referrals?.referrals_count ?? 0)}
-                    </span>
-                    <span className="amb-panel__counter-label">Друзей</span>
-                  </div>
-                  <div className="amb-panel__counter">
-                    <span className="amb-panel__counter-value" style={{ color: '#3CC8A1' }}>
-                      {shcData ? shcData.total : (profile?.balance_shc || 0)}
-                    </span>
-                    <span className="amb-panel__counter-label">SHC</span>
-                  </div>
-                </div>
+                {(() => {
+                  const friendsCount = shcData ? shcData.friends_count : (referrals?.referrals_count ?? 0);
+                  const shcTotal = shcData ? shcData.total : (profile?.balance_shc || 0);
+                  if (friendsCount === 0 && referrals !== null) return null;
+                  return (
+                    <>
+                      {shcTotal > 0 && (
+                        <div className="shop-profile__shc-balance">
+                          {shcTotal >= 3000
+                            ? `${shcTotal} SHC = ${shcTotal}₽ скидки на следующий заказ`
+                            : `${shcTotal} / 3000 SHC — ещё ${3000 - shcTotal}`}
+                        </div>
+                      )}
+                      <div className="amb-panel__counters" style={{ marginTop: 10 }}>
+                        <div className="amb-panel__counter">
+                          <span className="amb-panel__counter-value">
+                            {referrals === null ? '...' : friendsCount}
+                          </span>
+                          <span className="amb-panel__counter-label">Друзей</span>
+                        </div>
+                        <div className="amb-panel__counter">
+                          <span className="amb-panel__counter-value" style={{ color: '#3CC8A1' }}>
+                            {shcTotal}
+                          </span>
+                          <span className="amb-panel__counter-label">SHC</span>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
                 {refLink && (
                   <div className="shop-profile__section">
                     <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
@@ -588,7 +597,7 @@ function ProfilePage() {
                             <span className="amb-panel__txn-amount">+{b.total_amount} SHC</span>
                           </div>
                           <div className="amb-panel__txn-details">
-                            <span>{b.base_amount} базовых{b.threshold_bonus > 0 ? ` + ${b.threshold_bonus} бонус` : ''}</span>
+                            <span>{b.achievement || `${b.base_amount} SHC`}</span>
                             <span className="amb-panel__txn-date">
                               {new Date(b.date).toLocaleDateString('ru-RU')}
                             </span>
