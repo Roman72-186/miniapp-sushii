@@ -12,8 +12,10 @@ function ProfilePage() {
   }, []);
 
   const { telegramId, loading: userLoading, profile, contactId, hasTag, tarif } = useUser();
+
+  // === State ===
   const [referrals, setReferrals] = useState(null);
-  const [showTariffModal, setShowTariffModal] = useState(false);
+  const [tariffAction, setTariffAction] = useState(null); // 'extend' | 'upgrade' | 'downgrade'
   const [giftWindows, setGiftWindows] = useState(null);
   const [showAllReferrals, setShowAllReferrals] = useState(false);
   const [vipLoading, setVipLoading] = useState(false);
@@ -22,13 +24,34 @@ function ProfilePage() {
   const [showAllTxns, setShowAllTxns] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [orderHistory, setOrderHistory] = useState(null);
+  const [expandedSections, setExpandedSections] = useState(new Set());
   const [priceTable, setPriceTable] = useState({
     '290':  { 1: 290,  3: 750,  5: 1200 },
     '490':  { 1: 690,  3: 1690, 5: 2990 },
     '1190': { 1: 1390, 3: 3850, 5: 6600 },
   });
+  const [shcData, setShcData] = useState(null);
+  const [bonuses, setBonuses] = useState(null);
+  const [showAllBonuses, setShowAllBonuses] = useState(false);
+  const [showShcInfo, setShowShcInfo] = useState(false);
 
-  // Загружаем актуальные цены из API
+  // === Constants ===
+  const TARIFF_INFO = {
+    '290':  { label: '290 ₽/мес',  desc: 'Скидка 30% на все роллы и запечённые, 20% на сеты.' },
+    '490':  { label: '690 ₽/мес',  desc: 'Все скидки + 2 ролла в подарок каждые 15 дней.' },
+    '1190': { label: '1390 ₽/мес', desc: 'Все скидки + роллы + 1 сет каждые 30 дней + кофе. Лучший вариант.' },
+    '9990': { label: '9990 ₽',     desc: 'Амбассадор — разовый платёж.' },
+  };
+
+  const toggleSection = (key) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
+  // === Effects ===
   useEffect(() => {
     fetch('/api/admin/pricing')
       .then(r => r.json())
@@ -44,84 +67,22 @@ function ProfilePage() {
       .catch(() => {});
   }, []);
 
-  // Загружаем рефералов (по telegram_id, fallback на contact_id)
   useEffect(() => {
     if (!telegramId && !contactId) {
       if (!userLoading) setReferrals({ referrals_count: 0, ambassadors_count: 0, referrals: [] });
       return;
     }
-    const body = telegramId
-      ? { telegram_id: telegramId }
-      : { contact_id: contactId };
+    const body = telegramId ? { telegram_id: telegramId } : { contact_id: contactId };
     fetch('/api/get-referrals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
       .then(r => r.ok ? r.json() : null)
-      .then(refData => {
-        setReferrals(refData || { referrals_count: 0, ambassadors_count: 0, referrals: [] });
-      })
+      .then(refData => setReferrals(refData || { referrals_count: 0, ambassadors_count: 0, referrals: [] }))
       .catch(() => setReferrals({ referrals_count: 0, ambassadors_count: 0, referrals: [] }));
   }, [telegramId, contactId, userLoading]);
 
-  const [shcData, setShcData] = useState(null);
-  const [bonuses, setBonuses] = useState(null);
-  const [showAllBonuses, setShowAllBonuses] = useState(false);
-  const [showShcInfo, setShowShcInfo] = useState(false);
-
-  const TARIFF_INFO = {
-    '290':  {
-      label: '290 ₽/мес',
-      desc: 'Скидка 30% на все роллы и запечённые, 20% на сеты. Доступ к скидочному меню в приложении.',
-    },
-    '490':  {
-      label: '690 ₽/мес',
-      desc: 'Все скидки тарифа 290₽, плюс 2 ролла в подарок каждые 15 дней — выбираешь из всего меню.',
-    },
-    '1190': {
-      label: '1390 ₽/мес',
-      desc: 'Все скидки и подарочные роллы, плюс 1 сет в подарок каждые 30 дней и кофе. Лучший вариант.',
-    },
-    '9990': {
-      label: '9990 ₽',
-      desc: 'Амбассадор — разовый платёж. Комиссия 30% с платежей приглашённых подписчиков.',
-    },
-  };
-
-  // Загружаем подарочные окна сразу при загрузке профиля
-  useEffect(() => {
-    if (!telegramId) return;
-    fetch(`/api/get-gift-windows?telegram_id=${telegramId}`)
-      .then(r => r.json())
-      .then(data => { if (data.success) setGiftWindows(data.data); })
-      .catch(() => {});
-  }, [telegramId]);
-
-  // Есть ли незабранный сет
-  const hasUnclaimedSet = giftWindows?.windows?.some(
-    w => w.status === 'available' && w.grantType === 'set'
-  ) || false;
-
-  // Дней до конца текущей подписки
-  const daysLeft = (() => {
-    if (!profile?.датаОКОНЧАНИЯ) return null;
-    const parts = profile.датаОКОНЧАНИЯ.split('.');
-    if (parts.length !== 3) return null;
-    const end = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
-    const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? diff : 0;
-  })();
-
-  const handleTariffNavigate = (price, months) => {
-    const params = new URLSearchParams();
-    if (telegramId) params.set('telegram_id', telegramId);
-    if (months && months > 1) params.set('months', months);
-    const qs = params.toString() ? `?${params.toString()}` : '';
-    window.location.href = `/pay/${price}${qs}`;
-  };
-
-  // Загружаем транзакции и SHC бонусы для всех пользователей
   useEffect(() => {
     if (!telegramId) return;
     fetch('/api/get-transactions', {
@@ -142,18 +103,63 @@ function ProfilePage() {
   }, [telegramId]);
 
   useEffect(() => {
-    if (!telegramId) {
-      setOrderHistory([]);
-      return;
-    }
+    if (!telegramId) return;
+    fetch(`/api/get-gift-windows?telegram_id=${telegramId}`)
+      .then(r => r.json())
+      .then(data => { if (data.success) setGiftWindows(data.data); })
+      .catch(() => {});
+  }, [telegramId]);
+
+  useEffect(() => {
+    if (!telegramId) { setOrderHistory([]); return; }
     fetch(`/api/get-order-history?telegram_id=${telegramId}`)
       .then(r => r.ok ? r.json() : null)
-      .then(data => { setOrderHistory(data?.success ? data.orders : []); })
+      .then(data => setOrderHistory(data?.success ? data.orders : []))
       .catch(() => setOrderHistory([]));
   }, [telegramId]);
 
+  // === Computed ===
+  const hasUnclaimedSet = giftWindows?.windows?.some(
+    w => w.status === 'available' && w.grantType === 'set'
+  ) || false;
+
+  const daysLeft = (() => {
+    if (!profile?.датаОКОНЧАНИЯ) return null;
+    const parts = profile.датаОКОНЧАНИЯ.split('.');
+    if (parts.length !== 3) return null;
+    const end = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+    const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  })();
+
+  const subProgress = (() => {
+    if (!profile?.датаНАЧАЛА || !profile?.датаОКОНЧАНИЯ) return null;
+    const parse = (s) => { const [d, m, y] = s.split('.'); return new Date(`${y}-${m}-${d}T00:00:00`); };
+    const start = parse(profile.датаНАЧАЛА);
+    const end = parse(profile.датаОКОНЧАНИЯ);
+    const total = end - start;
+    if (total <= 0) return 100;
+    return Math.min(100, Math.max(0, ((new Date() - start) / total) * 100));
+  })();
+
+  const isActive = profile?.статусСписания === 'активно';
+  const isAmb = hasTag('амба');
   const refLink = telegramId ? `https://sushi-house-39.ru/?invited_by=${telegramId}` : null;
 
+  const giftInfo = (() => {
+    if (!giftWindows || (tarif !== '490' && tarif !== '1190')) return null;
+    const { currentStatus, daysLeft: giftDays } = giftWindows;
+    const type = tarif === '490' ? 'ролл' : 'сет';
+    if (currentStatus === 'available') return { available: true, type };
+    if ((currentStatus === 'claimed' || currentStatus === 'waiting') && giftDays > 0) return { available: false, type, daysLeft: giftDays };
+    return null;
+  })();
+
+  const friendsCount = shcData ? shcData.friends_count : (referrals?.referrals_count ?? null);
+  const shcTotal = shcData ? shcData.total : (profile?.balance_shc || 0);
+  const hasFriends = friendsCount !== null && friendsCount > 0;
+
+  // === Handlers ===
   const handleCopyLink = () => {
     if (!refLink) return;
     navigator.clipboard?.writeText(refLink);
@@ -174,33 +180,40 @@ function ProfilePage() {
   };
 
   const handleBack = () => {
-    if (telegramId) {
-      window.location.href = `/discount-shop?telegram_id=${telegramId}`;
-    } else {
-      window.location.href = '/discount-shop';
-    }
+    window.location.href = telegramId ? `/discount-shop?telegram_id=${telegramId}` : '/discount-shop';
+  };
+
+  const handleTariffNavigate = (price, months) => {
+    const params = new URLSearchParams();
+    if (telegramId) params.set('telegram_id', telegramId);
+    if (months && months > 1) params.set('months', months);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    window.location.href = `/pay/${price}${qs}`;
   };
 
   const formatPhone = (raw) => {
     if (!raw) return '—';
     const digits = raw.replace(/\D/g, '');
-    if (digits.length === 11) {
-      return `+${digits[0]} (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9)}`;
-    }
-    if (digits.length === 10) {
-      return `+7 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
-    }
+    if (digits.length === 11) return `+${digits[0]} (${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7,9)}-${digits.slice(9)}`;
+    if (digits.length === 10) return `+7 (${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6,8)}-${digits.slice(8)}`;
     return `+${digits}`;
   };
 
+  const pluralDays = (n) => {
+    const mod10 = n % 10, mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 19) return 'дней';
+    if (mod10 === 1) return 'день';
+    if (mod10 >= 2 && mod10 <= 4) return 'дня';
+    return 'дней';
+  };
+
+  const tariffBadgeLabel = { '290': '290 ₽', '490': '690 ₽', '1190': '1390 ₽', '9990': 'АМБА' };
   const error = !userLoading && !telegramId ? 'Telegram ID не найден' : null;
 
   return (
     <div className="shop-page">
       <header className="shop-header">
-        <button className="shop-header__back" onClick={handleBack}>
-          ←
-        </button>
+        <button className="shop-header__back" onClick={handleBack}>←</button>
         <div className="shop-header__center">
           <span className="shop-header__title">Личный кабинет</span>
         </div>
@@ -214,684 +227,483 @@ function ProfilePage() {
           <span className="shop-loading__text" style={{ color: '#e53935' }}>{error}</span>
         </div>
       ) : (
-        <div className="shop-profile">
-          <div className="shop-profile__header">🍣 КАБИНЕТ СУШИ-ХАУС 39</div>
+        <div className="pf-page">
 
-          {/* Карточка 1: Профиль */}
-          <div className="shop-profile__card">
-            <div className="shop-profile__row">
-              <span className="shop-profile__label">👤 Имя:</span>
-              <span className="shop-profile__value" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                {profile?.name || '—'}
+          {/* ── БЛОК 1: HERO ─────────────────────── */}
+          <div className="pf-hero">
+            <div className="pf-hero__identity">
+              <div className="pf-hero__name-row">
+                <span className="pf-hero__name">{profile?.name || '—'}</span>
                 {tarif && (
-                  <span className={`profile-tariff-badge${tarif === '9990' ? ' profile-tariff-badge--gold' : ''}`}>
-                    {tarif === '9990' ? 'АМБА' : `${{ '290': '290', '490': '690', '1190': '1390' }[tarif] || tarif} ₽`}
+                  <span className={`pf-tariff-badge${tarif === '9990' ? ' pf-tariff-badge--gold' : ''}`}>
+                    {tariffBadgeLabel[tarif] || tarif}
                   </span>
                 )}
-              </span>
-            </div>
-            <div className="shop-profile__row">
-              <span className="shop-profile__label">📱 Контакт:</span>
-              <span className="shop-profile__value">{formatPhone(profile?.phone)}</span>
-            </div>
-          </div>
-
-          {/* Карточка 2: Подписка */}
-          <div className="shop-profile__card">
-            <div className="shop-profile__card-title">Подписка</div>
-            <div className="shop-profile__row">
-              <span className="shop-profile__label">📋 Статус:</span>
-              <span className="shop-profile__value" style={{ color: profile?.статусСписания === 'активно' ? '#3CC8A1' : '#999' }}>
-                {profile?.статусСписания || 'неактивно'}
-              </span>
-            </div>
-            <div className="shop-profile__row">
-              <span className="shop-profile__label">🔒 Действует до:</span>
-              <span className="shop-profile__value">{profile?.датаОКОНЧАНИЯ || '—'}</span>
-            </div>
-            {(tarif === '490' || tarif === '1190') && giftWindows && (() => {
-              const { currentStatus, daysLeft } = giftWindows;
-              const type = tarif === '490' ? 'ролл' : 'сет';
-              if (currentStatus === 'available') {
-                return (
-                  <div className="shop-profile__row">
-                    <span className="shop-profile__label">🎁 Подарок:</span>
-                    <span className="shop-profile__value" style={{ color: '#3CC8A1' }}>{type} доступен сейчас!</span>
-                  </div>
-                );
-              }
-              if ((currentStatus === 'claimed' || currentStatus === 'waiting') && daysLeft > 0) {
-                return (
-                  <div className="shop-profile__row">
-                    <span className="shop-profile__label">🎁 Подарок:</span>
-                    <span className="shop-profile__value" style={{ color: '#aaa' }}>через {daysLeft} дн.</span>
-                  </div>
-                );
-              }
-              return null;
-            })()}
-            {tarif && tarif !== '9990' && (
-              <button
-                onClick={() => setShowTariffModal(true)}
-                style={{
-                  marginTop: 10,
-                  width: '100%',
-                  padding: '11px 16px',
-                  background: 'rgba(60,200,161,0.08)',
-                  border: '1px solid rgba(60,200,161,0.4)',
-                  borderRadius: 12,
-                  color: '#3CC8A1',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  boxShadow: '0 3px 14px rgba(60,200,161,0.22)',
-                  transition: 'all 0.2s',
-                }}
-              >
-                Изменить тариф / продлить →
-              </button>
-            )}
-          </div>
-
-          {/* Карточка 3: Автопродление */}
-          <div className="shop-profile__card">
-            <div className="shop-profile__row">
-              <span className="shop-profile__label">♻️ Автопродление:</span>
-              <span className="shop-profile__value" style={{ color: profile?.payment_method_id ? '#3CC8A1' : '#999' }}>
-                {profile?.payment_method_id ? 'активно' : 'отключено'}
-              </span>
-            </div>
-            <div className="shop-profile__row">
-              <span className="shop-profile__label">💳 Способ оплаты:</span>
-              <span className="shop-profile__value">ЮKassa</span>
-            </div>
-          </div>
-
-          {/* Карточка 4: История заказов */}
-          <div className="shop-profile__card">
-            <div className="shop-profile__card-title">История заказов</div>
-            {orderHistory === null ? (
-              <div style={{ color: '#888', fontSize: 13 }}>Загрузка...</div>
-            ) : orderHistory.length === 0 ? (
-              <div style={{ color: '#888', fontSize: 13 }}>Заказов пока не было</div>
-            ) : (
-              <ul className="profile-gift-list">
-                {orderHistory.map((o, i) => {
-                  let products = [];
-                  try { products = JSON.parse(o.products_json || '[]'); } catch {}
-                  const productNames = products.map(p => p.name).filter(Boolean).join(', ') || '—';
-                  const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '—';
-                  const typeLabel = o.order_type === 'gift' ? '🎁 Подарок' : '🏷 Со скидкой';
-                  const deliveryLabel = o.delivery_type === 'delivery' ? '🚗 Доставка' : '🏪 Самовывоз';
-                  return (
-                    <li key={i} className="profile-gift-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 3 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                        <span className="profile-gift-type" style={{ fontSize: 13 }}>{productNames}</span>
-                        <span className="profile-gift-date">{date}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 11, color: o.order_type === 'gift' ? '#3CC8A1' : '#888' }}>{typeLabel}</span>
-                        <span style={{ fontSize: 11, color: '#888' }}>{deliveryLabel}</span>
-                        {o.total_price > 0 && <span style={{ fontSize: 11, color: '#888' }}>{o.total_price}₽</span>}
-                      </div>
-                      {o.address && <span className="profile-gift-address" style={{ fontSize: 11 }}>{o.address}</span>}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            <div className="shop-profile__section">
-              <div className="shop-profile__row">
-                <span className="shop-profile__label">⏰ Принимаем заказы:</span>
-                <span className="shop-profile__value">с 10:00 до 21:50</span>
               </div>
+              {profile?.phone && (
+                <div className="pf-hero__phone">{formatPhone(profile.phone)}</div>
+              )}
             </div>
-          </div>
 
-          {/* Карточка 5: Реферальная программа */}
-          <div className="shop-profile__card">
-            {hasTag('амба') ? (
-              <>
-                <div className="shop-profile__ambassador-badge">АМБАССАДОР</div>
-
-                <div className="shop-profile__section">
-                  <div className="amb-panel__counters">
-                    <div className="amb-panel__counter">
-                      <span className="amb-panel__counter-value">
-                        {referrals === null ? '...' : referrals.referrals_count}
-                      </span>
-                      <span className="amb-panel__counter-label">Рефералов</span>
-                    </div>
-                    <div className="amb-panel__counter">
-                      <span className="amb-panel__counter-value amb-panel__counter-value--gold">
-                        {referrals === null ? '...' : referrals.ambassadors_count}
-                      </span>
-                      <span className="amb-panel__counter-label">Амбассадоров</span>
-                    </div>
+            {/* Амбассадор */}
+            {isAmb && (
+              <div className="pf-amb">
+                <div className="pf-amb__badge">АМБАССАДОР</div>
+                <div className="pf-counters">
+                  <div className="pf-counter">
+                    <span className="pf-counter__value">{referrals === null ? '…' : referrals.referrals_count}</span>
+                    <span className="pf-counter__label">Рефералов</span>
+                  </div>
+                  <div className="pf-counter">
+                    <span className="pf-counter__value pf-counter__value--gold">{referrals === null ? '…' : referrals.ambassadors_count}</span>
+                    <span className="pf-counter__label">Амбассадоров</span>
+                  </div>
+                  <div className="pf-counter">
+                    <span className="pf-counter__value pf-counter__value--green">{earnings ? `${earnings.total}₽` : '…'}</span>
+                    <span className="pf-counter__label">Заработок</span>
                   </div>
                 </div>
-
-                <div className="shop-profile__section">
-                  {(() => {
-                    const ambCount = referrals?.ambassadors_count || 0;
-                    const progress = Math.min(ambCount / 10, 1);
-                    const isUnlocked = ambCount >= 10;
-                    return (
-                      <div className="amb-panel__progress">
-                        <div className="amb-panel__progress-header">
-                          <span className="amb-panel__progress-title">Уровень 2</span>
-                          <span className={`amb-panel__progress-status${isUnlocked ? ' amb-panel__progress-status--open' : ''}`}>
-                            {isUnlocked ? 'Открыт' : `${ambCount} / 10 амбассадоров`}
-                          </span>
-                        </div>
-                        <div className="amb-panel__progress-bar">
-                          <div
-                            className={`amb-panel__progress-fill${isUnlocked ? ' amb-panel__progress-fill--full' : ''}`}
-                            style={{ width: `${progress * 100}%` }}
-                          />
-                        </div>
-                        {!isUnlocked && (
-                          <div className="amb-panel__progress-hint">
-                            Пригласите ещё {10 - ambCount} {(() => {
-                              const n = 10 - ambCount;
-                              const mod10 = n % 10;
-                              const mod100 = n % 100;
-                              if (mod100 >= 11 && mod100 <= 19) return 'амбассадоров';
-                              if (mod10 === 1) return 'амбассадора';
-                              if (mod10 >= 2 && mod10 <= 4) return 'амбассадора';
-                              return 'амбассадоров';
-                            })()} для открытия 5% с их рефералов
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                <div className="shop-profile__section">
-                  <div className="amb-panel__referrals-title">Приглашённые</div>
-                  {referrals === null ? (
-                    <div className="amb-panel__referrals-loading">Загрузка...</div>
-                  ) : referrals.referrals.length === 0 ? (
-                    <div className="amb-panel__referrals-empty">У вас пока нет рефералов</div>
-                  ) : (
-                    <>
-                      <div className="amb-panel__referrals-list">
-                        {(showAllReferrals ? referrals.referrals : referrals.referrals.slice(0, 5)).map((r, i) => (
-                          <div key={i} className="amb-panel__referral-item">
-                            <span className="amb-panel__referral-name">{r.name}</span>
-                            {r.is_ambassador && (
-                              <span className="amb-panel__referral-badge">AMB</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      {referrals.referrals.length > 5 && (
-                        <button
-                          className="amb-panel__show-all"
-                          onClick={() => setShowAllReferrals(v => !v)}
-                        >
-                          {showAllReferrals ? 'Свернуть' : `Показать всех (${referrals.referrals_count})`}
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
-
-                {refLink && (
-                  <div className="shop-profile__section">
-                    <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
-                    <div className="shop-profile__partner-code" style={{ fontSize: 12, wordBreak: 'break-all' }}>
-                      sushi-house-39.ru/?invited_by={telegramId}
-                    </div>
-                    <div className="shop-profile__partner-code-actions">
-                      <button className="shop-profile__invite-btn" onClick={handleCopyLink}>
-                        {copiedLink ? 'Скопировано!' : 'Скопировать'}
-                      </button>
-                      <button className="shop-profile__invite-btn" onClick={handleShareLink}>
-                        Поделиться
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="shop-profile__section">
-                  <div className="amb-panel__earnings">
-                    <div className="amb-panel__earnings-title">Заработок</div>
-                    <div className="amb-panel__counters">
-                      <div className="amb-panel__counter">
-                        <span className="amb-panel__counter-value">
-                          {earnings ? `${earnings.total}₽` : '...'}
-                        </span>
-                        <span className="amb-panel__counter-label">Всего</span>
-                      </div>
-                      <div className="amb-panel__counter">
-                        <span className="amb-panel__counter-value">
-                          {earnings ? `${earnings.level1}₽` : '...'}
-                        </span>
-                        <span className="amb-panel__counter-label">Уровень 1</span>
-                      </div>
-                      {earnings && earnings.level2 > 0 && (
-                        <div className="amb-panel__counter">
-                          <span className="amb-panel__counter-value amb-panel__counter-value--gold">
-                            {earnings.level2}₽
-                          </span>
-                          <span className="amb-panel__counter-label">Уровень 2</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {transactions && transactions.length > 0 && (
-                  <div className="shop-profile__section">
-                    <div className="amb-panel__referrals-title">История начислений</div>
-                    <div className="amb-panel__referrals-list">
-                      {(showAllTxns ? transactions : transactions.slice(0, 5)).map((t, i) => (
-                        <div key={i} className="amb-panel__referral-item">
-                          <div className="amb-panel__txn-row">
-                            <span className="amb-panel__referral-name">{t.referral_name}</span>
-                            <span className="amb-panel__txn-amount">+{t.commission_amount}₽</span>
-                          </div>
-                          <div className="amb-panel__txn-details">
-                            <span>{t.commission_percent}% от {t.payment_amount}₽</span>
-                            {t.level === 2 && <span className="amb-panel__referral-badge">LVL2</span>}
-                            <span className="amb-panel__txn-date">
-                              {new Date(t.date).toLocaleDateString('ru-RU')}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {transactions.length > 5 && (
-                      <button
-                        className="amb-panel__show-all"
-                        onClick={() => setShowAllTxns(v => !v)}
-                      >
-                        {showAllTxns ? 'Свернуть' : `Все начисления (${transactions.length})`}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <div className="shop-profile__section">
-                  <div className="shop-profile__row">
-                    <span className="shop-profile__label">Баланс к выплате:</span>
-                    <span className="shop-profile__value" style={{ color: '#3CC8A1', fontWeight: 700 }}>
-                      {earnings ? `${earnings.total}₽` : (profile?.balance_shc ? `${profile.balance_shc} SHC` : '0₽')}
-                    </span>
-                  </div>
-                  <div className="shop-profile__hint">
-                    Для вывода средств свяжитесь с администратором
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="shop-profile__card-title">Реферальная программа</div>
-                <div className="shop-profile__referral-desc">
-                  Приглашай друзей — получай <strong>20%</strong> от их подписки в SHC баллах. <strong>100%</strong> заказа оплачивается баллами: накопил 3000 баллов — получил роллов на <strong>3000 ₽</strong>
-                </div>
-                <button
-                  className="shop-profile__invite-btn"
-                  onClick={() => setShowShcInfo(true)}
-                  style={{ marginTop: 8, width: '100%' }}
-                >
-                  Как работает система SHC?
-                </button>
                 {(() => {
-                  const friendsCount = shcData ? shcData.friends_count : (referrals?.referrals_count ?? 0);
-                  const shcTotal = shcData ? shcData.total : (profile?.balance_shc || 0);
-                  if (friendsCount === 0 && referrals !== null) return null;
+                  const ambCount = referrals?.ambassadors_count || 0;
+                  const isUnlocked = ambCount >= 10;
                   return (
-                    <>
-                      {shcTotal > 0 && (
-                        <div className="shop-profile__shc-balance">
-                          {shcTotal >= 3000
-                            ? `${shcTotal} SHC = ${shcTotal}₽ скидки на следующий заказ`
-                            : `${shcTotal} / 3000 SHC — ещё ${3000 - shcTotal}`}
-                        </div>
-                      )}
-                      <div className="amb-panel__counters" style={{ marginTop: 10 }}>
-                        <div className="amb-panel__counter">
-                          <span className="amb-panel__counter-value">
-                            {referrals === null ? '...' : friendsCount}
-                          </span>
-                          <span className="amb-panel__counter-label">Друзей</span>
-                        </div>
-                        <div className="amb-panel__counter">
-                          <span className="amb-panel__counter-value" style={{ color: '#3CC8A1' }}>
-                            {shcTotal}
-                          </span>
-                          <span className="amb-panel__counter-label">SHC</span>
-                        </div>
+                    <div className="pf-level2">
+                      <div className="pf-level2__header">
+                        <span>Уровень 2</span>
+                        <span className={`pf-level2__status${isUnlocked ? ' pf-level2__status--open' : ''}`}>
+                          {isUnlocked ? 'Открыт ✓' : `${ambCount} / 10 амб.`}
+                        </span>
                       </div>
-                    </>
+                      <div className="pf-progress-bar">
+                        <div className="pf-progress-bar__fill pf-progress-bar__fill--gold" style={{ width: `${Math.min(ambCount / 10, 1) * 100}%` }} />
+                      </div>
+                      {!isUnlocked && (
+                        <div className="pf-level2__hint">Ещё {10 - ambCount} амбассадоров до +5% с их рефералов</div>
+                      )}
+                    </div>
                   );
                 })()}
                 {refLink && (
-                  <div className="shop-profile__section">
-                    <div className="shop-profile__partner-code-label">Ваша реферальная ссылка</div>
-                    <div className="shop-profile__partner-code" style={{ fontSize: 12, wordBreak: 'break-all' }}>
-                      sushi-house-39.ru/?invited_by={telegramId}
-                    </div>
-                    <div className="shop-profile__partner-code-actions">
-                      <button className="shop-profile__invite-btn" onClick={handleCopyLink}>
-                        {copiedLink ? 'Скопировано!' : 'Скопировать'}
-                      </button>
-                      <button className="shop-profile__invite-btn" onClick={handleShareLink}>
-                        Поделиться
-                      </button>
+                  <div className="pf-reflink">
+                    <div className="pf-reflink__label">Ваша реферальная ссылка</div>
+                    <div className="pf-reflink__url">sushi-house-39.ru/?invited_by={telegramId}</div>
+                    <div className="pf-reflink__btns">
+                      <button className="pf-reflink__btn" onClick={handleCopyLink}>{copiedLink ? '✓ Скопировано' : 'Скопировать'}</button>
+                      <button className="pf-reflink__btn" onClick={handleShareLink}>Поделиться</button>
                     </div>
                   </div>
                 )}
-                {bonuses && bonuses.length > 0 && (
-                  <div className="shop-profile__section">
-                    <div className="amb-panel__referrals-title">Начисления SHC</div>
-                    <div className="amb-panel__referrals-list">
-                      {(showAllBonuses ? bonuses : bonuses.slice(0, 5)).map((b, i) => (
-                        <div key={i} className="amb-panel__referral-item">
-                          <div className="amb-panel__txn-row">
-                            <span className="amb-panel__referral-name">{b.referral_name}</span>
-                            <span className="amb-panel__txn-amount">+{b.total_amount} SHC</span>
-                          </div>
-                          <div className="amb-panel__txn-details">
-                            <span>{b.achievement || `${b.base_amount} SHC`}</span>
-                            <span className="amb-panel__txn-date">
-                              {new Date(b.date).toLocaleDateString('ru-RU')}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+              </div>
+            )}
+
+            {/* Обычный пользователь с подпиской */}
+            {!isAmb && tarif && tarif !== '9990' && (
+              <div className="pf-hero__sub">
+                {profile?.датаОКОНЧАНИЯ && (
+                  <>
+                    <div className="pf-hero__sub-until">
+                      {isActive ? `Подписка до ${profile.датаОКОНЧАНИЯ}` : `Истекла ${profile.датаОКОНЧАНИЯ}`}
                     </div>
+                    {subProgress !== null && (
+                      <div className="pf-progress-bar pf-progress-bar--sub">
+                        <div className={`pf-progress-bar__fill${isActive ? '' : ' pf-progress-bar__fill--expired'}`} style={{ width: `${subProgress}%` }} />
+                      </div>
+                    )}
+                    {daysLeft !== null && isActive && (
+                      <div className="pf-hero__days-left">
+                        {daysLeft === 0 ? 'Последний день' : `${daysLeft} ${pluralDays(daysLeft)} осталось`}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {giftInfo && (
+                  <div className={`pf-gift-banner${giftInfo.available ? ' pf-gift-banner--available' : ''}`}>
+                    {giftInfo.available
+                      ? `🎁 ${giftInfo.type === 'ролл' ? 'Ролл' : 'Сет'} в подарок — доступен сейчас!`
+                      : `🎁 Подарок: ${giftInfo.type} через ${giftInfo.daysLeft} ${pluralDays(giftInfo.daysLeft)}`}
+                  </div>
+                )}
+
+                <button className="pf-hero__cta" onClick={() => setTariffAction('extend')}>
+                  Продлить за {priceTable[tarif]?.[1] || '—'} ₽
+                </button>
+
+                <div className="pf-hero__secondary">
+                  {['290', '490', '1190'].some(t => Number(t) > Number(tarif)) && (
+                    <button className="pf-hero__sec-btn" onClick={() => setTariffAction('upgrade')}>Повысить тариф</button>
+                  )}
+                  {tarif !== '290' && (
+                    <button className="pf-hero__sec-btn" onClick={() => setTariffAction('downgrade')}>Понизить</button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Нет подписки */}
+            {!isAmb && !tarif && (
+              <div className="pf-hero__sub">
+                <div className="pf-hero__no-sub">Подписка не оформлена</div>
+                <button className="pf-hero__cta" onClick={() => setTariffAction('upgrade')}>
+                  Оформить подписку →
+                </button>
+              </div>
+            )}
+
+            {/* Автопродление — строка */}
+            {profile && (
+              <div className="pf-hero__autorenewal">
+                <span>♻️ Автопродление:</span>
+                <span style={{ color: profile.payment_method_id ? '#3CC8A1' : '#666', fontWeight: 600 }}>
+                  {profile.payment_method_id ? 'активно' : 'отключено'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* ── БЛОК 2: SHC И РЕФЕРАЛЬНАЯ ПРОГРАММА ─ */}
+          {!isAmb && (
+            <div className="pf-shc">
+              <div className="pf-shc__title">💎 SHC баллы</div>
+
+              {hasFriends && (
+                <div className="pf-counters">
+                  <div className="pf-counter">
+                    <span className="pf-counter__value pf-counter__value--green">{shcTotal}</span>
+                    <span className="pf-counter__label">SHC</span>
+                  </div>
+                  <div className="pf-counter">
+                    <span className="pf-counter__value">{friendsCount}</span>
+                    <span className="pf-counter__label">{friendsCount === 1 ? 'друг' : 'друзей'}</span>
+                  </div>
+                </div>
+              )}
+
+              {shcTotal > 0 && (
+                <div className="pf-shc__prog">
+                  <div className="pf-progress-bar">
+                    <div className="pf-progress-bar__fill" style={{ width: `${Math.min(100, (shcTotal / 3000) * 100)}%` }} />
+                  </div>
+                  <div className="pf-shc__prog-label">
+                    {shcTotal >= 3000
+                      ? `${shcTotal} SHC = ${shcTotal} ₽ скидки на следующий заказ`
+                      : `${shcTotal} / 3000 SHC — ещё ${3000 - shcTotal} до скидки`}
+                  </div>
+                </div>
+              )}
+
+              <div className="pf-shc__desc">
+                Пригласи друга — получи <strong>20%</strong> от его подписки в SHC баллах
+              </div>
+
+              {refLink && (
+                <div className="pf-reflink">
+                  <div className="pf-reflink__url">sushi-house-39.ru/?invited_by={telegramId}</div>
+                  <div className="pf-reflink__btns">
+                    <button className="pf-reflink__btn pf-reflink__btn--primary" onClick={handleCopyLink}>
+                      {copiedLink ? '✓ Скопировано' : 'Скопировать ссылку'}
+                    </button>
+                    <button className="pf-reflink__btn" onClick={handleShareLink}>Поделиться</button>
+                  </div>
+                </div>
+              )}
+
+              <button className="pf-shc__info-link" onClick={() => setShowShcInfo(true)}>
+                ⓘ Как работает система SHC?
+              </button>
+            </div>
+          )}
+
+          {/* ── БЛОК 3: БЫСТРЫЕ ДЕЙСТВИЯ (2×2) ───── */}
+          <div className="pf-quick">
+            <button
+              className="pf-quick__btn"
+              disabled={vipLoading}
+              onClick={() => {
+                if (!telegramId) return;
+                setVipLoading(true);
+                fetch('/api/check-vip', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ telegram_id: telegramId }),
+                })
+                  .then(r => r.json())
+                  .then(data => {
+                    const link = data.is_member ? data.chat_link : data.invite_link;
+                    if (link) {
+                      const tg = window.Telegram?.WebApp;
+                      if (tg?.openTelegramLink) tg.openTelegramLink(link);
+                      else window.open(link, '_blank');
+                    } else {
+                      alert(data.error || 'Не удалось получить ссылку');
+                    }
+                  })
+                  .catch(() => alert('Ошибка проверки подписки'))
+                  .finally(() => setVipLoading(false));
+              }}
+            >
+              {vipLoading ? '⏳' : '🔗'} VIP-клуб
+            </button>
+            <button
+              className="pf-quick__btn"
+              onClick={() => { window.location.href = telegramId ? `/settings?telegram_id=${telegramId}` : '/settings'; }}
+            >
+              ⚙️ Настройки
+            </button>
+            <a className="pf-quick__btn" href="https://t.me/roman_chatbots" target="_blank" rel="noopener noreferrer">
+              💬 Поддержка
+            </a>
+            <a className="pf-quick__btn" href="https://t.me/romansonel" target="_blank" rel="noopener noreferrer">
+              👨‍💼 Администратор
+            </a>
+          </div>
+
+          {/* ── БЛОК 4: АККОРДЕОН ─────────────────── */}
+          <div className="pf-accordion">
+
+            {/* История заказов */}
+            <div className="pf-accordion__item">
+              <button className="pf-accordion__hdr" onClick={() => toggleSection('orders')}>
+                <span>История заказов{orderHistory && orderHistory.length > 0 ? ` (${orderHistory.length})` : ''}</span>
+                <span className="pf-accordion__arrow">{expandedSections.has('orders') ? '▾' : '▸'}</span>
+              </button>
+              {expandedSections.has('orders') && (
+                <div className="pf-accordion__body">
+                  {orderHistory === null ? (
+                    <div className="pf-accordion__empty">Загрузка...</div>
+                  ) : orderHistory.length === 0 ? (
+                    <div className="pf-accordion__empty">Заказов пока не было</div>
+                  ) : (
+                    <ul className="pf-orders">
+                      {orderHistory.map((o, i) => {
+                        let products = [];
+                        try { products = JSON.parse(o.products_json || '[]'); } catch {}
+                        const productNames = products.map(p => p.name).filter(Boolean).join(', ') || '—';
+                        const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ru-RU') : '—';
+                        const typeLabel = o.order_type === 'gift' ? '🎁 Подарок' : '🏷 Со скидкой';
+                        const deliveryLabel = o.delivery_type === 'delivery' ? '🚗 Доставка' : '🏪 Самовывоз';
+                        return (
+                          <li key={i} className="pf-order">
+                            <div className="pf-order__top">
+                              <span className="pf-order__name">{productNames}</span>
+                              <span className="pf-order__date">{date}</span>
+                            </div>
+                            <div className="pf-order__meta">
+                              <span className={o.order_type === 'gift' ? 'pf-order__tag--gift' : 'pf-order__tag'}>{typeLabel}</span>
+                              <span className="pf-order__tag">{deliveryLabel}</span>
+                              {o.total_price > 0 && <span className="pf-order__tag">{o.total_price} ₽</span>}
+                            </div>
+                            {o.address && <div className="pf-order__addr">{o.address}</div>}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Начисления SHC */}
+            {bonuses && bonuses.length > 0 && (
+              <div className="pf-accordion__item">
+                <button className="pf-accordion__hdr" onClick={() => toggleSection('shc')}>
+                  <span>Начисления SHC ({bonuses.length})</span>
+                  <span className="pf-accordion__arrow">{expandedSections.has('shc') ? '▾' : '▸'}</span>
+                </button>
+                {expandedSections.has('shc') && (
+                  <div className="pf-accordion__body">
+                    {(showAllBonuses ? bonuses : bonuses.slice(0, 5)).map((b, i) => (
+                      <div key={i} className="pf-txn">
+                        <div className="pf-txn__top">
+                          <span className="pf-txn__name">{b.referral_name}</span>
+                          <span className="pf-txn__amount">+{b.total_amount} SHC</span>
+                        </div>
+                        <div className="pf-txn__meta">
+                          <span>{b.achievement || `${b.base_amount} SHC`}</span>
+                          <span>{new Date(b.date).toLocaleDateString('ru-RU')}</span>
+                        </div>
+                      </div>
+                    ))}
                     {bonuses.length > 5 && (
-                      <button
-                        className="amb-panel__show-all"
-                        onClick={() => setShowAllBonuses(v => !v)}
-                      >
-                        {showAllBonuses ? 'Свернуть' : `Все начисления (${bonuses.length})`}
+                      <button className="pf-accordion__more" onClick={() => setShowAllBonuses(v => !v)}>
+                        {showAllBonuses ? 'Свернуть' : `Показать все (${bonuses.length})`}
                       </button>
                     )}
                   </div>
                 )}
-              </>
-            )}
-          </div>
-
-          {/* Карточка 6: Кнопки */}
-          <div className="shop-profile__card">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                className="shop-profile__vip-btn"
-                disabled={vipLoading}
-                onClick={() => {
-                  if (!telegramId) return;
-                  setVipLoading(true);
-                  fetch('/api/check-vip', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ telegram_id: telegramId }),
-                  })
-                    .then(r => r.json())
-                    .then(data => {
-                      if (data.is_member && data.chat_link) {
-                        const tg = window.Telegram?.WebApp;
-                        if (tg?.openTelegramLink) {
-                          tg.openTelegramLink(data.chat_link);
-                        } else {
-                          window.open(data.chat_link, '_blank');
-                        }
-                      } else if (data.invite_link) {
-                        const tg = window.Telegram?.WebApp;
-                        if (tg?.openTelegramLink) {
-                          tg.openTelegramLink(data.invite_link);
-                        } else {
-                          window.open(data.invite_link, '_blank');
-                        }
-                      } else {
-                        alert(data.error || 'Не удалось получить ссылку');
-                      }
-                    })
-                    .catch(() => alert('Ошибка проверки подписки'))
-                    .finally(() => setVipLoading(false));
-                }}
-              >
-                {vipLoading ? '⏳ Проверяем...' : '🔗 VIP-клуб Суши-Хаус'}
-              </button>
-              <a className="shop-profile__link-btn" href="https://t.me/roman_chatbots" target="_blank" rel="noopener noreferrer">
-                🛠 Техническая поддержка
-              </a>
-              <a className="shop-profile__link-btn shop-profile__link-btn--admin" href="https://t.me/romansonel" target="_blank" rel="noopener noreferrer">
-                👨‍💼 Администратор
-              </a>
-              <button
-                className="shop-profile__link-btn"
-                onClick={() => {
-                  const url = telegramId ? `/settings?telegram_id=${telegramId}` : '/settings';
-                  window.location.href = url;
-                }}
-              >
-                ⚙️ Настройки и опции
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Модалка выбора/смены тарифа */}
-      {showTariffModal && (
-        <>
-          <div className="product-modal-overlay" onClick={() => setShowTariffModal(false)} />
-          <div style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: '#1a1a2e',
-            borderRadius: '20px 20px 0 0',
-            padding: '16px 16px 40px',
-            zIndex: 251,
-            maxWidth: 480,
-            margin: '0 auto',
-            boxShadow: '0 -4px 24px rgba(0,0,0,0.5)',
-          }}>
-            {/* Handle */}
-            <div style={{ textAlign: 'center', marginBottom: 14 }}>
-              <span style={{ display: 'inline-block', width: 40, height: 4, background: '#333355', borderRadius: 2 }} />
-            </div>
-            <h3 style={{ color: '#eaeaf8', margin: '0 0 4px', fontSize: 16, fontWeight: 700 }}>Тарифы подписки</h3>
-            {tarif && (
-              <p style={{ color: '#8888aa', fontSize: 13, margin: '0 0 16px' }}>
-                Текущий: {TARIFF_INFO[tarif]?.label}
-              </p>
+              </div>
             )}
 
-            {/* Повышение тарифа */}
-            {['290', '490', '1190'].filter(t => Number(t) > Number(tarif)).map(t => (
-              <button
-                key={t}
-                onClick={() => handleTariffNavigate(t)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '12px 16px',
-                  marginBottom: 10,
-                  background: t === '1190' ? 'rgba(0,229,255,0.07)' : '#1e1e38',
-                  border: t === '1190' ? '1px solid #00e5ff' : '1px solid #30305a',
-                  borderRadius: 12,
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ color: t === '1190' ? '#00e5ff' : '#eaeaf8', fontWeight: 700, fontSize: 15 }}>
-                  {TARIFF_INFO[t]?.label}
-                  {t === '1190' && <span style={{ fontSize: 11, marginLeft: 8, opacity: 0.8 }}>★ Лучший</span>}
-                </div>
-                <div style={{ color: '#8888aa', fontSize: 12, marginTop: 3 }}>{TARIFF_INFO[t]?.desc}</div>
-              </button>
-            ))}
-
-            {/* Понижение тарифа для 1190 */}
-            {tarif === '1190' && (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ color: '#8888aa', fontSize: 12, marginBottom: 8 }}>↓ Перейти на более низкий тариф</div>
-                {hasUnclaimedSet ? (
-                  <div style={{
-                    padding: '12px 14px',
-                    background: 'rgba(255,150,0,0.08)',
-                    border: '1px solid rgba(255,150,0,0.4)',
-                    borderRadius: 12,
-                    color: '#ffaa44',
-                    fontSize: 13,
-                  }}>
-                    🎁 У вас есть не полученный сет. Получите его сначала — осталось {daysLeft !== null ? `${daysLeft} дн.` : 'несколько дней'}. После этого можно сменить тариф.
+            {/* Амбассадор: история начислений ₽ */}
+            {isAmb && transactions && transactions.length > 0 && (
+              <div className="pf-accordion__item">
+                <button className="pf-accordion__hdr" onClick={() => toggleSection('transactions')}>
+                  <span>История начислений ({transactions.length})</span>
+                  <span className="pf-accordion__arrow">{expandedSections.has('transactions') ? '▾' : '▸'}</span>
+                </button>
+                {expandedSections.has('transactions') && (
+                  <div className="pf-accordion__body">
+                    {(showAllTxns ? transactions : transactions.slice(0, 5)).map((t, i) => (
+                      <div key={i} className="pf-txn">
+                        <div className="pf-txn__top">
+                          <span className="pf-txn__name">{t.referral_name}</span>
+                          <span className="pf-txn__amount">+{t.commission_amount} ₽</span>
+                        </div>
+                        <div className="pf-txn__meta">
+                          <span>{t.commission_percent}% от {t.payment_amount} ₽</span>
+                          {t.level === 2 && <span className="pf-badge">LVL2</span>}
+                          <span>{new Date(t.date).toLocaleDateString('ru-RU')}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {transactions.length > 5 && (
+                      <button className="pf-accordion__more" onClick={() => setShowAllTxns(v => !v)}>
+                        {showAllTxns ? 'Свернуть' : `Показать все (${transactions.length})`}
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  ['490', '290'].map(t => (
-                    <button
-                      key={t}
-                      onClick={() => handleTariffNavigate(t)}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '11px 16px',
-                        marginBottom: 8,
-                        background: '#1a1a2a',
-                        border: '1px solid #30305a',
-                        borderRadius: 12,
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{ color: '#eaeaf8', fontWeight: 600, fontSize: 14 }}>{TARIFF_INFO[t]?.label}</div>
-                      <div style={{ color: '#8888aa', fontSize: 12, marginTop: 2 }}>{TARIFF_INFO[t]?.desc}</div>
-                    </button>
-                  ))
                 )}
               </div>
             )}
 
-            {/* Продление текущего — 1/3/5 месяцев */}
-            {tarif && tarif !== '9990' && (
-              <div style={{ marginTop: 4 }}>
-                <div style={{ color: '#8888aa', fontSize: 12, marginBottom: 8 }}>↻ Продлить текущий тариф</div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[
-                    { months: 1, label: '1 мес' },
-                    { months: 3, label: '3 мес' },
-                    { months: 5, label: '5 мес' },
-                  ].map(({ months, label }) => {
-                    const price = priceTable[tarif]?.[months];
-                    return (
-                    <button
-                      key={months}
-                      onClick={() => handleTariffNavigate(tarif, months)}
-                      style={{
-                        flex: 1,
-                        padding: '10px 4px',
-                        background: 'rgba(60,200,161,0.07)',
-                        border: '1px solid #3CC8A1',
-                        borderRadius: 10,
-                        color: '#3CC8A1',
-                        fontWeight: 700,
-                        fontSize: 12,
-                        cursor: 'pointer',
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      <div>{label}</div>
-                      {price && <div style={{ fontSize: 13, marginTop: 2 }}>{price} ₽</div>}
-                    </button>
-                    );
-                  })}
-                </div>
+            {/* Амбассадор: приглашённые */}
+            {isAmb && referrals && referrals.referrals.length > 0 && (
+              <div className="pf-accordion__item">
+                <button className="pf-accordion__hdr" onClick={() => toggleSection('referrals')}>
+                  <span>Приглашённые ({referrals.referrals_count})</span>
+                  <span className="pf-accordion__arrow">{expandedSections.has('referrals') ? '▾' : '▸'}</span>
+                </button>
+                {expandedSections.has('referrals') && (
+                  <div className="pf-accordion__body">
+                    {(showAllReferrals ? referrals.referrals : referrals.referrals.slice(0, 5)).map((r, i) => (
+                      <div key={i} className="pf-txn pf-txn--row">
+                        <span className="pf-txn__name">{r.name}</span>
+                        {r.is_ambassador && <span className="pf-badge pf-badge--gold">AMB</span>}
+                      </div>
+                    ))}
+                    {referrals.referrals.length > 5 && (
+                      <button className="pf-accordion__more" onClick={() => setShowAllReferrals(v => !v)}>
+                        {showAllReferrals ? 'Свернуть' : `Показать всех (${referrals.referrals_count})`}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
-            <button
-              onClick={() => setShowTariffModal(false)}
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '10px',
-                marginTop: 14,
-                background: 'transparent',
-                border: '1px solid #30305a',
-                borderRadius: 10,
-                color: '#8888aa',
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >
-              Закрыть
-            </button>
+            {/* Режим работы */}
+            <div className="pf-accordion__item pf-accordion__item--static">
+              <div className="pf-accordion__hdr pf-accordion__hdr--static">
+                <span style={{ color: '#888' }}>⏰ Принимаем заказы</span>
+                <span style={{ color: '#3CC8A1', fontWeight: 700 }}>10:00 – 21:50</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* ── МОДАЛКА: ПРОДЛИТЬ ─────────────────── */}
+      {tariffAction === 'extend' && tarif && (
+        <>
+          <div className="product-modal-overlay" onClick={() => setTariffAction(null)} />
+          <div className="pf-modal">
+            <div className="pf-modal__handle" />
+            <div className="pf-modal__title">Продлить тариф</div>
+            <div className="pf-modal__subtitle">{TARIFF_INFO[tarif]?.label}</div>
+            <div className="pf-modal__months">
+              {[1, 3, 5].map(months => {
+                const price = priceTable[tarif]?.[months];
+                const base = priceTable[tarif]?.[1];
+                const savings = months > 1 && price && base ? Math.round((1 - price / (base * months)) * 100) : 0;
+                return (
+                  <button key={months} className="pf-modal__month-btn" onClick={() => handleTariffNavigate(tarif, months)}>
+                    <div className="pf-modal__month-top">{months} {months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев'}</div>
+                    <div className="pf-modal__month-price">{price ? `${price} ₽` : '—'}</div>
+                    {savings > 0 && <div className="pf-modal__month-save">−{savings}%</div>}
+                  </button>
+                );
+              })}
+            </div>
+            <button className="pf-modal__close" onClick={() => setTariffAction(null)}>Закрыть</button>
           </div>
         </>
       )}
 
-      {/* Модалка: как работает система SHC */}
+      {/* ── МОДАЛКА: ПОВЫСИТЬ ─────────────────── */}
+      {tariffAction === 'upgrade' && (
+        <>
+          <div className="product-modal-overlay" onClick={() => setTariffAction(null)} />
+          <div className="pf-modal">
+            <div className="pf-modal__handle" />
+            <div className="pf-modal__title">{tarif ? 'Повысить тариф' : 'Оформить подписку'}</div>
+            {['290', '490', '1190'].filter(t => !tarif || Number(t) > Number(tarif)).map(t => (
+              <button key={t} className={`pf-modal__tariff-btn${t === '1190' ? ' pf-modal__tariff-btn--best' : ''}`} onClick={() => handleTariffNavigate(t)}>
+                <div className="pf-modal__tariff-row">
+                  <span className="pf-modal__tariff-name">{TARIFF_INFO[t]?.label}</span>
+                  {t === '1190' && <span className="pf-modal__tariff-star">★ Лучший</span>}
+                </div>
+                <div className="pf-modal__tariff-desc">{TARIFF_INFO[t]?.desc}</div>
+              </button>
+            ))}
+            <button className="pf-modal__close" onClick={() => setTariffAction(null)}>Закрыть</button>
+          </div>
+        </>
+      )}
+
+      {/* ── МОДАЛКА: ПОНИЗИТЬ ─────────────────── */}
+      {tariffAction === 'downgrade' && (
+        <>
+          <div className="product-modal-overlay" onClick={() => setTariffAction(null)} />
+          <div className="pf-modal">
+            <div className="pf-modal__handle" />
+            <div className="pf-modal__title">Понизить тариф</div>
+            {tarif === '1190' && hasUnclaimedSet ? (
+              <div className="pf-modal__warn">
+                🎁 У вас есть не полученный сет. Получите его сначала —{' '}
+                осталось {daysLeft !== null ? `${daysLeft} дн.` : 'несколько дней'}.{' '}
+                После этого можно сменить тариф.
+              </div>
+            ) : (
+              <>
+                <div className="pf-modal__warn pf-modal__warn--soft">
+                  ⚠️ Вы потеряете часть преимуществ текущего тарифа
+                </div>
+                {['490', '290'].filter(t => Number(t) < Number(tarif)).map(t => (
+                  <button key={t} className="pf-modal__tariff-btn" onClick={() => handleTariffNavigate(t)}>
+                    <div className="pf-modal__tariff-name">{TARIFF_INFO[t]?.label}</div>
+                    <div className="pf-modal__tariff-desc">{TARIFF_INFO[t]?.desc}</div>
+                  </button>
+                ))}
+              </>
+            )}
+            <button className="pf-modal__close" onClick={() => setTariffAction(null)}>Закрыть</button>
+          </div>
+        </>
+      )}
+
+      {/* ── МОДАЛКА: КАК РАБОТАЕТ SHC ─────────── */}
       {showShcInfo && (
         <>
           <div className="product-modal-overlay" onClick={() => setShowShcInfo(false)} />
-          <div style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: '#1a1a2e',
-            borderRadius: '20px 20px 0 0',
-            padding: '20px 16px 40px',
-            zIndex: 1000,
-            maxHeight: '80vh',
-            overflowY: 'auto',
-          }}>
+          <div className="pf-modal pf-modal--scroll">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h3 style={{ color: '#3CC8A1', margin: 0, fontSize: 16, fontWeight: 700 }}>Система SHC баллов</h3>
-              <button
-                onClick={() => setShowShcInfo(false)}
-                style={{ background: 'transparent', border: 'none', color: '#8888aa', fontSize: 20, cursor: 'pointer', padding: 4 }}
-              >✕</button>
+              <button onClick={() => setShowShcInfo(false)} style={{ background: 'transparent', border: 'none', color: '#8888aa', fontSize: 20, cursor: 'pointer', padding: 4 }}>✕</button>
             </div>
-
             <div style={{ fontSize: 13, color: '#8888aa', lineHeight: 1.8 }}>
               <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6, marginTop: 0 }}>Как зарабатывать SHC</p>
-              <p style={{ marginTop: 0, marginBottom: 12 }}>
-                Поделись своей реферальной ссылкой с другом. Когда он оплатит подписку — тебе автоматически начислится <strong style={{ color: '#3CC8A1' }}>20% от суммы его платежа</strong> в SHC баллах.
-              </p>
-
+              <p style={{ marginTop: 0, marginBottom: 12 }}>Поделись своей реферальной ссылкой с другом. Когда он оплатит подписку — тебе автоматически начислится <strong style={{ color: '#3CC8A1' }}>20% от суммы его платежа</strong> в SHC баллах.</p>
               <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6 }}>Примеры начислений</p>
               <p style={{ marginTop: 0, marginBottom: 4 }}>• Друг оплатил 290 ₽ → тебе <strong style={{ color: '#3CC8A1' }}>58 SHC</strong></p>
               <p style={{ marginTop: 0, marginBottom: 4 }}>• Друг оплатил 690 ₽ → тебе <strong style={{ color: '#3CC8A1' }}>138 SHC</strong></p>
               <p style={{ marginTop: 0, marginBottom: 12 }}>• Друг оплатил 1 390 ₽ → тебе <strong style={{ color: '#3CC8A1' }}>278 SHC</strong></p>
-
               <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6 }}>Как тратить SHC</p>
-              <p style={{ marginTop: 0, marginBottom: 12 }}>
-                1 SHC = 1 ₽ скидки на заказ. Минимальный порог для списания — <strong style={{ color: '#3CC8A1' }}>3 000 SHC</strong>. Можно оплатить до <strong style={{ color: '#3CC8A1' }}>100%</strong> стоимости заказа.
-              </p>
-
+              <p style={{ marginTop: 0, marginBottom: 12 }}>1 SHC = 1 ₽ скидки на заказ. Минимальный порог — <strong style={{ color: '#3CC8A1' }}>3 000 SHC</strong>. Можно оплатить до <strong style={{ color: '#3CC8A1' }}>100%</strong> стоимости заказа.</p>
               <p style={{ color: '#eaeaf8', fontWeight: 700, marginBottom: 6 }}>Как пригласить друга</p>
-              <p style={{ marginTop: 0, marginBottom: 0 }}>
-                Скопируй свою реферальную ссылку в разделе выше и отправь другу. После его регистрации и оплаты баллы зачисляются автоматически.
-              </p>
+              <p style={{ marginTop: 0, marginBottom: 0 }}>Скопируй свою реферальную ссылку и отправь другу. После его регистрации и оплаты баллы зачисляются автоматически.</p>
             </div>
-
-            <button
-              onClick={() => setShowShcInfo(false)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginTop: 20,
-                background: 'transparent',
-                border: '1px solid #30305a',
-                borderRadius: 10,
-                color: '#8888aa',
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >
-              Закрыть
-            </button>
+            <button className="pf-modal__close" onClick={() => setShowShcInfo(false)}>Закрыть</button>
           </div>
         </>
       )}
