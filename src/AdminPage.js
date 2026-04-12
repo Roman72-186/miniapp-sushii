@@ -817,6 +817,17 @@ function AdminPage() {
                   )}
                   {s.balance_shc > 0 && <span>SHC: {s.balance_shc}</span>}
                 </div>
+                {(s.referrals_count > 0 || Number(s.shc_earned) > 0 || s.invited_by) && (
+                  <div style={styles.refRow}>
+                    {s.referrals_count > 0 && <span>👥 {s.referrals_count} реф.</span>}
+                    {Number(s.shc_earned) > 0 && <span>💎 {Math.round(s.shc_earned)} SHC</span>}
+                    {s.invited_by && (
+                      <span style={{ color: AP.muted }}>
+                        ↑ {s.invited_by_name || s.invited_by}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div style={styles.tariffRow}>
                   {['290', '490', '1190'].map(t => (
                     <button
@@ -1825,6 +1836,14 @@ const styles = {
     fontSize: 11,
     color: AP.muted,
     wordBreak: 'break-all',
+  },
+  refRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 8,
+    fontSize: 11,
+    color: AP.accent,
+    marginTop: 4,
   },
   // Gifts
   giftsRow: {
