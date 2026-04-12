@@ -17,11 +17,7 @@ function SettingsPage() {
   const [cancelLoading, setCancelLoading] = useState(false);
 
   const handleBack = () => {
-    if (telegramId) {
-      window.location.href = `/profile?telegram_id=${telegramId}`;
-    } else {
-      window.location.href = '/profile';
-    }
+    window.location.href = telegramId ? `/profile?telegram_id=${telegramId}` : '/profile';
   };
 
   const toggle = (section) => {
@@ -41,7 +37,6 @@ function SettingsPage() {
       .then(data => {
         if (data.success) {
           setCancelStep('done');
-          // Обновляем кэш пользователя
           sync(true);
         } else {
           alert(data.error || 'Ошибка отмены');
@@ -66,118 +61,122 @@ function SettingsPage() {
       {loading ? (
         <BrandLoader text="Загружаем настройки" />
       ) : (
-        <div className="shop-settings">
-          {/* Ваши заказы */}
+        <div className="pf-page">
+
+          {/* Ваши заказы — ссылка */}
           <a
-            className="shop-settings__btn"
+            className="pf-settings-link"
             href="https://sushi-house.zenky.app/orders"
             target="_blank"
             rel="noopener noreferrer"
           >
-            📦 Ваши заказы
-            <span className="shop-settings__arrow">→</span>
+            <span>📦 Ваши заказы</span>
+            <span className="pf-settings-link__arrow">→</span>
           </a>
 
-          {/* Доставка и оплата */}
-          <button className="shop-settings__btn" onClick={() => toggle('delivery')}>
-            🚚 Доставка и оплата
-            <span className="shop-settings__arrow">{expandedSection === 'delivery' ? '▾' : '›'}</span>
-          </button>
-          {expandedSection === 'delivery' && (
-            <div className="shop-settings__content">
-              <p>🍱 В боте есть кнопка <b>ЗАКАЗАТЬ</b> — синяя, внизу. Нажимаете, открывается Мини-Апп, входите по номеру телефона и оформляете заказ.</p>
-              <p>📦 1. <b>Доставим курьером Яндекса</b></p>
-              <p>📍 2. <b>Конечно есть Самовывоз</b><br/>из наших заведений:<br/>
-                • ул. Ю. Гагарина, д. 16Б<br/>
-                • ул. Согласия, д. 46<br/>
-                • ул. Автомобильная, д. 12Б<br/>
-                • Гурьевск</p>
-              <p>🤝 3. <b>В наших заведениях</b> можно приятно провести время и покушать, есть ароматный капучино, китайский чай и прохладительные напитки</p>
-              <p>💰 4. <b>Расчёт стоимости</b> доставки производится администратором и зависит от удалённости к ближайшему заведению в нашей сети и суммы заказа. После оформления, администратор вам позвонит для подтверждения и сообщит стоимость доставки.</p>
-              <p>💳 5. <b>Оплата заказов:</b><br/>
-                — Наличными или картой курьеру;<br/>
-                — Либо, при заказе в заведении;</p>
-              <p>📞 6. <b>После оформления</b> и отправки вашего заказа, администратор перезвонит вам для уточнения пожеланий и подтверждения вашего заказа.</p>
-            </div>
-          )}
+          {/* Аккордеон */}
+          <div className="pf-accordion">
 
-          {/* Правила подписки */}
-          <button className="shop-settings__btn" onClick={() => toggle('rules')}>
-            ℹ️ Правила подписки
-            <span className="shop-settings__arrow">{expandedSection === 'rules' ? '▾' : '›'}</span>
-          </button>
-          {expandedSection === 'rules' && (
-            <div className="shop-settings__content">
-              <p><b>🏷️ ТАРИФЫ</b></p>
-              <p><b>290 ₽/мес</b> — скидка 30% на все роллы и запечённые, 20% на сеты. Доступ к скидочному меню в приложении.</p>
-              <p><b>690 ₽/мес</b> — все скидки тарифа 290₽, плюс 2 ролла в подарок каждые 15 дней — выбираешь из специальной витрины.</p>
-              <p><b>1390 ₽/мес</b> — все скидки и подарочные роллы, плюс 1 сет в подарок каждые 30 дней и кофе к заказу.</p>
-
-              <p><b>📌 УСЛОВИЯ ПОДАРКОВ</b></p>
-              <p>🎁 <b>Подарочные роллы (тариф 690₽):</b> 1 ролл каждые 15 дней. Выбирается в приложении из закрытой витрины.</p>
-              <p>🎁 <b>Подарочные сеты (тариф 1390₽):</b> 1 сет каждые 30 дней. Аналогично — выбирается в витрине подписчика.</p>
-              <p>🚫 <b>Накопление недоступно</b> — если не забрал подарок в текущем периоде, он сгорает.</p>
-              <p>👤 <b>Только для владельца подписки</b> — подарки нельзя передавать другим людям.</p>
-              <p>🍣 Роллы и сеты можно заказать на доставку или самовывоз.</p>
-
-              <p><b>💰 SHC БАЛЛЫ</b></p>
-              <p>Приглашай друзей по реферальной ссылке из профиля. Когда друг оплатит подписку — тебе зачислится <b>20% от суммы его платежа</b> в SHC баллах. 1 SHC = 1 ₽. Минимум для списания — 3 000 баллов. Можно оплатить до 100% заказа.</p>
-
-              <p><b>💳 ОПЛАТА И ПРОДЛЕНИЕ</b></p>
-              <p>✅ Оплата через ЮKassa. Продление — вручную на 1, 3 или 5 месяцев через профиль.</p>
-              <p>🔄 <b>Смена тарифа:</b> повысить можно в любой момент; понизить — только если нет неполученного подарка.</p>
-              <p>🚫 <b>Отмена автосписания</b> — в настройках ниже на этой странице.</p>
-              <p style={{ color: '#888', fontSize: 12, marginTop: 8 }}>ℹ️ Организатор оставляет за собой право корректировать стоимость и условия с уведомлением подписчиков.</p>
-            </div>
-          )}
-
-          {/* Отмена автосписания */}
-          <button className="shop-settings__btn shop-settings__btn--danger" onClick={() => toggle('cancel')}>
-            🚫 Отмена автосписания
-            <span className="shop-settings__arrow">{expandedSection === 'cancel' ? '▾' : '›'}</span>
-          </button>
-          {expandedSection === 'cancel' && (
-            <div className="shop-settings__content">
-              {profile?.статусСписания !== 'активно' ? (
-                <p>Автосписание уже было отменено ранее.</p>
-              ) : cancelStep === 'done' ? (
-                <div className="shop-settings__cancel-done">
-                  <p>✅ Автосписание отменено. Подписка деактивирована.</p>
-                </div>
-              ) : cancelStep === 'confirm' ? (
-                <div className="shop-settings__cancel-confirm">
-                  <p>😞 <b>{firstName}</b>, если отпишитесь сейчас — потеряете доступ в закрытый VIP канал и лишитесь всех выгод и привилегий подписки.</p>
-                  <p>😍 Сеты со скидкой 20% перестанут быть вам доступны (покупка одного сета полностью окупает все расходы на подписку).</p>
-                  <p>🎁 Плюс, бесплатные роллы. Общая выгода ваша в месяц выходит около 3000₽. Вы действительно хотите её лишиться?</p>
-                  <div className="shop-settings__cancel-buttons">
-                    <button
-                      className="shop-settings__cancel-btn shop-settings__cancel-btn--stay"
-                      onClick={() => { setCancelStep(null); setExpandedSection(null); }}
-                    >
-                      😊 Остаться
-                    </button>
-                    <button
-                      className="shop-settings__cancel-btn shop-settings__cancel-btn--leave"
-                      disabled={cancelLoading}
-                      onClick={handleCancel}
-                    >
-                      {cancelLoading ? '⏳...' : '😢 Потерять выгоду'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <p>Вы действительно хотите отменить автосписание?</p>
-                  <button
-                    className="shop-settings__cancel-btn shop-settings__cancel-btn--leave"
-                    onClick={() => setCancelStep('confirm')}
-                  >
-                    Да, хочу отменить
-                  </button>
+            {/* Доставка и оплата */}
+            <div className="pf-accordion__item">
+              <button className="pf-accordion__hdr" onClick={() => toggle('delivery')}>
+                <span>🚚 Доставка и оплата</span>
+                <span className="pf-accordion__arrow">{expandedSection === 'delivery' ? '▾' : '▸'}</span>
+              </button>
+              {expandedSection === 'delivery' && (
+                <div className="pf-accordion__body pf-settings__text">
+                  <p>🍱 В боте есть кнопка <b>ЗАКАЗАТЬ</b> — синяя, внизу. Нажимаете, открывается Мини-Апп, входите по номеру телефона и оформляете заказ.</p>
+                  <p>📦 1. <b>Доставим курьером Яндекса</b></p>
+                  <p>📍 2. <b>Самовывоз</b> из наших заведений:<br/>
+                    • ул. Ю. Гагарина, д. 16Б<br/>
+                    • ул. Согласия, д. 46<br/>
+                    • ул. Автомобильная, д. 12Б<br/>
+                    • Гурьевск</p>
+                  <p>🤝 3. <b>В наших заведениях</b> — можно поесть на месте, есть кофе, чай и напитки.</p>
+                  <p>💰 4. <b>Стоимость доставки</b> рассчитывается администратором. После оформления вам перезвонят.</p>
+                  <p>💳 5. <b>Оплата:</b> наличными или картой курьеру / при заказе в заведении.</p>
                 </div>
               )}
             </div>
-          )}
+
+            {/* Правила подписки */}
+            <div className="pf-accordion__item">
+              <button className="pf-accordion__hdr" onClick={() => toggle('rules')}>
+                <span>ℹ️ Правила подписки</span>
+                <span className="pf-accordion__arrow">{expandedSection === 'rules' ? '▾' : '▸'}</span>
+              </button>
+              {expandedSection === 'rules' && (
+                <div className="pf-accordion__body pf-settings__text">
+                  <p className="pf-settings__section-title">🏷️ ТАРИФЫ</p>
+                  <p><b>290 ₽/мес</b> — скидка 30% на роллы и запечённые, 20% на сеты.</p>
+                  <p><b>690 ₽/мес</b> — все скидки + 2 ролла в подарок каждые 15 дней.</p>
+                  <p><b>1390 ₽/мес</b> — все скидки + роллы + 1 сет каждые 30 дней + кофе.</p>
+
+                  <p className="pf-settings__section-title">📌 УСЛОВИЯ ПОДАРКОВ</p>
+                  <p>🎁 <b>Роллы (690₽):</b> 1 ролл каждые 15 дней, выбирается в приложении.</p>
+                  <p>🎁 <b>Сеты (1390₽):</b> 1 сет каждые 30 дней, выбирается в приложении.</p>
+                  <p>🚫 <b>Накопление недоступно</b> — неполученный подарок сгорает.</p>
+                  <p>👤 <b>Только для владельца</b> — подарки нельзя передавать другим.</p>
+
+                  <p className="pf-settings__section-title">💎 SHC БАЛЛЫ</p>
+                  <p>Пригласи друга — получи <b>20% от суммы его подписки</b> в SHC баллах. 1 SHC = 1 ₽. Минимум для списания — 3 000 баллов. Можно оплатить до 100% заказа.</p>
+
+                  <p className="pf-settings__section-title">💳 ОПЛАТА И ПРОДЛЕНИЕ</p>
+                  <p>✅ Оплата через ЮKassa. Продление вручную на 1, 3 или 5 месяцев через профиль.</p>
+                  <p>🔄 <b>Смена тарифа:</b> повысить — в любой момент; понизить — только если нет неполученного подарка.</p>
+                  <p style={{ color: '#555577', fontSize: 12, marginTop: 4 }}>ℹ️ Организатор оставляет за собой право корректировать условия с уведомлением подписчиков.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Отмена автосписания */}
+            <div className="pf-accordion__item">
+              <button className="pf-accordion__hdr pf-accordion__hdr--danger" onClick={() => toggle('cancel')}>
+                <span>🚫 Отмена автосписания</span>
+                <span className="pf-accordion__arrow">{expandedSection === 'cancel' ? '▾' : '▸'}</span>
+              </button>
+              {expandedSection === 'cancel' && (
+                <div className="pf-accordion__body">
+                  {profile?.статусСписания !== 'активно' ? (
+                    <p className="pf-settings__info">Автосписание уже было отменено ранее.</p>
+                  ) : cancelStep === 'done' ? (
+                    <p className="pf-settings__info pf-settings__info--success">✅ Автосписание отменено. Подписка деактивирована.</p>
+                  ) : cancelStep === 'confirm' ? (
+                    <div className="pf-settings__cancel-confirm">
+                      <p className="pf-settings__text">😞 <b>{firstName}</b>, если отпишетесь — потеряете доступ в VIP-канал и все скидки.</p>
+                      <p className="pf-settings__text">🎁 Бесплатные роллы, скидки на сеты. Общая выгода в месяц — около 3000 ₽. Уверены?</p>
+                      <div className="pf-settings__cancel-btns">
+                        <button
+                          className="pf-settings__stay-btn"
+                          onClick={() => { setCancelStep(null); setExpandedSection(null); }}
+                        >
+                          😊 Остаться
+                        </button>
+                        <button
+                          className="pf-settings__leave-btn"
+                          disabled={cancelLoading}
+                          onClick={handleCancel}
+                        >
+                          {cancelLoading ? '⏳...' : '😢 Отменить'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="pf-settings__cancel-confirm">
+                      <p className="pf-settings__text">Вы действительно хотите отменить автосписание?</p>
+                      <button
+                        className="pf-settings__leave-btn"
+                        onClick={() => setCancelStep('confirm')}
+                      >
+                        Да, хочу отменить
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       )}
     </div>

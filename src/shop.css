@@ -3988,3 +3988,105 @@ body.shop-body {
   font-size: 14px;
   cursor: pointer;
 }
+
+/* ── Settings page additions ────────────── */
+
+.pf-settings-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  background: #1e1e2e;
+  border-radius: 14px;
+  color: #ccccee;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+  transition: border-color 0.15s;
+  border: 1px solid #2a2a40;
+}
+
+.pf-settings-link:active {
+  border-color: #3CC8A1;
+  color: #3CC8A1;
+}
+
+.pf-settings-link__arrow {
+  color: #3CC8A1;
+  font-size: 18px;
+}
+
+.pf-accordion__hdr--danger {
+  color: #ff6666;
+}
+
+.pf-settings__text {
+  font-size: 13px;
+  color: #8888aa;
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.pf-settings__text:last-child { margin-bottom: 0; }
+
+.pf-settings__text b { color: #ccccee; }
+
+.pf-settings__section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3CC8A1;
+  letter-spacing: 0.5px;
+  margin: 12px 0 6px;
+}
+
+.pf-settings__section-title:first-child { margin-top: 0; }
+
+.pf-settings__info {
+  font-size: 13px;
+  color: #6666aa;
+  padding: 4px 0;
+}
+
+.pf-settings__info--success { color: #3CC8A1; }
+
+.pf-settings__cancel-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pf-settings__cancel-btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pf-settings__stay-btn {
+  flex: 1;
+  padding: 12px;
+  background: rgba(60,200,161,0.1);
+  border: 1px solid rgba(60,200,161,0.4);
+  border-radius: 12px;
+  color: #3CC8A1;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-settings__leave-btn {
+  flex: 1;
+  padding: 12px;
+  background: rgba(255,80,80,0.08);
+  border: 1px solid rgba(255,80,80,0.35);
+  border-radius: 12px;
+  color: #ff6666;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-settings__leave-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
