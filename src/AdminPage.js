@@ -20,7 +20,7 @@ function AdminPage() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [tab, setTab] = useState('products');
-  const [group, setGroup] = useState('content');
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // Products state
   const [catalogs, setCatalogs] = useState([]);
@@ -43,7 +43,6 @@ function AdminPage() {
   const [extending, setExtending] = useState(null); // telegram_id пока идёт продление
   // inline смена тарифа с датой: { telegram_id, tariff, end_date }
   const [subEdit, setSubEdit] = useState(null);
-  const [editingNotes, setEditingNotes] = useState({}); // {telegram_id: 'текст'}
   const [dashStats, setDashStats] = useState(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [giftOrders, setGiftOrders] = useState(null);
@@ -54,6 +53,10 @@ function AdminPage() {
   const [referralData, setReferralData] = useState(null);
   const [referralLoading, setReferralLoading] = useState(false);
   const [referralSearch, setReferralSearch] = useState('');
+
+  // UI state
+  const [expandedActions, setExpandedActions] = useState(new Set());
+  const [toasts, setToasts] = useState([]);
 
   // Banners state
   const [banners, setBanners] = useState([]);
@@ -213,9 +216,11 @@ function AdminPage() {
         body: JSON.stringify({ telegram_id: telegramId, type }),
       });
       const data = await res.json();
-      if (data.success) loadSubscribers();
+      if (data.success) { loadSubscribers(); showToast(`✓ Подарок выдан: ${type}`); }
+      else showToast(data.error || 'Ошибка', 'error');
     } catch (err) {
       console.error('grantGift error:', err);
+      showToast('Ошибка соединения', 'error');
     }
     setGrantingGift(null);
   };
@@ -230,9 +235,11 @@ function AdminPage() {
         body: JSON.stringify({ telegram_id: telegramId, type }),
       });
       const data = await res.json();
-      if (data.success) loadSubscribers();
+      if (data.success) { loadSubscribers(); showToast(`✓ Отмечено: ${type}`); }
+      else showToast(data.error || 'Ошибка', 'error');
     } catch (err) {
       console.error('claimGift error:', err);
+      showToast('Ошибка соединения', 'error');
     }
     setGrantingGift(null);
   };
@@ -253,23 +260,6 @@ function AdminPage() {
       console.error('resetSubscription error:', err);
     }
     setResettingSub(null);
-  };
-
-  // Смена тарифа
-  const setTariff = async (telegramId, tariff) => {
-    setSettingTariff(telegramId);
-    try {
-      const res = await fetch(`${API}/api/admin/user-tags`, {
-        method: 'POST',
-        headers: headers(),
-        body: JSON.stringify({ telegram_id: telegramId, action: 'add', tag: tariff }),
-      });
-      const data = await res.json();
-      if (data.success) loadSubscribers();
-    } catch (err) {
-      console.error('setTariff error:', err);
-    }
-    setSettingTariff(null);
   };
 
   // Смена тарифа + дата окончания
@@ -310,6 +300,12 @@ function AdminPage() {
     } catch (err) { console.error('extendSub error:', err); }
     setExtending(null);
   };
+
+  const showToast = useCallback((text, type = 'success') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, text, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+  }, []);
 
   // Сохранить заметку
   const saveNotes = async (telegramId, notes) => {
@@ -634,34 +630,59 @@ function AdminPage() {
         </div>
       </div>
 
-      {/* Навигация — 2 группы + суб-табы */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-        {[
-          { id: 'content', label: '📦 Контент', defaultTab: 'products' },
-          { id: 'people',  label: '👥 Люди',    defaultTab: 'subscribers' },
-        ].map(g => (
+      {/* Навигация — плоские табы + выпадающее «Ещё» */}
+      <div style={{ position: 'relative', marginBottom: 14 }}>
+        <div style={styles.navRow}>
+          {[
+            { id: 'products',    label: '⬡ Товары' },
+            { id: 'subscribers', label: '◈ Люди' },
+            { id: 'orders',      label: '◷ Заказы' },
+          ].map(({ id, label }) => (
+            <button
+              key={id}
+              style={tab === id ? styles.navTabActive : styles.navTab}
+              onClick={() => { setTab(id); setMoreOpen(false); }}
+            >
+              {label}
+            </button>
+          ))}
           <button
-            key={g.id}
-            style={group === g.id ? styles.groupTabActive : styles.groupTab}
-            onClick={() => { setGroup(g.id); setTab(g.defaultTab); }}
+            style={moreOpen || ['banners','pricing','add-product','add','stats','referrals'].includes(tab) ? styles.navTabActive : styles.navTab}
+            onClick={() => setMoreOpen(v => !v)}
           >
-            {g.label}
+            ··· Ещё
           </button>
-        ))}
-      </div>
-      <div style={styles.subTabs}>
-        {(group === 'content'
-          ? [{ id: 'products', label: '⬡ Товары' }, { id: 'banners', label: '▣ Баннеры' }, { id: 'pricing', label: '◎ Цены' }, { id: 'add-product', label: '⊕ Добавить' }]
-          : [{ id: 'subscribers', label: '◈ Подписчики' }, { id: 'orders', label: '◷ Заказы' }, { id: 'add', label: '⊕ Добавить' }, { id: 'stats', label: '◉ Статистика' }, { id: 'referrals', label: '⇄ Рефералы' }]
-        ).map(({ id, label }) => (
-          <button
-            key={id}
-            style={tab === id ? styles.subTabActive : styles.subTab}
-            onClick={() => setTab(id)}
-          >
-            {label}
-          </button>
-        ))}
+        </div>
+
+        {/* Backdrop */}
+        {moreOpen && (
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 98 }}
+            onClick={() => setMoreOpen(false)}
+          />
+        )}
+
+        {/* Dropdown */}
+        {moreOpen && (
+          <div style={styles.moreMenu}>
+            {[
+              { id: 'banners',     label: '▣ Баннеры' },
+              { id: 'pricing',     label: '◎ Цены' },
+              { id: 'add-product', label: '⊕ Добавить товар' },
+              { id: 'add',         label: '⊕ Добавить пользователя' },
+              { id: 'stats',       label: '◉ Статистика' },
+              { id: 'referrals',   label: '⇄ Рефералы' },
+            ].map(({ id, label }) => (
+              <button
+                key={id}
+                style={tab === id ? styles.moreItemActive : styles.moreItem}
+                onClick={() => { setTab(id); setMoreOpen(false); }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ─── Products Tab ─── */}
@@ -795,137 +816,176 @@ function AdminPage() {
           <div style={styles.subsCount}>Показано: {filteredSubs.length}</div>
 
           <div style={styles.subsList}>
-            {filteredSubs.map(s => (
-              <div key={s.telegram_id} style={styles.subRow}>
-                <div style={styles.subMain}>
-                  <span style={styles.subName}>{s.name || 'Без имени'}</span>
-                  <span style={styles.tariffBadge(s.tariff)}>{s.tariff}&#8381;</span>
-                  {s.is_ambassador ? <span style={styles.ambBadge}>AMB</span> : null}
-                  <span style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
-                    <button style={styles.grantBtn} onClick={() => grantGift(s.telegram_id, 'roll')} disabled={!!grantingGift}>
-                      {grantingGift === s.telegram_id + '+roll' ? '...' : '+R'}
-                    </button>
-                    <button style={styles.claimBtn} onClick={() => claimGift(s.telegram_id, 'roll')} disabled={!!grantingGift}>
-                      {grantingGift === s.telegram_id + '-roll' ? '...' : '-R'}
-                    </button>
-                    <button style={styles.grantBtn} onClick={() => grantGift(s.telegram_id, 'set')} disabled={!!grantingGift}>
-                      {grantingGift === s.telegram_id + '+set' ? '...' : '+S'}
-                    </button>
-                    <button style={styles.claimBtn} onClick={() => claimGift(s.telegram_id, 'set')} disabled={!!grantingGift}>
-                      {grantingGift === s.telegram_id + '-set' ? '...' : '-S'}
-                    </button>
-                    <button style={styles.resetSubBtn} onClick={() => resetSubscription(s.telegram_id, s.name)} disabled={!!resettingSub}>
-                      {resettingSub === s.telegram_id ? '...' : 'RST'}
-                    </button>
-                  </span>
-                </div>
-                <div style={styles.subDetails}>
-                  {s.phone && <span>Tel: {s.phone}</span>}
-                  <span>ID: {s.telegram_id}</span>
-                  {s.subscription_start && <span>C {s.subscription_start}</span>}
-                  {s.subscription_end && <span>По {s.subscription_end}</span>}
-                  {s.subscription_status && (
-                    <span style={{
-                      color: s.subscription_status === 'активно' ? '#3CC8A1' : '#ff6b6b'
-                    }}>
-                      {s.subscription_status}
-                    </span>
-                  )}
-                  {s.balance_shc > 0 && <span>SHC: {s.balance_shc}</span>}
-                </div>
-                {(s.referrals_count > 0 || Number(s.shc_earned) > 0 || s.invited_by) && (
-                  <div style={styles.refRow}>
-                    {s.referrals_count > 0 && <span>👥 {s.referrals_count} реф.</span>}
-                    {Number(s.shc_earned) > 0 && <span>💎 {Math.round(s.shc_earned)} SHC</span>}
-                    {s.invited_by && (
-                      <span style={{ color: AP.muted }}>
-                        ↑ {s.invited_by_name || s.invited_by}
-                      </span>
-                    )}
+            {filteredSubs.map(s => {
+              const actionsOpen = expandedActions.has(s.telegram_id);
+              return (
+                <div key={s.telegram_id} style={styles.subRow}>
+
+                  {/* ── Секция 1: Идентификация ── */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                        <span style={styles.subName}>{s.name || 'Без имени'}</span>
+                        <span style={styles.tariffBadge(s.tariff)}>{s.tariff}&#8381;</span>
+                        {s.is_ambassador && <span style={styles.ambBadge}>AMB</span>}
+                      </div>
+                      <div style={{ fontSize: 12, color: AP.muted, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        {s.phone && <span>{s.phone}</span>}
+                        <span>ID {s.telegram_id}</span>
+                      </div>
+                    </div>
                   </div>
-                )}
-                <div style={styles.tariffRow}>
-                  {['290', '490', '1190'].map(t => (
-                    <button
-                      key={t}
-                      style={s.tariff === t ? styles.tariffBtnActive : styles.tariffBtnInactive}
-                      onClick={() => setSubEdit(
-                        subEdit?.telegram_id === s.telegram_id && subEdit?.tariff === t
-                          ? null
-                          : { telegram_id: s.telegram_id, tariff: t, end_date: defaultEndDate() }
+
+                  <div style={styles.cardDivider} />
+
+                  {/* ── Секция 2: Подписка ── */}
+                  <div style={{ marginTop: 8, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, color: AP.muted }}>
+                        {s.subscription_start && <span>{s.subscription_start}</span>}
+                        {s.subscription_start && s.subscription_end && <span style={{ margin: '0 4px' }}>→</span>}
+                        {s.subscription_end && <span>{s.subscription_end}</span>}
+                        {s.balance_shc > 0 && (
+                          <span style={{ marginLeft: 10, color: AP.yellow }}>💎 {Math.round(s.balance_shc)} SHC</span>
+                        )}
+                      </div>
+                      {s.subscription_status && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 700,
+                          color: s.subscription_status === 'активно' ? AP.accent : AP.danger,
+                          background: s.subscription_status === 'активно' ? 'rgba(60,200,161,0.1)' : 'rgba(255,77,106,0.1)',
+                          padding: '3px 8px', borderRadius: 6,
+                        }}>
+                          {s.subscription_status}
+                        </span>
                       )}
-                      disabled={!!settingTariff}
-                    >
-                      {settingTariff === s.telegram_id ? '...' : t}
-                    </button>
-                  ))}
-                  <input
-                    type="number"
-                    min="1" max="365"
-                    placeholder="дн."
-                    value={extendingDays[s.telegram_id] || ''}
-                    onChange={e => setExtendingDays(prev => ({ ...prev, [s.telegram_id]: e.target.value }))}
-                    style={styles.daysInput}
-                  />
-                  <button
-                    style={styles.extendBtn}
-                    onClick={() => extendSub(s.telegram_id)}
-                    disabled={!!extending || !extendingDays[s.telegram_id]}
-                  >
-                    {extending === s.telegram_id ? '...' : '+Дн'}
-                  </button>
-                </div>
-                {/* Inline форма смены тарифа + даты */}
-                {subEdit?.telegram_id === s.telegram_id && (
-                  <div style={styles.subEditRow}>
-                    <span style={{ color: CP.cyan, fontSize: 11, fontWeight: 700 }}>
-                      Тариф {subEdit.tariff}₽ до:
-                    </span>
-                    <input
-                      type="date"
-                      value={subEdit.end_date}
-                      onChange={e => setSubEdit(prev => ({ ...prev, end_date: e.target.value }))}
-                      style={styles.dateInput}
-                    />
-                    <button style={styles.applyBtn} onClick={applySubscription} disabled={!!settingTariff}>
-                      {settingTariff === s.telegram_id ? '...' : '✓'}
-                    </button>
-                    <button style={styles.btnCancel} onClick={() => setSubEdit(null)}>✕</button>
-                  </div>
-                )}
-                <div style={styles.notesRow}>
-                  <input
-                    type="text"
-                    placeholder="Заметка..."
-                    defaultValue={s.notes || ''}
-                    key={s.telegram_id + '_notes'}
-                    onBlur={e => { if (e.target.value !== (s.notes || '')) saveNotes(s.telegram_id, e.target.value); }}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.target.blur(); } }}
-                    style={styles.notesInput}
-                  />
-                </div>
-                {/* Подарки */}
-                {s.gifts && (
-                  <div style={styles.giftsRow}>
-                    <span style={styles.giftsSummary}>
-                      Подарки: {s.gifts.claimed}/{s.gifts.totalWindows} получено
-                    </span>
-                    {s.gifts.lastClaimed && (
-                      <span style={styles.giftsLast}>Последний: {s.gifts.lastClaimed}</span>
-                    )}
-                    {s.gifts.windows && s.gifts.windows.some(w => w.claimedAt) && (
-                      <div style={styles.giftsWindows}>
-                        {s.gifts.windows.filter(w => w.claimedAt).map(w => (
-                          <span key={w.num} style={styles.giftClaimed}>
-                            #{w.num} {w.claimedAt}{w.address ? ` — ${w.address}` : ''}
-                          </span>
-                        ))}
+                    </div>
+                    <div style={styles.tariffRow}>
+                      {['290', '490', '1190'].map(t => (
+                        <button
+                          key={t}
+                          style={s.tariff === t ? styles.tariffBtnActive : styles.tariffBtnInactive}
+                          onClick={() => setSubEdit(
+                            subEdit?.telegram_id === s.telegram_id && subEdit?.tariff === t
+                              ? null
+                              : { telegram_id: s.telegram_id, tariff: t, end_date: defaultEndDate() }
+                          )}
+                          disabled={!!settingTariff}
+                        >
+                          {settingTariff === s.telegram_id ? '...' : t}
+                        </button>
+                      ))}
+                      <input
+                        type="number" min="1" max="365" placeholder="дн."
+                        value={extendingDays[s.telegram_id] || ''}
+                        onChange={e => setExtendingDays(prev => ({ ...prev, [s.telegram_id]: e.target.value }))}
+                        style={styles.daysInput}
+                      />
+                      <button
+                        style={styles.extendBtn}
+                        onClick={() => extendSub(s.telegram_id)}
+                        disabled={!!extending || !extendingDays[s.telegram_id]}
+                      >
+                        {extending === s.telegram_id ? '...' : '+Дн'}
+                      </button>
+                    </div>
+                    {subEdit?.telegram_id === s.telegram_id && (
+                      <div style={styles.subEditRow}>
+                        <span style={{ color: AP.accent, fontSize: 11, fontWeight: 700 }}>
+                          Тариф {subEdit.tariff}&#8381; до:
+                        </span>
+                        <input
+                          type="date"
+                          value={subEdit.end_date}
+                          onChange={e => setSubEdit(prev => ({ ...prev, end_date: e.target.value }))}
+                          style={styles.dateInput}
+                        />
+                        <button style={styles.applyBtn} onClick={applySubscription} disabled={!!settingTariff}>
+                          {settingTariff === s.telegram_id ? '...' : '✓'}
+                        </button>
+                        <button style={styles.btnCancel} onClick={() => setSubEdit(null)}>✕</button>
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            ))}
+
+                  <div style={styles.cardDivider} />
+
+                  {/* ── Секция 3: Действия (аккордеон) ── */}
+                  <div style={{ marginTop: 8 }}>
+                    <button
+                      style={styles.actionsToggle}
+                      onClick={() => setExpandedActions(prev => {
+                        const next = new Set(prev);
+                        if (next.has(s.telegram_id)) next.delete(s.telegram_id);
+                        else next.add(s.telegram_id);
+                        return next;
+                      })}
+                    >
+                      {actionsOpen ? '▲ Скрыть' : '▼ Действия'}
+                    </button>
+                    {actionsOpen && (
+                      <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <button style={styles.grantBtn} onClick={() => grantGift(s.telegram_id, 'roll')} disabled={!!grantingGift}>
+                          {grantingGift === s.telegram_id + '+roll' ? '...' : '+Ролл'}
+                        </button>
+                        <button style={styles.claimBtn} onClick={() => claimGift(s.telegram_id, 'roll')} disabled={!!grantingGift}>
+                          {grantingGift === s.telegram_id + '-roll' ? '...' : '−Ролл'}
+                        </button>
+                        <button style={styles.grantBtn} onClick={() => grantGift(s.telegram_id, 'set')} disabled={!!grantingGift}>
+                          {grantingGift === s.telegram_id + '+set' ? '...' : '+Сет'}
+                        </button>
+                        <button style={styles.claimBtn} onClick={() => claimGift(s.telegram_id, 'set')} disabled={!!grantingGift}>
+                          {grantingGift === s.telegram_id + '-set' ? '...' : '−Сет'}
+                        </button>
+                        <button style={styles.resetSubBtn} onClick={() => resetSubscription(s.telegram_id, s.name)} disabled={!!resettingSub}>
+                          {resettingSub === s.telegram_id ? '...' : 'RST подписку'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={styles.cardDivider} />
+
+                  {/* ── Секция 4: Метаданные + заметка ── */}
+                  <div style={{ marginTop: 8 }}>
+                    {(s.referrals_count > 0 || Number(s.shc_earned) > 0 || s.invited_by) && (
+                      <div style={{ ...styles.refRow, marginBottom: 6 }}>
+                        {s.referrals_count > 0 && <span>👥 {s.referrals_count} реф.</span>}
+                        {Number(s.shc_earned) > 0 && <span>💎 {Math.round(s.shc_earned)} SHC</span>}
+                        {s.invited_by && <span style={{ color: AP.muted }}>↑ {s.invited_by_name || s.invited_by}</span>}
+                      </div>
+                    )}
+                    {s.gifts && (
+                      <div style={styles.giftsRow}>
+                        <span style={styles.giftsSummary}>
+                          Подарки: {s.gifts.claimed}/{s.gifts.totalWindows} получено
+                        </span>
+                        {s.gifts.lastClaimed && <span style={styles.giftsLast}>Последний: {s.gifts.lastClaimed}</span>}
+                        {s.gifts.windows && s.gifts.windows.some(w => w.claimedAt) && (
+                          <div style={styles.giftsWindows}>
+                            {s.gifts.windows.filter(w => w.claimedAt).map(w => (
+                              <span key={w.num} style={styles.giftClaimed}>
+                                #{w.num} {w.claimedAt}{w.address ? ` — ${w.address}` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      placeholder="Заметка..."
+                      defaultValue={s.notes || ''}
+                      key={s.telegram_id + '_notes'}
+                      onBlur={e => { if (e.target.value !== (s.notes || '')) saveNotes(s.telegram_id, e.target.value); }}
+                      onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
+                      style={{ ...styles.notesInput, marginTop: 6 }}
+                    />
+                  </div>
+
+                </div>
+              );
+            })}
           </div>
 
           <button onClick={loadSubscribers} style={{ ...styles.btnSmall, marginTop: 16 }} disabled={subsLoading}>
@@ -1565,6 +1625,31 @@ function AdminPage() {
           {!referralData && !referralLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
         </div>
       )}
+
+      {/* ─── Toast уведомления ─── */}
+      {toasts.length > 0 && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 300, display: 'flex', flexDirection: 'column', gap: 8,
+          alignItems: 'center', pointerEvents: 'none',
+        }}>
+          {toasts.map(t => (
+            <div key={t.id} style={{
+              padding: '10px 20px',
+              borderRadius: 12,
+              background: t.type === 'error' ? AP.danger : AP.accent,
+              color: t.type === 'error' ? '#fff' : '#051a12',
+              fontWeight: 700,
+              fontSize: 13,
+              boxShadow: t.type === 'error' ? NEU.danger : NEU.teal,
+              whiteSpace: 'nowrap',
+              fontFamily: '"Montserrat", sans-serif',
+            }}>
+              {t.text}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1679,65 +1764,105 @@ const styles = {
     paddingBottom: 12,
     borderBottom: `1px solid ${AP.border}`,
   },
-  // ─── Group tabs ──────────────────────────────────────────────
-  groupTab: {
-    flex: 1,
-    padding: '10px 8px',
-    background: AP.surface,
-    color: AP.muted,
-    border: 'none',
-    borderRadius: 14,
-    fontWeight: 700,
-    fontSize: 13,
-    letterSpacing: '0.04em',
-    cursor: 'pointer',
-    boxShadow: NEU.btnOut,
-    transition: 'all 0.2s',
-  },
-  groupTabActive: {
-    flex: 1,
-    padding: '10px 8px',
-    background: AP.accent,
-    color: '#051a12',
-    border: 'none',
-    borderRadius: 14,
-    fontWeight: 700,
-    fontSize: 13,
-    letterSpacing: '0.04em',
-    cursor: 'pointer',
-    boxShadow: NEU.teal,
-    transition: 'all 0.2s',
-  },
-  // ─── Sub-tabs ────────────────────────────────────────────────
-  subTabs: {
+  // ─── Flat nav tabs ────────────────────────────────────────────
+  navRow: {
     display: 'flex',
     gap: 6,
-    marginBottom: 14,
-    flexWrap: 'wrap',
   },
-  subTab: {
-    padding: '6px 12px',
+  navTab: {
+    flex: 1,
+    padding: '11px 4px',
     background: AP.surface,
     color: AP.muted,
     border: 'none',
-    borderRadius: 8,
+    borderRadius: 12,
     fontSize: 11,
     fontWeight: 600,
     cursor: 'pointer',
     boxShadow: NEU.btnOut,
     transition: 'all 0.2s',
+    whiteSpace: 'nowrap',
+    minHeight: 44,
   },
-  subTabActive: {
-    padding: '6px 12px',
+  navTabActive: {
+    flex: 1,
+    padding: '11px 4px',
     background: 'rgba(60,200,161,0.1)',
     color: AP.accent,
     border: 'none',
-    borderRadius: 8,
+    borderRadius: 12,
     fontSize: 11,
     fontWeight: 700,
     cursor: 'pointer',
-    boxShadow: `${NEU.btnIn}, 0 0 8px rgba(60,200,161,0.18)`,
+    boxShadow: `${NEU.btnIn}, ${NEU.tealSm}`,
     transition: 'all 0.2s',
+    whiteSpace: 'nowrap',
+    minHeight: 44,
+  },
+  // ─── Dropdown "Ещё" ──────────────────────────────────────────
+  moreMenu: {
+    position: 'absolute',
+    top: 'calc(100% + 8px)',
+    right: 0,
+    background: AP.raise,
+    borderRadius: 16,
+    padding: '8px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)',
+    zIndex: 99,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 220,
+  },
+  moreItem: {
+    padding: '11px 14px',
+    background: 'transparent',
+    color: AP.text,
+    border: 'none',
+    borderRadius: 10,
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    textAlign: 'left',
+    minHeight: 44,
+  },
+  moreItemActive: {
+    padding: '11px 14px',
+    background: 'rgba(60,200,161,0.1)',
+    color: AP.accent,
+    border: 'none',
+    borderRadius: 10,
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    textAlign: 'left',
+    minHeight: 44,
+  },
+  // ─── Card internals ──────────────────────────────────────────
+  cardDivider: {
+    height: 1,
+    background: AP.border,
+    margin: '2px 0',
+  },
+  actionsToggle: {
+    background: 'transparent',
+    border: 'none',
+    color: AP.muted,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: 'pointer',
+    padding: '4px 0',
+    letterSpacing: '0.04em',
+    minHeight: 32,
+  },
+  badge: {
+    padding: '2px 7px',
+    borderRadius: 6,
+    fontSize: 10,
+    fontWeight: 700,
+    background: AP.surface,
+    color: AP.muted,
+    boxShadow: NEU.btnOut,
   },
   // ─── Catalog sub-tabs ────────────────────────────────────────
   catalogTabs: {
@@ -2006,40 +2131,43 @@ const styles = {
     boxShadow: NEU.btnIn,
   },
   grantBtn: {
-    padding: '6px 10px',
+    padding: '10px 14px',
     background: 'rgba(60,200,161,0.1)',
     color: AP.accent,
     border: 'none',
-    borderRadius: 8,
-    fontSize: 11,
+    borderRadius: 10,
+    fontSize: 12,
     fontWeight: 700,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     boxShadow: NEU.tealSm,
+    minHeight: 44,
   },
   claimBtn: {
-    padding: '6px 10px',
+    padding: '10px 14px',
     background: 'rgba(255,77,106,0.1)',
     color: AP.danger,
     border: 'none',
-    borderRadius: 8,
-    fontSize: 11,
+    borderRadius: 10,
+    fontSize: 12,
     fontWeight: 700,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     boxShadow: NEU.danger,
+    minHeight: 44,
   },
   resetSubBtn: {
-    padding: '6px 10px',
+    padding: '10px 14px',
     background: 'rgba(255,77,106,0.1)',
     color: AP.danger,
     border: 'none',
-    borderRadius: 8,
-    fontSize: 11,
+    borderRadius: 10,
+    fontSize: 12,
     fontWeight: 700,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     boxShadow: NEU.danger,
+    minHeight: 44,
   },
   tariffRow: {
     display: 'flex',
@@ -2048,30 +2176,32 @@ const styles = {
     flexWrap: 'wrap',
   },
   tariffBtnActive: {
-    padding: '5px 10px',
+    padding: '8px 14px',
     background: 'rgba(60,200,161,0.12)',
     color: AP.accent,
     border: 'none',
-    borderRadius: 8,
-    fontSize: 11,
+    borderRadius: 10,
+    fontSize: 12,
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: `${NEU.btnIn}, ${NEU.tealSm}`,
+    minHeight: 40,
   },
   tariffBtnInactive: {
-    padding: '5px 10px',
+    padding: '8px 14px',
     background: AP.surface,
     color: AP.muted,
     border: 'none',
-    borderRadius: 8,
-    fontSize: 11,
+    borderRadius: 10,
+    fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
     boxShadow: NEU.btnOut,
+    minHeight: 40,
   },
   daysInput: {
-    width: 44,
-    padding: '4px 6px',
+    width: 52,
+    padding: '8px 6px',
     background: AP.bg,
     color: AP.text,
     border: `1px solid ${AP.border}`,
@@ -2082,15 +2212,16 @@ const styles = {
     outline: 'none',
   },
   extendBtn: {
-    padding: '5px 10px',
+    padding: '8px 12px',
     background: 'rgba(245,146,58,0.12)',
     color: AP.warn,
     border: 'none',
-    borderRadius: 8,
-    fontSize: 11,
+    borderRadius: 10,
+    fontSize: 12,
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: NEU.warn,
+    minHeight: 40,
   },
   notesRow: {
     marginTop: 8,
