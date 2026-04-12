@@ -30,8 +30,6 @@ module.exports = async (req, res) => {
     // SHC бонусы за рефералов
     const bonuses = await getReferralBonuses(telegram_id, 100);
     const referrals = await getReferrals(telegram_id);
-    const totalShc = bonuses.reduce((sum, b) => sum + b.total_amount, 0);
-
     return res.status(200).json({
       // Амбассадорские комиссии (₽)
       transactions: transactions.map(t => ({
@@ -54,7 +52,7 @@ module.exports = async (req, res) => {
         date: b.created_at,
       })),
       shc: {
-        total: totalShc,
+        total: user.balance_shc || 0,
         friends_count: referrals.length,
       },
       balance: user.balance_shc || 0,

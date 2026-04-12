@@ -354,6 +354,7 @@ function processCommissions(referralTelegramId, paymentAmount, paymentId) {
  * Вызывается из webhook при каждом успешном платеже.
  */
 function processReferralSHC(referralTelegramId, subscriptionAmount) {
+  const db = getDb();
   const referral = getUser(referralTelegramId);
   if (!referral || !referral.invited_by) return null;
 
@@ -361,7 +362,21 @@ function processReferralSHC(referralTelegramId, subscriptionAmount) {
   if (!inviter) return null;
 
   const shcAmount = Math.round(subscriptionAmount * 0.20);
-  updateBalance(inviter.telegram_id, shcAmount);
+
+  const txn = db.transaction(() => {
+    db.prepare(`
+      INSERT INTO referral_bonuses
+        (user_id, referral_id, base_amount, threshold_bonus, total_amount, friends_count, achievement)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      String(inviter.telegram_id), String(referralTelegramId),
+      shcAmount, 0, shcAmount, 0,
+      `20% от подписки ${subscriptionAmount}₽`
+    );
+    updateBalance(inviter.telegram_id, shcAmount);
+  });
+  txn();
+
   return { inviter_id: inviter.telegram_id, shc: shcAmount };
 }
 
@@ -401,9 +416,10 @@ function processReferralBonus(inviterTelegramId, referralTelegramId) {
   const inviter = getUser(inviterTelegramId);
   if (!inviter) return null;
 
-  // Проверяем, что бонус за этого реферала ещё не начислен
+  // Проверяем, что бонус за присоединение этого реферала ещё не начислен
+  // friends_count > 0 — признак join-бонуса (subscription-бонусы пишутся с friends_count = 0)
   const existing = db.prepare(
-    'SELECT id FROM referral_bonuses WHERE user_id = ? AND referral_id = ?'
+    'SELECT id FROM referral_bonuses WHERE user_id = ? AND referral_id = ? AND friends_count > 0'
   ).get(String(inviterTelegramId), String(referralTelegramId));
   if (existing) return null;
 
