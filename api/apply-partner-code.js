@@ -1,6 +1,6 @@
 // api/apply-partner-code.js — Применение партнёрского кода после покупки подписки
 
-const { getUser, getPartnerByCode, setInvitedBy, updateBalance, processReferralBonus, getLastPayment } = require('./_lib/db');
+const { getUser, getPartnerByCode, setInvitedBy, updateBalance, getLastPayment } = require('./_lib/db');
 const fs = require('fs');
 const path = require('path');
 
@@ -52,9 +52,6 @@ module.exports = async (req, res) => {
       shcAwarded = Math.round(lastPayment.amount * 0.20);
       await updateBalance(String(partner.telegram_id), shcAwarded);
     }
-
-    // Пороговые SHC бонусы (50 SHC за друга + бонусы за количество)
-    await processReferralBonus(String(partner.telegram_id), String(telegram_id));
 
     // Очищаем кэш обоих пользователей
     for (const tid of [telegram_id, partner.telegram_id]) {
