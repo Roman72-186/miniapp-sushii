@@ -1,0 +1,736 @@
+/* ═══════════════════════════════════════════════════════════════
+   REDESIGN V2 — унификация с ProfilePage / AdminPage стилистикой
+   (2026-04-14). JSX не трогаем — все изменения через CSS override.
+   Палитра, неоморфные тени, единые радиусы, акценты.
+
+   Токены:
+     bg:      #1a1a1a
+     surface: #1e1e2e
+     raise:   #202024
+     inset:   #14142a
+     shadow:  #111113 / #0a0a18
+     accent:  #3CC8A1
+     accentD: #28a882
+     text:    #eaeaf8 / #e8e8f0
+     muted:   #8888aa / #6666aa
+═══════════════════════════════════════════════════════════════ */
+
+/* === Header === */
+.shop-page .shop-header {
+  background: #1a1a1e;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.shop-page .shop-header__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+}
+
+.shop-page .shop-header__title {
+  color: #eaeaf8;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.shop-page .shop-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shop-page .shop-header__profile {
+  background: #202024;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #eaeaf8;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.shop-page .shop-header__profile:active {
+  transform: scale(0.95);
+  box-shadow: inset 2px 2px 6px #111113, inset -1px -1px 4px #2e2e36;
+}
+
+.shop-page .shop-header__cart {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  border: none;
+  border-radius: 12px;
+  padding: 8px 14px;
+  color: #0f1114;
+  font-weight: 800;
+  font-size: 14px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(60, 200, 161, 0.38), 0 2px 8px rgba(60, 200, 161, 0.22);
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.shop-page .shop-header__cart:active {
+  transform: scale(0.96);
+  box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.28);
+}
+
+.shop-page .shop-header__cart-icon {
+  font-size: 16px;
+}
+
+.shop-page .shop-header__cart-badge {
+  background: #0f1114;
+  color: #3CC8A1;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
+.shop-page .shop-header__back {
+  background: #202024;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #eaeaf8;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+}
+
+/* === Payment success banner === */
+.shop-page .payment-success-banner {
+  margin: 12px 16px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(60, 200, 161, 0.18), rgba(60, 200, 161, 0.08));
+  color: #3CC8A1;
+  border: 1px solid rgba(60, 200, 161, 0.4);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(60, 200, 161, 0.15);
+}
+
+/* === Gift section === */
+.shop-page .shop-gift-section {
+  margin: 14px 12px 0;
+  padding: 14px;
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  box-shadow: 6px 6px 16px #111113, -4px -4px 12px #2c2c30;
+}
+
+.shop-page .shop-gift-section__title {
+  padding: 0;
+  margin: 0 0 12px;
+  color: #8888aa;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.shop-page .shop-gift-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0;
+}
+
+.shop-page .shop-gift-btn {
+  background: #14142a;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #eaeaf8;
+  cursor: pointer;
+  position: relative;
+  box-shadow: inset 3px 3px 8px #0a0a18, inset -2px -2px 6px #1e1e3a;
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+  min-height: 86px;
+}
+
+.shop-page .shop-gift-btn--available {
+  background: linear-gradient(135deg, rgba(60, 200, 161, 0.18), rgba(60, 200, 161, 0.05));
+  border-color: rgba(60, 200, 161, 0.4);
+  box-shadow: 0 4px 16px rgba(60, 200, 161, 0.22), inset 0 1px 0 rgba(60, 200, 161, 0.2);
+}
+
+.shop-page .shop-gift-btn--available:active {
+  transform: scale(0.97);
+}
+
+.shop-page .shop-gift-btn--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shop-page .shop-gift-btn--claimed {
+  background: rgba(60, 200, 161, 0.08);
+  border-color: rgba(60, 200, 161, 0.25);
+  color: #3CC8A1;
+  cursor: default;
+}
+
+.shop-page .shop-gift-btn--waiting {
+  background: rgba(245, 146, 58, 0.08);
+  border-color: rgba(245, 146, 58, 0.25);
+  color: #f5923a;
+  cursor: default;
+}
+
+.shop-page .shop-gift-btn__icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.shop-page .shop-gift-btn__label {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.shop-page .shop-gift-btn__sub {
+  font-size: 11px;
+  color: #8888aa;
+  font-weight: 600;
+}
+
+.shop-page .shop-gift-btn--available .shop-gift-btn__sub {
+  color: #3CC8A1;
+}
+
+.shop-page .shop-gift-btn--claimed .shop-gift-btn__sub {
+  color: #3CC8A1;
+}
+
+.shop-page .shop-gift-btn--waiting .shop-gift-btn__sub {
+  color: #f5923a;
+}
+
+.shop-page .shop-gift-btn__lock {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 12px;
+  color: #8888aa;
+}
+
+/* === Search === */
+.shop-page .shop-search {
+  margin: 14px 12px 0;
+  position: relative;
+}
+
+.shop-page .shop-search__input {
+  background: #14142a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 13px 40px 13px 16px;
+  color: #eaeaf8;
+  font-size: 14px;
+  width: 100%;
+  box-shadow: inset 3px 3px 8px #0a0a18, inset -2px -2px 6px #1e1e3a;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shop-page .shop-search__input:focus {
+  border-color: rgba(60, 200, 161, 0.45);
+  box-shadow: inset 3px 3px 8px #0a0a18, inset -2px -2px 6px #1e1e3a, 0 0 0 3px rgba(60, 200, 161, 0.08);
+}
+
+.shop-page .shop-search__input::placeholder {
+  color: #6666aa;
+}
+
+.shop-page .shop-search__clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #202024;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #8888aa;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* === Tabs (категории) === */
+.shop-page .shop-tabs {
+  margin: 14px 0 0;
+  padding: 6px 12px;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky;
+  top: 62px;
+  z-index: 50;
+  background: #1a1a1a;
+}
+
+.shop-page .shop-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.shop-page .shop-tabs__item {
+  background: #202024;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #8888aa;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  transition: all 0.18s ease;
+}
+
+.shop-page .shop-tabs__item--active {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(60, 200, 161, 0.38);
+}
+
+.shop-page .shop-tabs__icon {
+  font-size: 15px;
+}
+
+/* === Section titles === */
+.shop-page .shop-section {
+  padding-top: 8px;
+}
+
+.shop-page .shop-section__title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #eaeaf8;
+  margin: 20px 16px 10px;
+  padding-left: 12px;
+  border-left: 3px solid #3CC8A1;
+}
+
+/* === Grid === */
+.shop-page .shop-grid {
+  padding: 0 12px;
+  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 640px) {
+  .shop-page .shop-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .shop-page .shop-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+/* === Product card === */
+.shop-page .shop-card {
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  box-shadow: 6px 6px 16px #111113, -4px -4px 12px #2c2c30;
+}
+
+.shop-page .shop-card:hover {
+  box-shadow: 8px 8px 20px #0c0c18, -5px -5px 14px #30303a;
+}
+
+.shop-page .shop-card__image-wrap {
+  border-radius: 14px 14px 0 0;
+  background: #14142a;
+  box-shadow: inset 3px 3px 8px #0a0a18, inset -2px -2px 6px #1e1e3a;
+}
+
+.shop-page .shop-card__name {
+  color: #eaeaf8;
+}
+
+.shop-page .shop-card__desc {
+  color: #6666aa;
+}
+
+.shop-page .shop-card__price {
+  color: #eaeaf8;
+  font-size: 16px;
+}
+
+.shop-page .shop-card__old-price {
+  color: #6666aa;
+}
+
+.shop-page .shop-card__savings {
+  color: #3CC8A1;
+  font-weight: 700;
+}
+
+.shop-page .shop-card__add-btn {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  font-weight: 800;
+  padding: 7px 14px;
+  border-radius: 10px;
+  box-shadow: 0 3px 12px rgba(60, 200, 161, 0.3);
+}
+
+.shop-page .shop-card__add-btn:active {
+  box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.28);
+}
+
+.shop-page .shop-card__counter-btn {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  box-shadow: 0 3px 10px rgba(60, 200, 161, 0.28);
+}
+
+.shop-page .shop-card__counter-btn:active {
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.28);
+}
+
+.shop-page .shop-card__counter-val {
+  color: #eaeaf8;
+  padding: 0 10px;
+}
+
+/* === Cart FAB === */
+.shop-cart-fab {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(60, 200, 161, 0.4), 0 3px 12px rgba(60, 200, 161, 0.22);
+}
+
+.shop-cart-fab:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.shop-cart-fab__badge {
+  background: #0f1114;
+  color: #3CC8A1;
+}
+
+/* === Locked popup === */
+.shop-page .shop-locked-popup {
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  box-shadow: 6px 6px 20px #0a0a10, -4px -4px 14px #2c2c3a;
+}
+
+.shop-page .shop-locked-popup__text {
+  color: #eaeaf8;
+}
+
+.shop-page .shop-locked-popup__btn {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(60, 200, 161, 0.35);
+}
+
+/* === Checkout form === */
+.shop-checkout {
+  background: #1a1a1a;
+}
+
+.shop-checkout__inner {
+  background: #1a1a1a;
+}
+
+.shop-checkout__header {
+  background: #1a1a1e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.shop-checkout__title {
+  color: #eaeaf8;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.shop-checkout__back {
+  background: #202024;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #eaeaf8;
+  border-radius: 12px;
+  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+}
+
+.shop-form-section {
+  margin: 14px 12px 0;
+  padding: 14px 16px;
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  box-shadow: 6px 6px 16px #111113, -4px -4px 12px #2c2c30;
+}
+
+.shop-form-section__title {
+  color: #eaeaf8;
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 12px;
+  padding-left: 10px;
+  border-left: 3px solid #3CC8A1;
+}
+
+.shop-form-section__block {
+  padding: 0;
+}
+
+.shop-form-field__label {
+  color: #8888aa;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.shop-form-field__input,
+.shop-form-field__textarea {
+  background: #14142a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #eaeaf8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  box-shadow: inset 3px 3px 8px #0a0a18, inset -2px -2px 6px #1e1e3a;
+  transition: border-color 0.15s ease;
+}
+
+.shop-form-field__input:focus,
+.shop-form-field__textarea:focus {
+  border-color: rgba(60, 200, 161, 0.45);
+  outline: none;
+}
+
+.shop-form-field__input::placeholder,
+.shop-form-field__textarea::placeholder {
+  color: #6666aa;
+}
+
+.shop-form-field__textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.shop-radio-group {
+  gap: 10px;
+}
+
+.shop-radio-label {
+  background: #14142a;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #eaeaf8;
+  font-size: 14px;
+  box-shadow: inset 2px 2px 6px #0a0a18, inset -1px -1px 4px #1e1e3a;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.shop-radio-label:has(input:checked) {
+  border-color: rgba(60, 200, 161, 0.45);
+  box-shadow: inset 2px 2px 6px #0a0a18, inset -1px -1px 4px #1e1e3a, 0 0 0 2px rgba(60, 200, 161, 0.15);
+  color: #3CC8A1;
+}
+
+.shop-radio-hint {
+  color: #8888aa;
+  font-size: 12px;
+  padding: 10px 12px;
+  background: rgba(60, 200, 161, 0.06);
+  border: 1px solid rgba(60, 200, 161, 0.18);
+  border-radius: 8px;
+}
+
+.shop-time-picker__select {
+  background: #14142a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #eaeaf8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  width: 100%;
+  box-shadow: inset 3px 3px 8px #0a0a18, inset -2px -2px 6px #1e1e3a;
+}
+
+.shop-checkout__footer {
+  background: #1a1a1e;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.shop-checkout__summary {
+  color: #8888aa;
+  font-size: 13px;
+}
+
+.shop-checkout__summary-total {
+  color: #eaeaf8;
+  font-weight: 700;
+}
+
+.shop-checkout__submit {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  font-weight: 800;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 20px rgba(60, 200, 161, 0.4), 0 2px 8px rgba(60, 200, 161, 0.22);
+  border: none;
+}
+
+.shop-checkout__submit:active {
+  box-shadow: inset 3px 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.shop-checkout__submit:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+/* === SHC блок в корзине === */
+.shop-shc-block {
+  margin: 14px 12px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(60, 200, 161, 0.12), rgba(60, 200, 161, 0.04));
+  border: 1px solid rgba(60, 200, 161, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(60, 200, 161, 0.12);
+}
+
+.shop-shc-block--locked {
+  background: #1e1e2e;
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 6px 6px 16px #111113, -4px -4px 12px #2c2c30;
+}
+
+.shop-shc-block__label {
+  color: #eaeaf8;
+  font-size: 13px;
+}
+
+.shop-shc-block__label strong {
+  color: #3CC8A1;
+  font-weight: 800;
+}
+
+.shop-shc-block__input {
+  background: #14142a;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #eaeaf8;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.shop-shc-block__max-btn {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  font-weight: 800;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+
+.shop-shc-block__discount {
+  color: #3CC8A1;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.shop-shc-block__progress {
+  background: #14142a;
+  border-radius: 100px;
+  height: 6px;
+  box-shadow: inset 2px 2px 4px #0a0a18;
+}
+
+.shop-shc-block__progress > div {
+  background: linear-gradient(90deg, #3CC8A1, #50dcb0);
+  border-radius: 100px;
+  height: 100%;
+}
+
+/* === Success screen === */
+.shop-page .shop-success {
+  background: #1e1e2e;
+  border: 1px solid rgba(60, 200, 161, 0.3);
+  border-radius: 18px;
+  box-shadow: 6px 6px 20px #111113, -4px -4px 14px #2c2c30, 0 0 40px rgba(60, 200, 161, 0.15);
+  margin: 24px 16px;
+  padding: 32px 24px;
+}
+
+.shop-page .shop-success__icon {
+  font-size: 54px;
+}
+
+.shop-page .shop-success__title {
+  color: #3CC8A1;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.shop-page .shop-success__order-num {
+  color: #eaeaf8;
+  font-weight: 700;
+}
+
+.shop-page .shop-success__text {
+  color: #8888aa;
+}
+
+.shop-page .shop-success__btn {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  font-weight: 800;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(60, 200, 161, 0.35);
+}
+
+/* === Address autocomplete dropdown (уже был добавлен — оставляем) === */
+/* (.shop-suggest-dropdown уже в shop.css) */

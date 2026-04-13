@@ -1,6 +1,8 @@
 // src/App.js
 import React from "react";
 import "./App.css";
+import "./shop.css";
+import "./shop-v2.css";
 import Success from "./Success"; // страница «Заказ принят»
 import SetsPage from "./SetsPage"; // страница сетов по подписке
 import SetsReceivedPage from "./SetsReceivedPage"; // страница «сет уже получен»
