@@ -73,29 +73,31 @@ async function rawSuggest(query, limit) {
 /**
  * Подсказки адресов: возвращает до `limit` кандидатов (только улицы/дома, без мусора).
  *
- * Делаем два параллельных запроса — с префиксом "ул." и без, — затем объединяем
- * и дедуплицируем. Одиночное слово "багратиона" Yandex без "ул." находит плохо,
- * а двусловные "юрия гагарина" — наоборот плохо находит С "ул." (сбивается порядок).
+ * Стратегия:
+ * - Если в query есть тип (улица/проспект/переулок и т.д.) — шлём как есть.
+ * - Если query одно слово ("багратиона") — префиксуем "ул." (Yandex иначе возвращает трассы).
+ * - Если query много слов без типа ("юрия гагарина", "4-я окружная") — шлём как есть
+ *   (с префиксом "ул." Yandex сбивается и тоже возвращает трассы).
  */
 async function suggest(query, limit = 7) {
   const q = (query || '').trim();
   if (q.length < 2) return [];
 
   const hasType = STREET_TYPE_RX.test(q);
-  const queries = [q];
-  if (!hasType) queries.push(`ул. ${q}`);
+  const isSingleWord = !/\s/.test(q);
 
-  const fetchLimit = limit * 3;
-  const results = await Promise.all(queries.map(qq => rawSuggest(qq, fetchLimit).catch(() => [])));
-  const merged = results.flat();
+  let finalQuery;
+  if (hasType) finalQuery = q;
+  else if (isSingleWord) finalQuery = `ул. ${q}`;
+  else finalQuery = q;
 
-  // Только улицы и дома
-  const filtered = merged.filter(m => m.kind === 'street' || m.kind === 'house');
+  const members = await rawSuggest(finalQuery, limit * 3).catch(() => []);
 
-  // Дедуп по formatted
+  // Только улицы и дома; дедуп по formatted
   const seen = new Set();
   const unique = [];
-  for (const item of filtered) {
+  for (const item of members) {
+    if (item.kind !== 'street' && item.kind !== 'house') continue;
     if (seen.has(item.formatted)) continue;
     seen.add(item.formatted);
     unique.push(item);
