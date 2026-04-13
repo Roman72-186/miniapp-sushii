@@ -9,6 +9,7 @@ import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import './shop.css';
+import './shop-v2.css';
 
 const DISCOUNT_CATEGORIES = [
   {
