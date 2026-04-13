@@ -61,15 +61,29 @@ async function geocode(address) {
   return parseMember(member);
 }
 
+// Префикс типа улицы, если юзер ввёл только название.
+// Yandex плохо понимает голый токен "багратиона", но хорошо — "ул. багратиона".
+const STREET_TYPE_RX = /^(ул|улиц|просп|пр-?т|проспект|переул|пер\.|шоссе|бульвар|б-р|набережн|наб\.|пл\.|площад|тупик|аллея|проезд|тракт|микрорайон|мкр)/i;
+
+function prefixWithStreetType(query) {
+  const trimmed = query.trim();
+  if (STREET_TYPE_RX.test(trimmed)) return trimmed;
+  return `ул. ${trimmed}`;
+}
+
 /**
- * Подсказки адресов: возвращает до `limit` кандидатов.
- * Используется для autocomplete в форме доставки.
+ * Подсказки адресов: возвращает до `limit` кандидатов (только улицы/дома, без мусора типа аэропортов).
  */
 async function suggest(query, limit = 7) {
   if (!query || query.trim().length < 2) return [];
-  const data = await yandexRequest({ geocode: buildQuery(query), results: String(limit) });
+  const prefixed = prefixWithStreetType(query);
+  const data = await yandexRequest({ geocode: buildQuery(prefixed), results: String(limit * 3) });
   const members = data?.response?.GeoObjectCollection?.featureMember || [];
-  return members.map(parseMember).filter(Boolean);
+  return members
+    .map(parseMember)
+    .filter(Boolean)
+    .filter(m => m.kind === 'street' || m.kind === 'house')
+    .slice(0, limit);
 }
 
 module.exports = { geocode, suggest };
