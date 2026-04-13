@@ -16,6 +16,21 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
 });
 
+// Runtime-миграции: добавить колонки если нет (идемпотентно)
+let _migrationsDone = false;
+async function ensureMigrations() {
+  if (_migrationsDone) return;
+  _migrationsDone = true;
+  try {
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS middle_name TEXT');
+  } catch (err) {
+    console.error('[db-pg] migration error:', err.message);
+  }
+}
+ensureMigrations();
+
 // ─── Helpers ─────────────────────────────────────────────────
 
 /** Форматирует Date → DD.MM.YYYY (совместимо с SQLite-форматом) */
@@ -441,6 +456,36 @@ async function updateLastAddress(telegramId, lastAddress, lastPickupPoint) {
   );
 }
 
+async function updateUserProfile(telegramId, data) {
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
+  await query(`
+    UPDATE users
+    SET first_name = $1,
+        last_name = $2,
+        middle_name = $3,
+        phone = $4,
+        name = $5,
+        updated_at = NOW()
+    WHERE telegram_id = $6
+  `, [
+    data.first_name || null,
+    data.last_name || null,
+    data.middle_name || null,
+    data.phone || null,
+    fullName,
+    String(telegramId),
+  ]);
+  return await getUser(telegramId);
+}
+
+async function findUserByPhoneExceptId(phone, telegramId) {
+  const res = await query(
+    'SELECT telegram_id, name FROM users WHERE phone = $1 AND telegram_id != $2 LIMIT 1',
+    [phone, String(telegramId)]
+  );
+  return res.rows[0] || null;
+}
+
 async function setUserTariff(telegramId, tariff) {
   await query(
     'UPDATE users SET tariff = $1, updated_at = NOW() WHERE telegram_id = $2',
@@ -662,6 +707,8 @@ module.exports = {
   extendSubscription,
   setUserNotes,
   updateLastAddress,
+  updateUserProfile,
+  findUserByPhoneExceptId,
   getAdminSubscribersList,
   getMonthRevenue,
   getAdminTopReferrers,

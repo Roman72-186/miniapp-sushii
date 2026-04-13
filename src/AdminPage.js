@@ -1,6 +1,7 @@
 // src/AdminPage.js — Админка: товары + подписчики
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from './UserContext';
+import EditProfileModal from './components/EditProfileModal';
 
 // Подключаем Montserrat через Google Fonts
 if (typeof document !== 'undefined' && !document.getElementById('montserrat-font')) {
@@ -31,6 +32,7 @@ function AdminPage() {
 
   // Subscribers state
   const [subscribers, setSubscribers] = useState([]);
+  const [editingUser, setEditingUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [subsLoading, setSubsLoading] = useState(false);
   const [subsFilter, setSubsFilter] = useState('all');
@@ -823,7 +825,7 @@ function AdminPage() {
 
                   {/* ── Секция 1: Идентификация ── */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
                         <span style={styles.subName}>{s.name || 'Без имени'}</span>
                         <span style={styles.tariffBadge(s.tariff)}>{s.tariff}&#8381;</span>
@@ -834,6 +836,25 @@ function AdminPage() {
                         <span>ID {s.telegram_id}</span>
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingUser(s)}
+                      title="Редактировать профиль"
+                      style={{
+                        background: 'transparent',
+                        border: `1px solid ${AP.border}`,
+                        color: AP.accent,
+                        borderRadius: 6,
+                        width: 30,
+                        height: 30,
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        flexShrink: 0,
+                        padding: 0,
+                      }}
+                    >
+                      ✎
+                    </button>
                   </div>
 
                   <div style={styles.cardDivider} />
@@ -1649,6 +1670,15 @@ function AdminPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {editingUser && (
+        <EditProfileModal
+          mode="admin"
+          currentUser={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSaved={async () => { await loadSubscribers(); }}
+        />
       )}
     </div>
   );
