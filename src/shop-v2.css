@@ -734,3 +734,97 @@
 
 /* === Address autocomplete dropdown (уже был добавлен — оставляем) === */
 /* (.shop-suggest-dropdown уже в shop.css) */
+
+/* === Корзина: крестик и бейдж «Бесплатно» не перекрываются === */
+.shop-cart__item {
+  background: #1e1e2e;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  box-shadow: 4px 4px 12px #111113, -2px -2px 8px #2c2c30;
+}
+
+.shop-cart__item--gift {
+  border-left: 3px solid #f5923a;
+  background: linear-gradient(135deg, rgba(245, 146, 58, 0.06), #1e1e2e 60%);
+}
+
+.shop-cart__item-name {
+  color: #eaeaf8;
+}
+
+.shop-cart__item-price {
+  color: #6666aa;
+}
+
+.shop-cart__item-remove {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #eaeaf8;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 2px 2px 6px #111113, -1px -1px 4px #2e2e36;
+  /* Перекрываем позиционирование из grid — row 1 */
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  align-self: start;
+}
+
+.shop-cart__item-remove:hover,
+.shop-cart__item-remove:focus-visible {
+  background: rgba(255, 77, 106, 0.18);
+  border-color: rgba(255, 77, 106, 0.55);
+  color: #ff4d6a;
+}
+
+.shop-cart__item-remove:active {
+  transform: scale(0.92);
+  box-shadow: inset 2px 2px 6px #111113;
+}
+
+/* Бейдж «Бесплатно» — по центру нижнего ряда, НЕ перекрывает × */
+.shop-cart__item-gift-free {
+  grid-column: 2 / 4;
+  grid-row: 2;
+  justify-self: center;
+  align-self: center;
+  background: linear-gradient(135deg, rgba(60, 200, 161, 0.18), rgba(60, 200, 161, 0.06));
+  color: #3CC8A1;
+  padding: 5px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(60, 200, 161, 0.4);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(60, 200, 161, 0.15);
+}
+
+.shop-cart__item-price--gift {
+  color: #f5923a;
+}
+
+.shop-cart__item-total {
+  color: #eaeaf8;
+}
+
+.shop-cart__item-btn {
+  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  color: #0f1114;
+  box-shadow: 0 3px 10px rgba(60, 200, 161, 0.25);
+}
+
+.shop-cart__item-qty {
+  color: #eaeaf8;
+  padding: 0 8px;
+}
