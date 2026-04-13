@@ -40,16 +40,17 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                       <p className="shop-cart__item-price">{item.product.price}₽ / шт</p>
                     )}
                   </div>
+                  <button
+                    className="shop-cart__item-remove"
+                    onClick={() => onRemove(item.product.id)}
+                    aria-label="Удалить из корзины"
+                  >
+                    &times;
+                  </button>
                   {item.product.gift ? (
                     <span className="shop-cart__item-gift-free">Бесплатно</span>
                   ) : (
                     <>
-                      <button
-                        className="shop-cart__item-remove"
-                        onClick={() => onRemove(item.product.id)}
-                      >
-                        &times;
-                      </button>
                       <div className="shop-cart__item-controls">
                         <button
                           className="shop-cart__item-btn"
