@@ -225,8 +225,6 @@ export function UserProvider({ children }) {
       payment_method_id: v['PaymentID'] || null,
       has_payment_id: !!v['PaymentID'],
       contact_id: contactId,
-      last_address: v['last_address'] || null,
-      last_pickup_point: v['last_pickup_point'] || null,
     };
   }, [userData, contactName, phone, contactId]);
 
