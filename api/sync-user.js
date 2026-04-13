@@ -179,8 +179,6 @@ module.exports = async (req, res) => {
       'partner_code': dbUser?.partner_code || '',
       'invited_by': dbUser?.invited_by || '',
       'датаПодарка': giftDate,
-      'last_address': dbUser?.last_address || '',
-      'last_pickup_point': dbUser?.last_pickup_point || '',
     };
 
     // 🔍 DEBUG: Вычисляем статус подписки через deriveFromDbUser
