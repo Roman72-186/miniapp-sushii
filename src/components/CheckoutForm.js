@@ -36,9 +36,11 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const shcBalance = profile?.balance_shc || 0;
   const [shcApplied, setShcApplied] = useState(0);
   const effectiveTotal = Math.max(0, total - shcApplied);
-  const [deliveryType, setDeliveryType] = useState(() =>
-    items.some(item => item?.product?.gift) ? 'pickup' : 'delivery'
-  );
+  const [deliveryType, setDeliveryType] = useState(() => {
+    const gift = items.some(item => item?.product?.gift);
+    const nonGift = items.some(item => !item?.product?.gift);
+    return (gift && !nonGift) ? 'pickup' : 'delivery';
+  });
   const [pickupPoint, setPickupPoint] = useState(PICKUP_POINTS[0].id);
   const [timeType, setTimeType] = useState('asap');
   const [payment, setPayment] = useState('cash');
@@ -54,6 +56,10 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
   const [error, setError] = useState(null);
   const [nearestStore, setNearestStore] = useState(null);
   const [nearestLoading, setNearestLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [streetConfirmed, setStreetConfirmed] = useState(false);
   const shopOpen = useMemo(() => isShopOpen(), []);
 
   // Автозаполнение имени и телефона из контекста пользователя
@@ -71,14 +77,48 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
     () => items.some(item => item?.product?.gift),
     [items]
   );
+  const hasNonGiftItems = useMemo(
+    () => items.some(item => !item?.product?.gift),
+    [items]
+  );
+  const hasOnlyGiftItems = hasGiftItems && !hasNonGiftItems;
 
   useEffect(() => {
-    if (hasGiftItems && deliveryType !== 'pickup') {
+    if (hasOnlyGiftItems && deliveryType !== 'pickup') {
       setDeliveryType('pickup');
     }
-  }, [deliveryType, hasGiftItems]);
+  }, [deliveryType, hasOnlyGiftItems]);
 
-  // Определение ближайшей точки при вводе адреса доставки
+  // Подсказки улицы: debounce-запрос к /api/address-suggest
+  const suggestTimerRef = useRef(null);
+  const fetchSuggestions = useCallback(async (query) => {
+    if (!query || query.trim().length < 2) { setSuggestions([]); return; }
+    setSuggestLoading(true);
+    try {
+      const res = await fetch('/api/address-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json();
+      setSuggestions(data.success ? (data.suggestions || []) : []);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSuggestLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (deliveryType !== 'delivery') return;
+    if (streetConfirmed) return; // после подтверждения не дёргаем подсказки
+    if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
+    if (!street || street.trim().length < 2) { setSuggestions([]); return; }
+    suggestTimerRef.current = setTimeout(() => fetchSuggestions(street), 400);
+    return () => { if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current); };
+  }, [street, deliveryType, streetConfirmed, fetchSuggestions]);
+
+  // Определение ближайшей точки: только после подтверждённой улицы + заполненного дома
   const nearestTimerRef = useRef(null);
   const fetchNearestStore = useCallback(async (addr) => {
     if (!addr || addr.length < 3) { setNearestStore(null); return; }
@@ -90,11 +130,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         body: JSON.stringify({ address: addr }),
       });
       const data = await res.json();
-      if (data.success && data.nearest) {
-        setNearestStore(data.nearest);
-      } else {
-        setNearestStore(null);
-      }
+      setNearestStore(data.success && data.nearest ? data.nearest : null);
     } catch {
       setNearestStore(null);
     } finally {
@@ -104,12 +140,25 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
 
   useEffect(() => {
     if (deliveryType !== 'delivery') { setNearestStore(null); return; }
-    const addr = [street.trim(), home.trim()].filter(Boolean).join(', ');
+    if (!streetConfirmed || !home.trim()) { setNearestStore(null); return; }
+    const addr = `${street.trim()}, ${home.trim()}`;
     if (nearestTimerRef.current) clearTimeout(nearestTimerRef.current);
-    if (addr.length < 3) { setNearestStore(null); return; }
-    nearestTimerRef.current = setTimeout(() => fetchNearestStore(addr), 800);
+    nearestTimerRef.current = setTimeout(() => fetchNearestStore(addr), 500);
     return () => { if (nearestTimerRef.current) clearTimeout(nearestTimerRef.current); };
-  }, [street, home, deliveryType, fetchNearestStore]);
+  }, [street, home, deliveryType, streetConfirmed, fetchNearestStore]);
+
+  const handleSuggestPick = (item) => {
+    // Извлекаем только улицу из формата "Россия, Калининград, улица Багратиона, 100"
+    // Разбиваем по запятым, убираем Россия/Калининград/номера домов
+    const parts = (item.formatted || '').split(',').map(s => s.trim()).filter(Boolean);
+    const streetPart = parts.find(p =>
+      /улица|проспект|переулок|шоссе|проезд|бульвар|площадь|набережная|тупик|аллея/i.test(p)
+    ) || parts[parts.length - 1] || '';
+    setStreet(streetPart);
+    setStreetConfirmed(true);
+    setSuggestOpen(false);
+    setSuggestions([]);
+  };
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -124,7 +173,12 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
       return;
     }
 
-    if (deliveryType === 'delivery' && !street.trim()) { setError('Укажите улицу'); return; }
+    if (deliveryType === 'delivery') {
+      if (!street.trim()) { setError('Укажите улицу'); return; }
+      if (!streetConfirmed) { setError('Выберите улицу из списка подсказок'); return; }
+      if (!home.trim()) { setError('Укажите номер дома'); return; }
+      if (!nearestStore) { setError('Не удалось определить пункт для доставки — проверьте адрес'); return; }
+    }
     if (timeType === 'scheduled' && !scheduledTime) { setError('Выберите время'); return; }
 
     setSubmitting(true);
@@ -243,9 +297,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
         <div className="shop-form-section">
           <h3 className="shop-form-section__title">Способ получения заказа</h3>
           <div className="shop-form-section__block">
-            {hasGiftItems && (
+            {hasOnlyGiftItems && (
               <div className="shop-radio-hint" style={{ marginBottom: 12 }}>
                 Подарки по подписке доступны только на самовывоз.
+              </div>
+            )}
+            {hasGiftItems && hasNonGiftItems && (
+              <div className="shop-radio-hint" style={{ marginBottom: 12 }}>
+                Подарок будет включён в ваш заказ на доставку.
               </div>
             )}
             <div className="shop-radio-group">
@@ -254,7 +313,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
                   type="radio"
                   name="delivery"
                   checked={deliveryType === 'delivery'}
-                  disabled={hasGiftItems}
+                  disabled={hasOnlyGiftItems}
                   onChange={() => setDeliveryType('delivery')}
                 />
                 Доставка
@@ -406,18 +465,50 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
             {deliveryType === 'delivery' && (
               <div className="shop-address-fields">
                 <div className="shop-form-row" style={{ marginTop: 12 }}>
-                  <div className="shop-form-field">
-                    <label className="shop-form-field__label">Улица</label>
+                  <div className="shop-form-field" style={{ position: 'relative' }}>
+                    <label className="shop-form-field__label">
+                      Улица
+                      {streetConfirmed && <span style={{ color: '#3CC8A1', marginLeft: 6 }}>✓</span>}
+                    </label>
                     <input
                       className="shop-form-field__input"
                       type="text"
-                      placeholder="Улица"
+                      placeholder="Начните вводить название улицы"
                       value={street}
-                      onChange={e => setStreet(e.target.value)}
+                      onChange={e => {
+                        setStreet(e.target.value);
+                        setStreetConfirmed(false);
+                        setSuggestOpen(true);
+                        setNearestStore(null);
+                      }}
+                      onFocus={() => setSuggestOpen(true)}
+                      onBlur={() => setTimeout(() => setSuggestOpen(false), 200)}
+                      autoComplete="off"
                     />
+                    {suggestOpen && !streetConfirmed && street.trim().length >= 2 && (
+                      <div className="shop-suggest-dropdown">
+                        {suggestLoading && (
+                          <div className="shop-suggest-dropdown__loading">Поиск...</div>
+                        )}
+                        {!suggestLoading && suggestions.length === 0 && (
+                          <div className="shop-suggest-dropdown__empty">Ничего не найдено</div>
+                        )}
+                        {!suggestLoading && suggestions.map((s, i) => (
+                          <div
+                            key={i}
+                            className="shop-suggest-dropdown__item"
+                            onMouseDown={(e) => { e.preventDefault(); handleSuggestPick(s); }}
+                          >
+                            {s.formatted}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="shop-form-field">
-                    <label className="shop-form-field__label">Дом</label>
+                    <label className="shop-form-field__label">
+                      Дом <span style={{ color: '#e53935' }}>*</span>
+                    </label>
                     <input
                       className="shop-form-field__input"
                       type="text"

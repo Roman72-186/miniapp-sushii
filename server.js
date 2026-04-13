@@ -24,6 +24,7 @@ app.all('/api/apply-partner-code', require('./api/apply-partner-code'));
 app.all('/api/send-bot-message', require('./api/send-bot-message'));
 app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 app.all('/api/nearest-store', require('./api/nearest-store'));
+app.all('/api/address-suggest', require('./api/address-suggest'));
 app.all('/api/get-gift-history', require('./api/get-gift-history'));
 app.all('/api/get-order-history', require('./api/get-order-history'));
 app.all('/api/update-profile', require('./api/update-profile'));
