@@ -213,6 +213,9 @@ export function UserProvider({ children }) {
     const v = userData.variables || {};
     return {
       name: contactName,
+      first_name: v['first_name'] || null,
+      last_name: v['last_name'] || null,
+      middle_name: v['middle_name'] || null,
       phone,
       статусСписания: v['статусСписания'] || null,
       balance_shc: v['balance_shc'] || null,

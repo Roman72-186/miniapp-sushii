@@ -6,6 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Always respond in Russian.
 
+## ⚠️ Project is a standalone web app (not a Telegram Mini App anymore)
+
+**The project has fully moved away from Telegram.** It is now a standalone web application with phone-based login (JWT auth). Do NOT treat it as a Telegram Mini App:
+
+- **Do not ask** about Telegram WebApp SDK, `initData` verification, Telegram HMAC, Bot API, or any Telegram-specific integration.
+- **Do not design around** Telegram identity, `tg_name` sync, or WebApp-specific flows.
+- **`telegram_id` is a legacy field** — it still exists in the `users` table as the PK for historical compatibility, but new users and new features must not depend on it. It will gradually become irrelevant.
+- **The only auth mechanism is JWT** (web login by phone → OTP → password → JWT). `api/_lib/auth.js` → `authMiddleware()` with `req.userId`, `req.userEmail`.
+- **Identity for new users** is `web_{phone}_{random}`, created by `api/auth/set-password.js`.
+- Legacy code paths that reference Telegram (e.g. `sync-user.js` handling `tg_name`, `src/UserContext.js` reading Telegram WebApp SDK, query param `?telegram_id=`) are **dead weight** — do not extend them, do not build new features on top of them, do not introduce regressions in them either. They will be removed gradually.
+
+The project name, directory name, Docker container name, and domain (`sushi-house-39.ru`) still say "miniapp" and reference Telegram — this is historical naming, not a statement about current architecture.
+
 ## Build & Run
 
 ```bash
@@ -15,11 +28,11 @@ npm run build          # Production build
 node server.js         # Backend only (port 3001)
 
 # Utility scripts
-npm run fetch:products  # Fetch product data from Frontpad
-npm run backup:db       # Backup SQLite database
+npm run catalog        # Rebuild catalog JSON via scripts/build-catalog-master.py (Python)
+npm run backup:db      # Backup SQLite database
 
 # Production (VPS: ssh root@64.188.63.249)
-cd miniapp-sushii && git pull && docker compose up -d --build
+cd miniapp-sushii && git pull && docker compose up -d --build && docker compose restart app
 ```
 
 Тесты есть (CRA default, `App.test.js`), но покрывают только базовый рендер: `npm test`. Линтер не настроен.
@@ -32,7 +45,11 @@ Telegram Mini App for sushi restaurant. React SPA (CRA) + Express backend + SQLi
 
 **Backend** (`server.js` + `api/`): Express on port 3001. API handlers as individual files in `api/`. Shared utilities in `api/_lib/`.
 
-**Data storage**: SQLite (`data/sushii.db`) is the single source of truth. File-based caches: `data/users/{id}.json` (5-min TTL), `data/gifts/{id}.json` (gift windows blob-store).
+**Data storage**: SQLite (`data/sushii.db`) in dev/staging; **PostgreSQL (Supabase) in production** (env `USE_SUPABASE=true`). The `api/_lib/db.js` is a proxy — when `USE_SUPABASE=true` it re-exports `api/_lib/db-pg.js` (async, `pg` pool). Both modules export identical function names. File-based caches: `data/users/{id}.json` (5-min TTL), `data/gifts/{id}.json` (gift windows blob-store).
+
+**SQLite schema tables**: `users`, `payments`, `transactions`, `referral_bonuses`, `gift_history`, `orders`. Runtime migrations via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` (catch-ignored). Notable columns added post-initial-schema:
+- `users`: `partner_code TEXT`, `notes TEXT`
+- `gift_history`: `address TEXT`, `gift_name TEXT`
 
 **Product catalogs**: JSON files in `public/` → built into `build/`. Admin edits saved to `data/products/` which **take priority over `build/`** when served by Express. Paths: `public/холодные роллы/rolls.json`, `public/запеченные роллы/zaproll.json`, `public/сеты/set.json`, `public/подписка роллы/rolls-sub.json`, `public/подписка сеты/sets-sub.json`, `public/подписка 490/rolls-490.json`, `public/подписка 490/sets-490.json`, `public/подписка запеченные/zaproll-sub.json`, `public/добавки/sauces.json`, `public/гунканы/gunkan.json`.
 
@@ -61,12 +78,19 @@ Telegram Mini App for sushi restaurant. React SPA (CRA) + Express backend + SQLi
 ### Static File Priority (server.js)
 
 Express serves in this order (first match wins):
-1. `data/banners/` — admin-uploaded images
-2. `data/products/` — **admin overrides** (prices, enabled flags)
-3. `public/admin/` → served at `/admin` path (static admin HTML pages, before React build)
-4. `build/` — original from `public/`
+1. `data/banners/` → `/data/banners` — admin-uploaded images
+2. `data/product-images/` → `/data/product-images` — admin-uploaded product photos (7-day HTTP cache)
+3. `data/products/` — **admin overrides** (prices, enabled flags), no-cache for JSON/HTML
+4. `public/admin/` → served at `/admin` path (static admin HTML pages, before React build)
+5. `build/` — original from `public/`
 
 **If you change prices in `public/*.json`, you must also delete stale overrides in `data/products/` on the VPS**, otherwise the old prices persist.
+
+**Adding a new item to a catalog**: updating `public/запеченные роллы/zaproll.json` does NOT automatically add it to `zaproll-sub.json` — the subscription catalog must be updated separately. Admin sync only propagates `enabled` flag changes for items that already exist in both catalogs.
+
+**VPS override files**: `data/products/` inside the Docker volume may contain admin-saved overrides for subscription catalogs (e.g. `data/products/подписка запеченные/zaproll-sub.json`). New items added to `public/` will NOT appear until the override file is also updated. Check with: `docker exec miniapp-sushii-app-1 ls /app/data/products/`.
+
+**Images must be committed to git**: files in `public/new_roll/` that are untracked will not be deployed. Always `git add` new images before deploying.
 
 Subscription prices override: `data/products/pricing.json` — if absent, falls back to `DEFAULT_PRICING` in `api/admin-pricing.js`. Updated via `PUT /api/admin/pricing`.
 
@@ -156,10 +180,15 @@ Generated by `buildWindows(start, end, windowDays)` in `api/_lib/gift-windows.js
 
 ### Admin User Management
 
-Beyond products, the admin has three extra endpoints:
+Admin endpoints beyond products:
 - `GET/POST /api/admin/user-tags` — read or modify user tags (derived from `tariff` + `is_ambassador`). Actions: add/remove. Invalidates user file cache.
 - `POST /api/admin/add-user-manual` — create or update user by phone; if phone matches existing user, updates their subscription; otherwise creates `web_{phone}` user.
 - `GET/PUT /api/admin/pricing` — GET is public (frontend loads prices); PUT requires admin auth. Prices stored in `data/products/pricing.json`.
+- `POST /api/admin/set-subscription` — set tariff + end date in one request (used by datepicker in admin subscribers tab).
+- `POST /api/admin/extend-subscription` — extend subscription end date by N days.
+- `GET /api/admin/gift-orders` — list claimed gift orders.
+- `POST /api/admin/add-product` — add a new product to a catalog (saves to `data/products/` override).
+- `POST /api/admin/user-notes` — save/update free-text notes on a user (`notes` column in `users`).
 
 ## Environment Variables
 
@@ -181,6 +210,8 @@ SUPABASE_ANON_KEY                       # Supabase anon key (browser client)
 Docker Compose: `app` (Node 20-alpine, port 3001) + `nginx` (reverse proxy, SSL) + `certbot`. Persistent volume `app-data` → `/app/data` (SQLite, caches, admin overrides, banners).
 
 Domain: `https://sushi-house-39.ru`
+
+**Built-in cron**: `server.js` schedules `runSubscriptionCron()` daily at 10:00 UTC (13:00 MSK) via `setTimeout`. There is also an external HTTP endpoint `POST /api/cron-subscriptions` (requires `CRON_SECRET` header) for manual triggers.
 
 ### При старте сессии
 1. Прочитай `obsidian-vault/00-home/index.md` — общая карта проекта

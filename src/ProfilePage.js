@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
+import EditProfileModal from './components/EditProfileModal';
 
 function ProfilePage() {
   useEffect(() => {
@@ -11,9 +12,10 @@ function ProfilePage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  const { telegramId, loading: userLoading, profile, contactId, hasTag, tarif } = useUser();
+  const { telegramId, loading: userLoading, profile, contactId, hasTag, tarif, sync } = useUser();
 
   // === State ===
+  const [editOpen, setEditOpen] = useState(false);
   const [referrals, setReferrals] = useState(null);
   const [tariffAction, setTariffAction] = useState(null); // 'extend' | 'upgrade' | 'downgrade'
   const [giftWindows, setGiftWindows] = useState(null);
@@ -239,6 +241,15 @@ function ProfilePage() {
                     {tariffBadgeLabel[tarif] || tarif}
                   </span>
                 )}
+                <button
+                  type="button"
+                  className="pf-hero__edit-btn"
+                  onClick={() => setEditOpen(true)}
+                  title="Редактировать профиль"
+                  aria-label="Редактировать профиль"
+                >
+                  ✎
+                </button>
               </div>
               {profile?.phone && (
                 <div className="pf-hero__phone">{formatPhone(profile.phone)}</div>
@@ -706,6 +717,23 @@ function ProfilePage() {
             <button className="pf-modal__close" onClick={() => setShowShcInfo(false)}>Закрыть</button>
           </div>
         </>
+      )}
+
+      {/* ── МОДАЛКА: РЕДАКТИРОВАНИЕ ПРОФИЛЯ ─── */}
+      {editOpen && (
+        <EditProfileModal
+          mode="user"
+          currentUser={{
+            telegram_id: telegramId,
+            name: profile?.name,
+            first_name: profile?.first_name,
+            last_name: profile?.last_name,
+            middle_name: profile?.middle_name,
+            phone: profile?.phone,
+          }}
+          onClose={() => setEditOpen(false)}
+          onSaved={async () => { await sync(true); }}
+        />
       )}
     </div>
   );

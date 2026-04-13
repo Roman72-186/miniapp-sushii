@@ -121,6 +121,9 @@ function getDb() {
   try { _db.exec('ALTER TABLE gift_history ADD COLUMN gift_name TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN last_address TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN last_pickup_point TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN first_name TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN last_name TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN middle_name TEXT'); } catch {}
 
   return _db;
 }
@@ -201,6 +204,34 @@ function updateLastAddress(telegramId, lastAddress, lastPickupPoint) {
   getDb().prepare(
     "UPDATE users SET last_address = ?, last_pickup_point = ?, updated_at = datetime('now') WHERE telegram_id = ?"
   ).run(lastAddress || null, lastPickupPoint || null, String(telegramId));
+}
+
+function updateUserProfile(telegramId, data) {
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
+  getDb().prepare(`
+    UPDATE users
+    SET first_name = ?,
+        last_name = ?,
+        middle_name = ?,
+        phone = ?,
+        name = ?,
+        updated_at = datetime('now')
+    WHERE telegram_id = ?
+  `).run(
+    data.first_name || null,
+    data.last_name || null,
+    data.middle_name || null,
+    data.phone || null,
+    fullName,
+    String(telegramId)
+  );
+  return getUser(telegramId);
+}
+
+function findUserByPhoneExceptId(phone, telegramId) {
+  return getDb().prepare(
+    'SELECT telegram_id, name FROM users WHERE phone = ? AND telegram_id != ? LIMIT 1'
+  ).get(phone, String(telegramId)) || null;
 }
 
 function getReferrals(telegramId) {
@@ -788,6 +819,8 @@ module.exports = {
   getMonthRevenue,
   getGiftOrders,
   updateLastAddress,
+  updateUserProfile,
+  findUserByPhoneExceptId,
   getAdminTopReferrers,
   getAdminRecentBonuses,
 };

@@ -26,6 +26,7 @@ app.all('/api/cron-subscriptions', require('./api/cron-subscriptions'));
 app.all('/api/nearest-store', require('./api/nearest-store'));
 app.all('/api/get-gift-history', require('./api/get-gift-history'));
 app.all('/api/get-order-history', require('./api/get-order-history'));
+app.all('/api/update-profile', require('./api/update-profile'));
 
 // Auth API
 app.all('/api/auth/login-by-phone', require('./api/auth/login-by-phone'));
@@ -52,6 +53,7 @@ app.all('/api/admin/set-subscription', require('./api/admin-set-subscription'));
 app.all('/api/admin/gift-orders', require('./api/admin-gift-orders'));
 app.all('/api/admin/add-product', require('./api/admin-add-product'));
 app.all('/api/admin/referrals', require('./api/admin-referrals'));
+app.all('/api/admin/update-user', require('./api/admin-update-user'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {
