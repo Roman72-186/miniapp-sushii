@@ -93,11 +93,15 @@ async function suggest(query, limit = 7) {
 
   const members = await rawSuggest(finalQuery, limit * 3).catch(() => []);
 
-  // Только улицы и дома; дедуп по formatted
+  // Только улицы/дома в пределах целевого города (не областные трассы)
+  const city = process.env.CITY_NAME || 'Калининград';
+  const cityMarker = `, ${city},`;
+
   const seen = new Set();
   const unique = [];
   for (const item of members) {
     if (item.kind !== 'street' && item.kind !== 'house') continue;
+    if (!item.formatted || !item.formatted.includes(cityMarker)) continue;
     if (seen.has(item.formatted)) continue;
     seen.add(item.formatted);
     unique.push(item);
