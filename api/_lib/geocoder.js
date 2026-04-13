@@ -61,29 +61,47 @@ async function geocode(address) {
   return parseMember(member);
 }
 
-// Префикс типа улицы, если юзер ввёл только название.
-// Yandex плохо понимает голый токен "багратиона", но хорошо — "ул. багратиона".
-const STREET_TYPE_RX = /^(ул|улиц|просп|пр-?т|проспект|переул|пер\.|шоссе|бульвар|б-р|набережн|наб\.|пл\.|площад|тупик|аллея|проезд|тракт|микрорайон|мкр)/i;
+// Проверка что в запросе уже указан тип (улица/проспект/переулок и т.д.)
+const STREET_TYPE_RX = /(ул\.?|улиц|просп|пр-?т|проспект|переул|пер\.|шоссе|бульвар|б-р|набережн|наб\.|площад|тупик|аллея|проезд|тракт|микрорайон|мкр)/i;
 
-function prefixWithStreetType(query) {
-  const trimmed = query.trim();
-  if (STREET_TYPE_RX.test(trimmed)) return trimmed;
-  return `ул. ${trimmed}`;
+async function rawSuggest(query, limit) {
+  const data = await yandexRequest({ geocode: buildQuery(query), results: String(limit) });
+  const members = data?.response?.GeoObjectCollection?.featureMember || [];
+  return members.map(parseMember).filter(Boolean);
 }
 
 /**
- * Подсказки адресов: возвращает до `limit` кандидатов (только улицы/дома, без мусора типа аэропортов).
+ * Подсказки адресов: возвращает до `limit` кандидатов (только улицы/дома, без мусора).
+ *
+ * Делаем два параллельных запроса — с префиксом "ул." и без, — затем объединяем
+ * и дедуплицируем. Одиночное слово "багратиона" Yandex без "ул." находит плохо,
+ * а двусловные "юрия гагарина" — наоборот плохо находит С "ул." (сбивается порядок).
  */
 async function suggest(query, limit = 7) {
-  if (!query || query.trim().length < 2) return [];
-  const prefixed = prefixWithStreetType(query);
-  const data = await yandexRequest({ geocode: buildQuery(prefixed), results: String(limit * 3) });
-  const members = data?.response?.GeoObjectCollection?.featureMember || [];
-  return members
-    .map(parseMember)
-    .filter(Boolean)
-    .filter(m => m.kind === 'street' || m.kind === 'house')
-    .slice(0, limit);
+  const q = (query || '').trim();
+  if (q.length < 2) return [];
+
+  const hasType = STREET_TYPE_RX.test(q);
+  const queries = [q];
+  if (!hasType) queries.push(`ул. ${q}`);
+
+  const fetchLimit = limit * 3;
+  const results = await Promise.all(queries.map(qq => rawSuggest(qq, fetchLimit).catch(() => [])));
+  const merged = results.flat();
+
+  // Только улицы и дома
+  const filtered = merged.filter(m => m.kind === 'street' || m.kind === 'house');
+
+  // Дедуп по formatted
+  const seen = new Set();
+  const unique = [];
+  for (const item of filtered) {
+    if (seen.has(item.formatted)) continue;
+    seen.add(item.formatted);
+    unique.push(item);
+    if (unique.length >= limit) break;
+  }
+  return unique;
 }
 
 module.exports = { geocode, suggest };
