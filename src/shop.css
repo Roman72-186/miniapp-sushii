@@ -1168,6 +1168,49 @@ body.shop-body {
   margin-top: 2px;
 }
 
+/* ── Подсказки адресов (autocomplete dropdown) ───────── */
+.shop-suggest-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #1a1a1e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.shop-suggest-dropdown__loading,
+.shop-suggest-dropdown__empty {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #8888aa;
+  text-align: center;
+}
+
+.shop-suggest-dropdown__item {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #eaeaf8;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.12s;
+}
+
+.shop-suggest-dropdown__item:last-child {
+  border-bottom: none;
+}
+
+.shop-suggest-dropdown__item:hover {
+  background: rgba(60, 200, 161, 0.1);
+  color: #3CC8A1;
+}
+
 .shop-radio-label input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
