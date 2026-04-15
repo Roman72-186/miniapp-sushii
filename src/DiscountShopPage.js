@@ -871,6 +871,7 @@ function DiscountShopPage() {
         onClear={cart.clearNonGiftItems}
         onClose={() => setShowCart(false)}
         onCheckout={handleCheckout}
+        onAddItem={cart.addItem}
       />
     )}
 
