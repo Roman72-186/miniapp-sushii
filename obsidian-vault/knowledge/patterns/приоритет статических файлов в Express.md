@@ -25,6 +25,8 @@ Express отдаёт первый найденный файл. Порядок в
 > rm /app/data/products/rolls.json
 > ```
 
+> ⚠️ **Ловушка 2 (подписочные каталоги):** override-файлы создаются и для subscription-каталогов (`data/products/подписка запеченные/zaproll-sub.json` и т.д.). Если в таком файле нет нового товара — он не появится на сайте даже после деплоя. Проверять: `docker exec miniapp-sushii-app-1 ls /app/data/products/`. См. [[override-файл перекрывает новые товары]]
+
 ### `public/admin/` — статические HTML-страницы
 
 Папка `public/admin/` раздаётся по пути `/admin` **до** React build. Это значит `/admin` открывает статическую HTML-страницу, а не React-компонент `AdminPage`.

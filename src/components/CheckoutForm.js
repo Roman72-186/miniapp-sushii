@@ -641,7 +641,9 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
               <div>SHC скидка: <span className="shop-checkout__summary-total" style={{ color: '#3CC8A1' }}>−{shcApplied}₽</span></div>
             )}
             {deliveryType === 'delivery' ? (
-              <div>Доставка: <span className="shop-checkout__summary-total">бесплатно</span></div>
+              <>
+                {/* <div>Доставка: <span className="shop-checkout__summary-total">бесплатно</span></div> */}
+              </>
             ) : (
               <div>Самовывоз: <span className="shop-checkout__summary-total">{selectedPickup?.address}</span></div>
             )}
