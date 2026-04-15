@@ -30,7 +30,31 @@
       "WebFetch(domain:commons.wikimedia.org)",
       "Bash(ssh:*)",
       "Bash(ls \"C:/Users/User/Desktop/Project/miniapp-sushii/public/\"*.json)",
-      "Bash(grep -E \"\\\\..*card.*\\\\{|\\\\..*Card.*\\\\{\" \"C:/Users/User/Desktop/Project/miniapp-sushii/src/shop.css\")"
+      "Bash(grep -E \"\\\\..*card.*\\\\{|\\\\..*Card.*\\\\{\" \"C:/Users/User/Desktop/Project/miniapp-sushii/src/shop.css\")",
+      "Bash(npm test:*)",
+      "Bash(kill %1)",
+      "Bash(xargs grep:*)",
+      "Bash(find \"public/img\" -type f -exec ls -lh {} \\\\;)",
+      "Bash(awk '{sum+=$5} END {print \"Total size:\", sum}')",
+      "Bash(find \"public/img\" -type f -exec stat -c '%s %n' {} \\\\;)",
+      "Bash(awk '{sum+=$1; count++} END {if\\(count>0\\) print \"Files:\", count, \"Average size:\", \\(sum/count/1024\\)\"KB\", \"Total:\", \\(sum/1024/1024\\)\"MB\"}')",
+      "Bash(find \"public/new_roll\" -type f -exec stat -c '%s %n' {} \\\\;)",
+      "Bash(du -sh /c/Users/User/Desktop/Project/miniapp-sushii/public/img/*.PNG)",
+      "Bash(du -sh /c/Users/User/Desktop/Project/miniapp-sushii/public/new_roll/*.jpg)",
+      "Bash(awk '{sum += $1} END {print sum \"K total PNG\"}')",
+      "Bash(du -sh /c/Users/User/Desktop/Project/miniapp-sushii/public/img/sets/*.jpg)",
+      "Bash(find . -type f \\\\\\( -name \".env*\" -o -name \"*.js\" \\\\\\) -exec grep -l \"USE_SUPABASE\" {} \\\\;)",
+      "Bash(sshpass:*)",
+      "WebFetch(domain:watbot.ru)",
+      "WebFetch(domain:api.watbot.ru)",
+      "Bash(scp:*)",
+      "Bash(grep -n \"^    </div>$\\\\|^  \\);\\\\|^}\" src/AdminPage.js)",
+      "Bash(SUPABASE_URL=http://fake.local SUPABASE_SERVICE_KEY=fake node -c server.js)",
+      "Bash(ls -la .env*)",
+      "Bash(ADMIN_PASSWORD=test123 node server.js)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(ADMIN_PASSWORD=test123 node -p \"process.env.ADMIN_PASSWORD\")",
+      "Bash(npm start *)"
     ]
   }
 }

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Инструкция — Просмотр заказов | Суши-Хаус 39</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+      background: #f4f4f4;
+      color: #1a1a1a;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      overflow: hidden;
+    }
+
+    /* Шапка */
+    .header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: #fff;
+      padding: 32px 40px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .header-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .header-logo-placeholder {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: #3CC8A1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .header-text h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .header-text p {
+      font-size: 13px;
+      color: #3CC8A1;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* Контент */
+    .content {
+      padding: 36px 40px 40px;
+    }
+
+    .intro {
+      background: #f0fdf9;
+      border-left: 4px solid #3CC8A1;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin-bottom: 32px;
+      font-size: 13.5px;
+      color: #2a2a2a;
+    }
+    .intro strong { color: #3CC8A1; }
+
+    /* Шаг */
+    .step {
+      margin-bottom: 36px;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #3CC8A1;
+      color: #fff;
+      font-weight: 800;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .step-body {
+      padding-left: 50px;
+    }
+    .step-body p {
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .step-body ul {
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+    .step-body ul li {
+      margin-bottom: 5px;
+      color: #333;
+    }
+    .step-body ul li strong {
+      color: #1a1a1a;
+    }
+
+    /* Поле адреса */
+    .url-box {
+      display: inline-block;
+      background: #1a1a1a;
+      color: #3CC8A1;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      margin: 8px 0 12px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Кнопка-пример */
+    .btn-example {
+      display: inline-block;
+      background: #3CC8A1;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 6px;
+      margin: 4px 0 10px;
+    }
+
+    /* Скриншот-плейсхолдер */
+    .screenshot {
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      background: #fafafa;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 14px;
+      padding: 20px;
+      text-align: center;
+      gap: 8px;
+    }
+    .screenshot .ss-icon { font-size: 32px; }
+    .screenshot .ss-label { font-weight: 600; color: #999; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .screenshot img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+
+    /* Таблица полей */
+    .fields-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13.5px;
+    }
+    .fields-table th {
+      background: #1a1a1a;
+      color: #3CC8A1;
+      padding: 8px 14px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .fields-table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+    .fields-table tr:last-child td { border-bottom: none; }
+    .fields-table tr:nth-child(even) td { background: #fafafa; }
+
+    /* Примечание */
+    .note {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #5a4800;
+    }
+    .note strong { color: #b88b00; }
+
+    /* Разделитель */
+    .divider {
+      border: none;
+      border-top: 1px solid #f0f0f0;
+      margin: 10px 0 32px;
+    }
+
+    /* Футер */
+    .footer {
+      background: #f9f9f9;
+      border-top: 1px solid #eee;
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #aaa;
+    }
+    .footer a { color: #3CC8A1; text-decoration: none; }
+
+    /* Печать */
+    @media print {
+      body { background: #fff; }
+      .page { box-shadow: none; border-radius: 0; margin: 0; max-width: 100%; }
+      .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .step-num { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .fields-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .url-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .btn-example { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .intro { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .note { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .footer { display: none; }
+      .step { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Шапка -->
+    <div class="header">
+      <div class="header-logo-placeholder">🍣</div>
+      <div class="header-text">
+        <h1>Суши-Хаус 39 — Просмотр заказов</h1>
+        <p>Инструкция для администратора</p>
+      </div>
+    </div>
+
+    <!-- Контент -->
+    <div class="content">
+
+      <div class="intro">
+        Эта инструкция описывает, как <strong>Юлии</strong> (администратору) просматривать заказы подписчиков — какие подарочные роллы и сеты были получены, на какой адрес и кем.
+      </div>
+
+      <!-- Шаг 1 -->
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-title">Открыть страницу администратора</div>
+        </div>
+        <div class="step-body">
+          <p>В браузере на телефоне или компьютере перейти по адресу:</p>
+          <div class="url-box">https://sushi-house-39.ru/admin</div>
+          <p>Откроется страница входа. Ввести пароль администратора и нажать <strong>«Войти»</strong>.</p>
+          <div class="screenshot">
+            <div class="ss-icon">📷</div>
+            <div class="ss-label">Скриншот: страница входа /admin</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Шаг 2 -->
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-title">Перейти на вкладку «Заказы»</div>
+        </div>
+        <div class="step-body">
+          <p>После входа в верхней части экрана будут видны вкладки. Нажать:</p>
+          <div class="btn-example">◷ Заказы</div>
+          <p>Загрузится список всех полученных подарков по подписке.</p>
+          <div class="screenshot">
+            <div class="ss-icon">📷</div>
+            <div class="ss-label">Скриншот: главная страница админки, вкладки сверху</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Шаг 3 -->
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-title">Читать список заказов</div>
+        </div>
+        <div class="step-body">
+          <p>Каждая карточка в списке содержит следующую информацию:</p>
+          <table class="fields-table">
+            <thead>
+              <tr>
+                <th>Поле</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Название</strong></td>
+                <td>Конкретный ролл или сет, который получил клиент</td>
+              </tr>
+              <tr>
+                <td><strong>Дата</strong></td>
+                <td>Дата получения подарка</td>
+              </tr>
+              <tr>
+                <td><strong>Имя</strong></td>
+                <td>Имя клиента, указанное при оформлении</td>
+              </tr>
+              <tr>
+                <td><strong>Телефон</strong></td>
+                <td>Контактный номер клиента</td>
+              </tr>
+              <tr>
+                <td><strong>Тариф</strong></td>
+                <td>Подписка клиента — 490 ₽ (роллы) или 1190 ₽ (сеты)</td>
+              </tr>
+              <tr>
+                <td><strong>Адрес самовывоза</strong></td>
+                <td>Точка, где клиент забирает заказ</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="screenshot">
+            <div class="ss-icon">📷</div>
+            <div class="ss-label">Скриншот: список заказов во вкладке «Заказы»</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Шаг 4 -->
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <div class="step-title">Найти конкретного клиента</div>
+        </div>
+        <div class="step-body">
+          <p>Над списком есть поле <strong>«Поиск»</strong>. Можно набрать:</p>
+          <ul>
+            <li>Имя клиента</li>
+            <li>Номер телефона</li>
+            <li>Адрес самовывоза</li>
+          </ul>
+          <p style="margin-top:10px;">Список сразу отфильтруется по введённому тексту.</p>
+          <div class="note">
+            <strong>Совет:</strong> Если нужно найти все заказы по конкретной точке (например, «Гагарина»), достаточно ввести часть адреса в поле поиска.
+          </div>
+          <div class="screenshot">
+            <div class="ss-icon">📷</div>
+            <div class="ss-label">Скриншот: поле поиска с примером фильтрации</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Футер -->
+    <div class="footer">
+      <span>Суши-Хаус 39 &mdash; Система управления подписками</span>
+      <span><a href="https://sushi-house-39.ru/admin">sushi-house-39.ru/admin</a></span>
+    </div>
+
+  </div>
+</body>
+</html>

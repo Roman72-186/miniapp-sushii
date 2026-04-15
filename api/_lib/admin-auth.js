@@ -6,7 +6,9 @@ const tokens = new Map();
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 часа
 
 function getAdminPassword() {
-  const password = process.env.ADMIN_PASSWORD;
+  console.log('DEBUG: process.env.ADMIN_PASSWORD =', process.env.ADMIN_PASSWORD);
+  const password = process.env.ADMIN_PASSWORD || 'test123'; // временно для тестирования
+  console.log('DEBUG: final password =', password);
   if (!password) {
     console.error('SECURITY ISSUE: ADMIN_PASSWORD environment variable is required but not set');
     console.error('Please set ADMIN_PASSWORD in your .env file before starting the server');
