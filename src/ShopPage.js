@@ -263,6 +263,7 @@ function ShopPage() {
         onClear={cart.clear}
         onClose={() => setShowCart(false)}
         onCheckout={handleCheckout}
+        onAddItem={cart.addItem}
       />
     )}
 

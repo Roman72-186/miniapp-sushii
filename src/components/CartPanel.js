@@ -1,8 +1,9 @@
 // src/components/CartPanel.js — Выдвижная панель корзины (тёмная тема)
 
 import React, { useEffect } from 'react';
+import UpsellBlock from './UpsellBlock';
 
-function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout }) {
+function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -75,6 +76,13 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                 Очистить корзину
               </button>
             </div>
+
+            {items.length > 0 && onAddItem && (
+              <UpsellBlock
+                onAddItem={onAddItem}
+                cartSkus={items.map(i => i.product.sku || i.product.id)}
+              />
+            )}
 
             <div className="shop-cart__footer">
               <div className="shop-cart__total-row">

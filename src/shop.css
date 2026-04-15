@@ -4302,3 +4302,71 @@ body.shop-body {
   opacity: 0.5;
   cursor: default;
 }
+
+/* Upsell block */
+.upsell-block {
+  padding: 16px 0 8px;
+  border-top: 1px solid #333;
+}
+.upsell-block__title {
+  font-size: 13px;
+  color: #aaa;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+}
+.upsell-block__items {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.upsell-block__item {
+  flex: 0 0 110px;
+  background: #2a2a2e;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+.upsell-block__item-img {
+  width: 70px;
+  height: 55px;
+  object-fit: cover;
+  border-radius: 5px;
+  display: block;
+  margin: 0 auto 6px;
+}
+.upsell-block__item-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 3px;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.upsell-block__item-price {
+  font-size: 11px;
+  color: #3CC8A1;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+.upsell-block__item-btn {
+  width: 100%;
+  background: #3CC8A1;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 0;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.upsell-block__item-btn:hover { background: #35b394; }
+
+/* ═══════════════════════════════════════════════════════════════
+   REDESIGN V2 — унификация с ProfilePage / AdminPage стилистикой
+   (2026-04-14). JSX не трогаем — все изменения через CSS override.
+   Палитра, неоморфные тени, единые радиусы, акценты.
+═══════════════════════════════════════════════════════════════ */
