@@ -161,22 +161,25 @@ function AdminPage() {
   }, []);
 
   const toggleUpsell = async (sku, inUpsell) => {
-    setUpsellSaving(sku);
+    setUpsellSaving(String(sku));
     try {
       const res = await fetch('/api/admin/upsell-toggle', {
         method: 'POST',
         headers: headers(),
-        body: JSON.stringify({ sku, action: inUpsell ? 'remove' : 'add' }),
+        body: JSON.stringify({ sku: String(sku), action: inUpsell ? 'remove' : 'add' }),
       });
       const data = await res.json();
       if (data.success) {
-        await loadUpsell();
+        // Обновляем локально сразу, не дожидаясь fetch
+        setUpsellSkus(prev =>
+          inUpsell ? prev.filter(s => s !== String(sku)) : [...prev, String(sku)]
+        );
         showToast(inUpsell ? 'Убрано из допродаж' : 'Добавлено в допродажи');
       } else {
         showToast(data.error || 'Ошибка', 'error');
       }
     } catch (_) {
-      showToast('Ошибка', 'error');
+      showToast('Ошибка сети', 'error');
     }
     setUpsellSaving(null);
   };
@@ -791,35 +794,17 @@ function AdminPage() {
                     >
                       {item.enabled ? 'ВКЛ' : 'ВЫКЛ'}
                     </button>
-
-                    {item.sku && (
-                      <button
-                        style={{
-                          padding: '6px 10px',
-                          fontSize: '10px',
-                          fontWeight: '700',
-                          border: '1px solid',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          marginLeft: '6px',
-                          ...(upsellSkus.includes(String(item.sku)) ? {
-                            backgroundColor: '#FFD700',
-                            color: '#000',
-                            borderColor: '#FFD700',
-                          } : {
-                            backgroundColor: 'transparent',
-                            color: '#666',
-                            borderColor: '#333',
-                          })
-                        }}
-                        onClick={() => toggleUpsell(item.sku, upsellSkus.includes(String(item.sku)))}
-                        disabled={upsellSaving === item.sku}
-                        title="Управление допродажами"
-                      >
-                        {upsellSaving === item.sku ? '...' : (upsellSkus.includes(String(item.sku)) ? '★ Допродажа' : '☆ Допродажа')}
-                      </button>
-                    )}
                   </div>
+
+                  {item.sku && (
+                    <button
+                      style={upsellSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
+                      onClick={() => toggleUpsell(item.sku, upsellSkus.includes(String(item.sku)))}
+                      disabled={upsellSaving === String(item.sku)}
+                    >
+                      {upsellSaving === String(item.sku) ? '...' : (upsellSkus.includes(String(item.sku)) ? '★ В допродажах' : '☆ В допродажи')}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -2075,6 +2060,28 @@ const styles = {
     cursor: 'pointer',
     minWidth: 34,
     boxShadow: NEU.danger,
+  },
+  upsellOn: {
+    width: '100%',
+    padding: '4px 8px',
+    fontSize: 10,
+    fontWeight: 700,
+    border: `1px solid ${AP.accent}`,
+    borderRadius: 4,
+    cursor: 'pointer',
+    backgroundColor: AP.accent,
+    color: '#000',
+  },
+  upsellOff: {
+    width: '100%',
+    padding: '4px 8px',
+    fontSize: 10,
+    fontWeight: 700,
+    border: '1px solid #333',
+    borderRadius: 4,
+    cursor: 'pointer',
+    backgroundColor: 'transparent',
+    color: AP.muted,
   },
   // Subscribers
   statsRow: {
