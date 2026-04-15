@@ -11,14 +11,12 @@ function UpsellBlock({ onAddItem, cartSkus }) {
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          // Фильтруем товары, которых нет в корзине
           const filtered = data.items.filter(p => !cartSkus.includes(String(p.sku)));
-          // Показываем максимум 4 товара
           setProducts(filtered.slice(0, 4));
         }
       })
       .catch(() => {});
-  }, []); // eslint-disable-line
+  }, [JSON.stringify(cartSkus)]); // eslint-disable-line
 
   if (products.length === 0) return null;
 
