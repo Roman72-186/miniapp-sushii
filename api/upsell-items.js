@@ -7,11 +7,18 @@ const DATA_DIR = path.join(__dirname, '..', 'data', 'products');
 const BUILD_DIR = path.join(__dirname, '..', 'build');
 const UPSELL_FILE = path.join(DATA_DIR, 'upsell.json');
 
-// Каталоги для поиска товаров (только основные, без подписочных)
+// Все каталоги магазина (включая подписочные — чтобы SKU всегда находились)
 const CATALOGS = [
   { id: 'rolls', file: 'холодные роллы/rolls.json' },
   { id: 'zaproll', file: 'запеченные роллы/zaproll.json' },
   { id: 'sets', file: 'сеты/set.json' },
+  { id: 'gunkan', file: 'гунканы/gunkan.json' },
+  { id: 'sauces', file: 'добавки/sauces.json' },
+  { id: 'rolls-sub', file: 'подписка роллы/rolls-sub.json' },
+  { id: 'zaproll-sub', file: 'подписка запеченные/zaproll-sub.json' },
+  { id: 'sets-sub', file: 'подписка сеты/sets-sub.json' },
+  { id: 'rolls-490', file: 'подписка 490/rolls-490.json' },
+  { id: 'sets-490', file: 'подписка 490/sets-490.json' },
 ];
 
 /**
