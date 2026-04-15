@@ -55,6 +55,8 @@ app.all('/api/admin/gift-orders', require('./api/admin-gift-orders'));
 app.all('/api/admin/add-product', require('./api/admin-add-product'));
 app.all('/api/admin/referrals', require('./api/admin-referrals'));
 app.all('/api/admin/update-user', require('./api/admin-update-user'));
+app.get('/api/upsell-items', require('./api/upsell-items'));
+app.post('/api/admin/upsell-toggle', require('./api/admin/upsell-toggle'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {

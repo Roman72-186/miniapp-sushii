@@ -29,6 +29,8 @@ function AdminPage() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [editingItem, setEditingItem] = useState(null); // {catalogId, index, price}
   const [saving, setSaving] = useState(false);
+  const [upsellSkus, setUpsellSkus] = useState([]);
+  const [upsellSaving, setUpsellSaving] = useState(null);
 
   // Subscribers state
   const [subscribers, setSubscribers] = useState([]);
@@ -150,6 +152,35 @@ function AdminPage() {
     setProductsLoading(false);
   }, [headers, activeCatalog]);
 
+  const loadUpsell = useCallback(async () => {
+    try {
+      const res = await fetch('/api/upsell-items');
+      const data = await res.json();
+      if (data.success) setUpsellSkus(data.items.map(i => i.sku));
+    } catch (_) {}
+  }, []);
+
+  const toggleUpsell = async (sku, inUpsell) => {
+    setUpsellSaving(sku);
+    try {
+      const res = await fetch('/api/admin/upsell-toggle', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ sku, action: inUpsell ? 'remove' : 'add' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await loadUpsell();
+        showToast(inUpsell ? 'Убрано из допродаж' : 'Добавлено в допродажи');
+      } else {
+        showToast(data.error || 'Ошибка', 'error');
+      }
+    } catch (_) {
+      showToast('Ошибка', 'error');
+    }
+    setUpsellSaving(null);
+  };
+
   // Загрузка подписчиков
   const loadSubscribers = useCallback(async () => {
     setSubsLoading(true);
@@ -167,7 +198,7 @@ function AdminPage() {
   }, [headers]);
 
   useEffect(() => {
-    if (loggedIn && tab === 'products' && catalogs.length === 0) loadProducts();
+    if (loggedIn && tab === 'products' && catalogs.length === 0) { loadProducts(); loadUpsell(); }
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
     if (loggedIn && tab === 'pricing' && !pricing) loadPricing();
@@ -705,6 +736,10 @@ function AdminPage() {
 
           {productsLoading && <p style={styles.muted}>Загрузка...</p>}
 
+          <div style={{ margin: '10px 0', padding: '8px 12px', background: '#222', borderRadius: '8px', fontSize: '13px', color: '#aaa' }}>
+            Допродажи: {upsellSkus.length}/6
+          </div>
+
           {currentCatalog && (
             <div style={styles.productList}>
               {currentCatalog.items.map((item, idx) => (
@@ -756,6 +791,34 @@ function AdminPage() {
                     >
                       {item.enabled ? 'ВКЛ' : 'ВЫКЛ'}
                     </button>
+
+                    {item.sku && (
+                      <button
+                        style={{
+                          padding: '6px 10px',
+                          fontSize: '10px',
+                          fontWeight: '700',
+                          border: '1px solid',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          marginLeft: '6px',
+                          ...(upsellSkus.includes(String(item.sku)) ? {
+                            backgroundColor: '#FFD700',
+                            color: '#000',
+                            borderColor: '#FFD700',
+                          } : {
+                            backgroundColor: 'transparent',
+                            color: '#666',
+                            borderColor: '#333',
+                          })
+                        }}
+                        onClick={() => toggleUpsell(item.sku, upsellSkus.includes(String(item.sku)))}
+                        disabled={upsellSaving === item.sku}
+                        title="Управление допродажами"
+                      >
+                        {upsellSaving === item.sku ? '...' : (upsellSkus.includes(String(item.sku)) ? '★ Допродажа' : '☆ Допродажа')}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
