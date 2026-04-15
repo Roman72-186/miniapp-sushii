@@ -29,8 +29,9 @@ function AdminPage() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [editingItem, setEditingItem] = useState(null); // {catalogId, index, price}
   const [saving, setSaving] = useState(false);
-  const [upsellSkus, setUpsellSkus] = useState([]);
+  const [upsellItems, setUpsellItems] = useState([]); // [{sku, name, price, catalog}]
   const [upsellSaving, setUpsellSaving] = useState(null);
+  const [upsellClearing, setUpsellClearing] = useState(false);
 
   // Subscribers state
   const [subscribers, setSubscribers] = useState([]);
@@ -152,11 +153,14 @@ function AdminPage() {
     setProductsLoading(false);
   }, [headers, activeCatalog]);
 
+  // upsellSkus — производный массив для кнопок в табе «Товары»
+  const upsellSkus = upsellItems.map(i => i.sku);
+
   const loadUpsell = useCallback(async () => {
     try {
       const res = await fetch('/api/upsell-items');
       const data = await res.json();
-      if (data.success) setUpsellSkus(data.items.map(i => i.sku));
+      if (data.success) setUpsellItems(data.items);
     } catch (_) {}
   }, []);
 
@@ -170,10 +174,10 @@ function AdminPage() {
       });
       const data = await res.json();
       if (data.success) {
-        // Обновляем локально сразу, не дожидаясь fetch
-        setUpsellSkus(prev =>
-          inUpsell ? prev.filter(s => s !== String(sku)) : [...prev, String(sku)]
+        setUpsellItems(prev =>
+          inUpsell ? prev.filter(i => i.sku !== String(sku)) : prev // при add — перезагрузим
         );
+        if (!inUpsell) await loadUpsell(); // нужны полные данные нового товара
         showToast(inUpsell ? 'Убрано из допродаж' : 'Добавлено в допродажи');
       } else {
         showToast(data.error || 'Ошибка', 'error');
@@ -182,6 +186,21 @@ function AdminPage() {
       showToast('Ошибка сети', 'error');
     }
     setUpsellSaving(null);
+  };
+
+  const clearAllUpsell = async () => {
+    if (!window.confirm('Очистить весь список допродаж?')) return;
+    setUpsellClearing(true);
+    try {
+      const res = await fetch('/api/admin/upsell-clear', {
+        method: 'POST',
+        headers: headers(),
+      });
+      const data = await res.json();
+      if (data.success) { setUpsellItems([]); showToast('Список очищен'); }
+      else showToast(data.error || 'Ошибка', 'error');
+    } catch (_) { showToast('Ошибка сети', 'error'); }
+    setUpsellClearing(false);
   };
 
   // Загрузка подписчиков
@@ -202,6 +221,7 @@ function AdminPage() {
 
   useEffect(() => {
     if (loggedIn && tab === 'products' && catalogs.length === 0) { loadProducts(); loadUpsell(); }
+    if (loggedIn && tab === 'upsell') loadUpsell();
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
     if (loggedIn && tab === 'pricing' && !pricing) loadPricing();
@@ -671,6 +691,7 @@ function AdminPage() {
         <div style={styles.navRow}>
           {[
             { id: 'products',    label: '⬡ Товары' },
+            { id: 'upsell',      label: '◈ Допродажи' },
             { id: 'subscribers', label: '◈ Люди' },
             { id: 'orders',      label: '◷ Заказы' },
           ].map(({ id, label }) => (
@@ -1692,6 +1713,60 @@ function AdminPage() {
           })()}
 
           {!referralData && !referralLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
+        </div>
+      )}
+
+      {/* ─── Upsell Tab ─── */}
+      {tab === 'upsell' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+            <span style={{ color: AP.text, fontWeight: 700, fontSize: 14 }}>
+              Допродажи в корзине
+            </span>
+            <span style={{ color: AP.accent, fontSize: 12, fontWeight: 600 }}>
+              {upsellItems.length}/6
+            </span>
+            <button style={styles.btnSmall} onClick={loadUpsell}>↺ Обновить</button>
+            {upsellItems.length > 0 && (
+              <button
+                style={{ ...styles.btnSmall, color: AP.danger, borderColor: AP.danger }}
+                onClick={clearAllUpsell}
+                disabled={upsellClearing}
+              >
+                {upsellClearing ? '...' : '✕ Очистить всё'}
+              </button>
+            )}
+          </div>
+
+          <p style={{ ...styles.muted, marginBottom: 14, fontSize: 12 }}>
+            Товары из этого списка отображаются в корзине пользователя как «Добавьте к заказу».
+            Добавлять товары можно кнопкой «☆ В допродажи» во вкладке «Товары».
+          </p>
+
+          {upsellItems.length === 0 ? (
+            <p style={styles.muted}>Список пуст. Добавьте товары во вкладке «Товары».</p>
+          ) : (
+            <div style={styles.productList}>
+              {upsellItems.map((item) => (
+                <div key={item.sku} style={styles.productRow}>
+                  <div style={styles.productInfo}>
+                    <span style={styles.productName}>{item.name}</span>
+                    <span style={styles.sku}>SKU: {item.sku}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginTop: 4 }}>
+                    <span style={{ ...styles.price, cursor: 'default' }}>{item.price} ₽</span>
+                    <button
+                      style={{ ...styles.toggleOff, fontSize: 10, padding: '3px 8px' }}
+                      onClick={() => toggleUpsell(item.sku, true)}
+                      disabled={upsellSaving === item.sku}
+                    >
+                      {upsellSaving === item.sku ? '...' : '✕ Убрать'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

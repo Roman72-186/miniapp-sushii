@@ -24,7 +24,7 @@ function UpsellBlock({ onAddItem, cartSkus }) {
 
   return (
     <div className="upsell-block">
-      <p className="upsell-block__title">Рекомендуем добавить</p>
+      <p className="upsell-block__title">Добавьте к заказу</p>
       <div className="upsell-block__items">
         {products.map(p => (
           <div key={p.sku} className="upsell-block__item">
