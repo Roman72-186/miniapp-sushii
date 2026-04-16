@@ -153,6 +153,9 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN middle_name TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN game_wins_today INTEGER DEFAULT 0'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN game_day TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN game_current_word TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN game_word_status TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN game_session_id TEXT'); } catch {}
 
   return _db;
 }
@@ -867,6 +870,22 @@ function getGameWordExists(word) {
   return !!getDb().prepare('SELECT 1 FROM game_word_dictionary WHERE word = ?').get(word);
 }
 
+function assignUserWord(userId) {
+  const db = getDb();
+  const row = db.prepare('SELECT word FROM game_word_dictionary ORDER BY RANDOM() LIMIT 1').get();
+  if (!row) return null;
+  const sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  db.prepare(`
+    UPDATE users SET game_current_word = ?, game_word_status = 'active', game_session_id = ?
+    WHERE telegram_id = ?
+  `).run(row.word, sessionId, String(userId));
+  return { word: row.word, sessionId };
+}
+
+function setUserWordStatus(userId, status) {
+  getDb().prepare(`UPDATE users SET game_word_status = ? WHERE telegram_id = ?`).run(status, String(userId));
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -915,4 +934,6 @@ module.exports = {
   getGameStats,
   recordGameWin,
   getGameWordExists,
+  assignUserWord,
+  setUserWordStatus,
 };

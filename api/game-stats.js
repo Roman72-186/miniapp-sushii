@@ -1,7 +1,7 @@
 // api/game-stats.js — статистика игры пользователя
 
 const { authMiddleware } = require('./_lib/auth');
-const { getUser, getGameStats } = require('./_lib/db');
+const { getUser, getGameStats, assignUserWord } = require('./_lib/db');
 const { getGameDay } = require('./_lib/wordle-logic');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 
@@ -33,6 +33,14 @@ module.exports = async (req, res) => {
     const { winsToday } = isSubscriber ? await getGameStats(userId, gameDay) : { winsToday: 0 };
     const remainingWins = Math.max(0, 3 - winsToday);
 
+    let sessionId = user.game_session_id || null;
+
+    // Назначить новое слово если нет активной игры (новый юзер, или игра уже завершена)
+    if (isSubscriber && user.game_word_status !== 'active') {
+      const assigned = await assignUserWord(userId);
+      if (assigned) sessionId = assigned.sessionId;
+    }
+
     return res.status(200).json({
       success: true,
       isSubscriber,
@@ -40,6 +48,7 @@ module.exports = async (req, res) => {
       remainingWins,
       maxWins: 3,
       gameDay,
+      sessionId,
     });
   } catch (err) {
     console.error('game-stats error:', err.message);
