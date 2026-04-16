@@ -224,7 +224,7 @@
 .wrd-keyboard {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   width: 100%;
   max-width: min(420px, calc(100vw - 32px));
 }
@@ -232,58 +232,60 @@
 .wrd-keyboard__row {
   display: flex;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
 }
 
 .wrd-key {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
+  height: 46px;
   flex: 1;
   min-width: 0;
   padding: 0 2px;
-  border-radius: 9px;
-  border: 1px solid rgba(255,255,255,0.06);
-  font-size: clamp(12px, 3.5vw, 15px);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.07);
+  font-size: clamp(13px, 3.8vw, 16px);
   font-weight: 700;
   color: #eaeaf8;
-  background: #202024;
+  background: #202028;
   cursor: pointer;
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e38;
   transition: transform 0.08s ease, box-shadow 0.1s ease;
   user-select: none;
   -webkit-user-select: none;
 }
 
 .wrd-key:active {
-  transform: scale(0.93);
+  transform: scale(0.92);
   box-shadow: inset 2px 2px 6px #111113, inset -1px -1px 4px #2e2e36;
 }
 
-.wrd-key--wide {
-  flex: 1.7;
-  max-width: 56px;
-  font-size: clamp(10px, 3vw, 13px);
-}
-
-/* Ряд 4 (б, ю) — широкие буквы */
-.wrd-keyboard__row--letters-wide .wrd-key {
-  flex: 2;
-  max-width: none;
-  height: 44px;
-}
-
-/* Ряд Enter + ⌫ — оба растягиваются на полную ширину */
+/* Ряд Enter + ⌫ */
 .wrd-keyboard__row--actions {
-  gap: 8px;
+  gap: 10px;
+  margin-top: 2px;
 }
 .wrd-keyboard__row--actions .wrd-key {
   flex: 1;
-  max-width: none;
-  height: 50px;
+  height: 52px;
   font-size: clamp(13px, 3.5vw, 16px);
-  border-radius: 12px;
+  font-weight: 800;
+  border-radius: 13px;
+  letter-spacing: 0.3px;
+}
+/* Enter — акцентный */
+.wrd-keyboard__row--actions .wrd-key:first-child {
+  background: #1a3a2e;
+  border-color: rgba(60,200,161,0.3);
+  color: #3CC8A1;
+  box-shadow: 0 0 14px rgba(60,200,161,0.12), 3px 3px 8px #111113;
+}
+/* ⌫ — нейтральный */
+.wrd-keyboard__row--actions .wrd-key:last-child {
+  background: #1e1e28;
+  border-color: rgba(255,255,255,0.08);
+  color: #aaaacc;
 }
 
 .wrd-key--correct {
