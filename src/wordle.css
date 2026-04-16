@@ -413,6 +413,17 @@
   animation: wrd-widget-in 0.3s ease;
 }
 
+.wrd-widget--draggable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.wrd-widget--draggable:active {
+  cursor: grabbing;
+}
+
 @keyframes wrd-widget-in {
   from { opacity: 0; }
   to   { opacity: 1; }
