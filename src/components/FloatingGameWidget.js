@@ -1,6 +1,7 @@
 // src/components/FloatingGameWidget.js — плавающий виджет игры
 
 import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import '../wordle.css';
 
 function FloatingGameWidget() {
@@ -19,7 +20,7 @@ function FloatingGameWidget() {
 
   const remaining = stats.remainingWins ?? 0;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="wrd-widget" onClick={() => { window.location.href = '/game'; }}>
       <div className="wrd-widget__btn">
         🎮
@@ -28,7 +29,8 @@ function FloatingGameWidget() {
         </span>
       </div>
       <span className="wrd-widget__label">5 букв</span>
-    </div>
+    </div>,
+    document.body
   );
 }
 
