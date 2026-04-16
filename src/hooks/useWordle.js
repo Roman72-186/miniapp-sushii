@@ -6,48 +6,48 @@ const WORD_LENGTH = 5;
 const MAX_ATTEMPTS = 6;
 const STORAGE_VERSION = 1;
 
-function getStorageKey(day) {
-  return `wordle_progress_${day}`;
+function getStorageKey(sessionId) {
+  return `wordle_progress_${sessionId}`;
 }
 
-function saveProgress(day, { guesses, gameOver, gameWon, revealedWord }) {
-  if (!day || guesses.length === 0) return;
+function saveProgress(sessionId, { guesses, gameOver, gameWon, revealedWord }) {
+  if (!sessionId || guesses.length === 0) return;
   try {
-    localStorage.setItem(getStorageKey(day), JSON.stringify(
+    localStorage.setItem(getStorageKey(sessionId), JSON.stringify(
       { v: STORAGE_VERSION, guesses, gameOver, gameWon, revealedWord }
     ));
   } catch {}
 }
 
-function loadProgress(day) {
-  if (!day) return null;
+function loadProgress(sessionId) {
+  if (!sessionId) return null;
   try {
-    const raw = localStorage.getItem(getStorageKey(day));
+    const raw = localStorage.getItem(getStorageKey(sessionId));
     if (!raw) return null;
     const data = JSON.parse(raw);
     if (data?.v !== STORAGE_VERSION) {
-      localStorage.removeItem(getStorageKey(day));
+      localStorage.removeItem(getStorageKey(sessionId));
       return null;
     }
     return data;
   } catch {
-    try { localStorage.removeItem(getStorageKey(day)); } catch {}
+    try { localStorage.removeItem(getStorageKey(sessionId)); } catch {}
     return null;
   }
 }
 
-function cleanStaleProgress(currentDay) {
+function cleanStaleProgress(currentSessionId) {
   try {
     const toRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k?.startsWith('wordle_progress_') && k !== getStorageKey(currentDay)) toRemove.push(k);
+      if (k?.startsWith('wordle_progress_') && k !== getStorageKey(currentSessionId)) toRemove.push(k);
     }
     toRemove.forEach(k => localStorage.removeItem(k));
   } catch {}
 }
 
-export function useWordle({ token, gameDay, onWin, onGameOver }) {
+export function useWordle({ token, sessionId, onWin, onGameOver }) {
   const [currentGuess, setCurrentGuess] = useState('');
   const [guesses, setGuesses] = useState([]); // массив массивов { letter, status }
   const [gameOver, setGameOver] = useState(false);
@@ -58,24 +58,24 @@ export function useWordle({ token, gameDay, onWin, onGameOver }) {
   const [revealedWord, setRevealedWord] = useState(null);
   const hasRestoredRef = useRef(false);
 
-  // Восстановление прогресса при появлении gameDay
+  // Восстановление прогресса при появлении sessionId
   useEffect(() => {
-    if (!gameDay || hasRestoredRef.current) return;
+    if (!sessionId || hasRestoredRef.current) return;
     hasRestoredRef.current = true;
-    cleanStaleProgress(gameDay);
-    const saved = loadProgress(gameDay);
+    cleanStaleProgress(sessionId);
+    const saved = loadProgress(sessionId);
     if (!saved || saved.guesses.length === 0) return;
     setGuesses(saved.guesses);
     setGameOver(saved.gameOver);
     setGameWon(saved.gameWon);
     setRevealedWord(saved.revealedWord ?? null);
-  }, [gameDay]);
+  }, [sessionId]);
 
   // Сохранение после каждой засчитанной попытки
   useEffect(() => {
-    if (!gameDay || guesses.length === 0) return;
-    saveProgress(gameDay, { guesses, gameOver, gameWon, revealedWord });
-  }, [guesses, gameOver, gameWon, revealedWord, gameDay]);
+    if (!sessionId || guesses.length === 0) return;
+    saveProgress(sessionId, { guesses, gameOver, gameWon, revealedWord });
+  }, [guesses, gameOver, gameWon, revealedWord, sessionId]);
 
   const showToast = useCallback((text, type = '') => {
     setToast({ text, type });
@@ -146,7 +146,7 @@ export function useWordle({ token, gameDay, onWin, onGameOver }) {
   }, [currentGuess, guesses, gameOver, loading, token, onWin, onGameOver, showToast]);
 
   const resetGame = useCallback(() => {
-    if (gameDay) try { localStorage.removeItem(getStorageKey(gameDay)); } catch {}
+    if (sessionId) try { localStorage.removeItem(getStorageKey(sessionId)); } catch {}
     hasRestoredRef.current = false;
     setCurrentGuess('');
     setGuesses([]);
@@ -154,7 +154,7 @@ export function useWordle({ token, gameDay, onWin, onGameOver }) {
     setGameWon(false);
     setToast(null);
     setRevealedWord(null);
-  }, [gameDay]);
+  }, [sessionId]);
 
   return {
     currentGuess,

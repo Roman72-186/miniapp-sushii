@@ -27,6 +27,9 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS middle_name TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_wins_today INTEGER DEFAULT 0');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_day TEXT');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_current_word TEXT');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_word_status TEXT');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_session_id TEXT');
 
     // Таблицы для игры «Пятибуквенное слово»
     await pool.query(`
@@ -755,6 +758,21 @@ async function getGameWordExists(word) {
   return rows.length > 0;
 }
 
+async function assignUserWord(userId) {
+  const { rows } = await query('SELECT word FROM game_word_dictionary ORDER BY RANDOM() LIMIT 1');
+  if (!rows[0]) return null;
+  const sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  await query(`
+    UPDATE users SET game_current_word = $1, game_word_status = 'active', game_session_id = $2
+    WHERE telegram_id = $3
+  `, [rows[0].word, sessionId, String(userId)]);
+  return { word: rows[0].word, sessionId };
+}
+
+async function setUserWordStatus(userId, status) {
+  await query('UPDATE users SET game_word_status = $1 WHERE telegram_id = $2', [status, String(userId)]);
+}
+
 // ─── Экспорт (совместим с db.js) ─────────────────────────────
 
 module.exports = {
@@ -807,4 +825,6 @@ module.exports = {
   getGameStats,
   recordGameWin,
   getGameWordExists,
+  assignUserWord,
+  setUserWordStatus,
 };

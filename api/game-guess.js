@@ -1,7 +1,7 @@
 // api/game-guess.js — проверка попытки в игре «Пятибуквенное слово»
 
 const { authMiddleware } = require('./_lib/auth');
-const { getUser, getGameDailyWord, recordGameWin, getGameWordExists } = require('./_lib/db');
+const { getUser, recordGameWin, getGameWordExists, setUserWordStatus } = require('./_lib/db');
 const { calculateGuessResult, CELL_STATUS, getGameDay } = require('./_lib/wordle-logic');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 
@@ -34,6 +34,12 @@ module.exports = async (req, res) => {
     return res.status(403).json({ error: 'Игра доступна только для подписчиков', code: 'not_subscriber' });
   }
 
+  // Проверка активной игры
+  const targetWord = user.game_current_word;
+  if (!targetWord || user.game_word_status !== 'active') {
+    return res.status(400).json({ error: 'Игра не начата, обновите страницу' });
+  }
+
   const { word, attempt } = req.body || {};
 
   // Валидация
@@ -47,16 +53,14 @@ module.exports = async (req, res) => {
 
   try {
     const gameDay = getGameDay();
-    const dailyWordRow = await getGameDailyWord(gameDay);
-    if (!dailyWordRow) return res.status(500).json({ error: 'Слово дня не найдено' });
-
-    const result = calculateGuessResult(cleaned, dailyWordRow.word);
+    const result = calculateGuessResult(cleaned, targetWord);
     const isWon = result.every(c => c.status === CELL_STATUS.CORRECT);
 
     let winsToday = null;
     let shcEarned = false;
 
     if (isWon) {
+      await setUserWordStatus(userId, 'won');
       const { winsToday: prev } = await require('./_lib/db').getGameStats(userId, gameDay);
       if (prev < 3) {
         winsToday = await recordGameWin(userId, gameDay);
@@ -75,7 +79,8 @@ module.exports = async (req, res) => {
     }
 
     if (isLastAttempt && !isWon) {
-      response.reveal = dailyWordRow.word;
+      await setUserWordStatus(userId, 'lost');
+      response.reveal = targetWord;
     }
 
     return res.status(200).json(response);

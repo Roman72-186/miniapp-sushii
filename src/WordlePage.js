@@ -49,7 +49,7 @@ function WordlePage() {
     currentGuess, guesses, gameOver, gameWon, toast, revealedWord,
     loading, handleChar, handleDelete, handleSubmit, resetGame,
     MAX_ATTEMPTS, WORD_LENGTH,
-  } = useWordle({ token, gameDay: gameStats?.gameDay, onWin: handleWin, onGameOver: handleGameOver });
+  } = useWordle({ token, sessionId: gameStats?.sessionId, onWin: handleWin, onGameOver: handleGameOver });
 
   // Статус клавиш
   function getKeyStatus(key) {
