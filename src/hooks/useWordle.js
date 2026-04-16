@@ -1,11 +1,53 @@
 // src/hooks/useWordle.js — логика игры «Пятибуквенное слово»
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 const WORD_LENGTH = 5;
 const MAX_ATTEMPTS = 6;
+const STORAGE_VERSION = 1;
 
-export function useWordle({ token, onWin }) {
+function getStorageKey(day) {
+  return `wordle_progress_${day}`;
+}
+
+function saveProgress(day, { guesses, gameOver, gameWon, revealedWord }) {
+  if (!day || guesses.length === 0) return;
+  try {
+    localStorage.setItem(getStorageKey(day), JSON.stringify(
+      { v: STORAGE_VERSION, guesses, gameOver, gameWon, revealedWord }
+    ));
+  } catch {}
+}
+
+function loadProgress(day) {
+  if (!day) return null;
+  try {
+    const raw = localStorage.getItem(getStorageKey(day));
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data?.v !== STORAGE_VERSION) {
+      localStorage.removeItem(getStorageKey(day));
+      return null;
+    }
+    return data;
+  } catch {
+    try { localStorage.removeItem(getStorageKey(day)); } catch {}
+    return null;
+  }
+}
+
+function cleanStaleProgress(currentDay) {
+  try {
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k?.startsWith('wordle_progress_') && k !== getStorageKey(currentDay)) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+  } catch {}
+}
+
+export function useWordle({ token, gameDay, onWin }) {
   const [currentGuess, setCurrentGuess] = useState('');
   const [guesses, setGuesses] = useState([]); // массив массивов { letter, status }
   const [gameOver, setGameOver] = useState(false);
@@ -14,6 +56,26 @@ export function useWordle({ token, onWin }) {
   const [loading, setLoading] = useState(false);
   const [winsToday, setWinsToday] = useState(null);
   const [revealedWord, setRevealedWord] = useState(null);
+  const hasRestoredRef = useRef(false);
+
+  // Восстановление прогресса при появлении gameDay
+  useEffect(() => {
+    if (!gameDay || hasRestoredRef.current) return;
+    hasRestoredRef.current = true;
+    cleanStaleProgress(gameDay);
+    const saved = loadProgress(gameDay);
+    if (!saved || saved.guesses.length === 0) return;
+    setGuesses(saved.guesses);
+    setGameOver(saved.gameOver);
+    setGameWon(saved.gameWon);
+    setRevealedWord(saved.revealedWord ?? null);
+  }, [gameDay]);
+
+  // Сохранение после каждой засчитанной попытки
+  useEffect(() => {
+    if (!gameDay || guesses.length === 0) return;
+    saveProgress(gameDay, { guesses, gameOver, gameWon, revealedWord });
+  }, [guesses, gameOver, gameWon, revealedWord, gameDay]);
 
   const showToast = useCallback((text, type = '') => {
     setToast({ text, type });
@@ -82,13 +144,15 @@ export function useWordle({ token, onWin }) {
   }, [currentGuess, guesses, gameOver, loading, token, onWin, showToast]);
 
   const resetGame = useCallback(() => {
+    if (gameDay) try { localStorage.removeItem(getStorageKey(gameDay)); } catch {}
+    hasRestoredRef.current = false;
     setCurrentGuess('');
     setGuesses([]);
     setGameOver(false);
     setGameWon(false);
     setToast(null);
     setRevealedWord(null);
-  }, []);
+  }, [gameDay]);
 
   return {
     currentGuess,
