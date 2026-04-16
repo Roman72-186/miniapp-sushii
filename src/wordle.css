@@ -266,6 +266,18 @@
   font-size: clamp(10px, 3vw, 13px);
 }
 
+/* Ряд Enter + ⌫ — оба растягиваются на полную ширину */
+.wrd-keyboard__row--actions {
+  gap: 8px;
+}
+.wrd-keyboard__row--actions .wrd-key {
+  flex: 1;
+  max-width: none;
+  height: 50px;
+  font-size: clamp(13px, 3.5vw, 16px);
+  border-radius: 12px;
+}
+
 .wrd-key--correct {
   background: #1a4a35;
   border-color: #3CC8A1;

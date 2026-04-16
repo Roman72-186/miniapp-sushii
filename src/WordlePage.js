@@ -10,7 +10,8 @@ import './wordle.css';
 const KEYBOARD_ROWS = [
   ['й','ц','у','к','е','н','г','ш','щ','з','х'],
   ['ф','ы','в','а','п','р','о','л','д','ж','э'],
-  ['Enter','я','ч','с','м','и','т','ь','б','ю','⌫'],
+  ['я','ч','с','м','и','т','ь','б','ю'],
+  ['Enter','⌫'],
 ];
 
 function WordlePage() {
@@ -156,7 +157,7 @@ function WordlePage() {
 
         <div className="wrd-keyboard">
           {KEYBOARD_ROWS.map((row, ri) => (
-            <div key={ri} className="wrd-keyboard__row">
+            <div key={ri} className={`wrd-keyboard__row${ri === 3 ? ' wrd-keyboard__row--actions' : ''}`}>
               {row.map((key) => (
                 <WordleKey
                   key={key}
