@@ -166,6 +166,7 @@
   gap: 6px;
   width: 100%;
   max-width: 320px;
+  perspective: 400px;
 }
 
 .wrd-row {
@@ -386,6 +387,105 @@
 @keyframes wrd-toast-in {
   from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* === Flip-анимация ячеек === */
+@keyframes wrd-flip-correct {
+  0%   { transform: rotateX(0deg);  background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36; }
+  49%  { transform: rotateX(90deg); background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
+  50%  { transform: rotateX(90deg); background: #1a4a35; border-color: #3CC8A1; color: #3CC8A1; }
+  100% { transform: rotateX(0deg);  background: #1a4a35; border-color: #3CC8A1; color: #3CC8A1; box-shadow: 0 0 12px rgba(60,200,161,0.3), 3px 3px 8px #111113; }
+}
+
+@keyframes wrd-flip-present {
+  0%   { transform: rotateX(0deg);  background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
+  49%  { transform: rotateX(90deg); background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
+  50%  { transform: rotateX(90deg); background: #3a3010; border-color: #eab308; color: #eab308; }
+  100% { transform: rotateX(0deg);  background: #3a3010; border-color: #eab308; color: #eab308; }
+}
+
+@keyframes wrd-flip-absent {
+  0%   { transform: rotateX(0deg);  background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
+  49%  { transform: rotateX(90deg); background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
+  50%  { transform: rotateX(90deg); background: #18181e; border-color: rgba(255,255,255,0.06); color: #6666aa; }
+  100% { transform: rotateX(0deg);  background: #18181e; border-color: rgba(255,255,255,0.06); color: #6666aa; }
+}
+
+.wrd-cell--revealing.wrd-cell--correct { animation: wrd-flip-correct 0.5s ease forwards; }
+.wrd-cell--revealing.wrd-cell--present { animation: wrd-flip-present 0.5s ease forwards; }
+.wrd-cell--revealing.wrd-cell--absent  { animation: wrd-flip-absent  0.5s ease forwards; }
+
+/* === Кнопка помощи в хедере === */
+.wrd-header__help {
+  background: #202024;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #8888aa;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  flex-shrink: 0;
+}
+
+.wrd-header__help:active {
+  box-shadow: inset 2px 2px 6px #111113, inset -1px -1px 4px #2e2e36;
+  transform: scale(0.93);
+}
+
+/* === Попап правил === */
+.wrd-help-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wrd-help-modal {
+  background: #1e1e2e;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 24px 20px 20px;
+  width: min(320px, calc(100vw - 40px));
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  position: relative;
+}
+
+.wrd-help-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #8888aa;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.wrd-help-modal__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #eaeaf8;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.wrd-help-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: #ccccee;
 }
 
 /* === Reveal-баннер (загаданное слово при проигрыше) === */
