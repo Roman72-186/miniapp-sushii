@@ -114,6 +114,33 @@ function getDb() {
     CREATE INDEX IF NOT EXISTS idx_orders_telegram ON orders(telegram_id);
   `);
 
+  // Таблицы для игры «Пятибуквенное слово»
+  _db.exec(`
+    CREATE TABLE IF NOT EXISTS game_word_dictionary (
+      id   INTEGER PRIMARY KEY AUTOINCREMENT,
+      word TEXT NOT NULL UNIQUE
+    );
+    CREATE TABLE IF NOT EXISTS game_daily_word (
+      date    TEXT PRIMARY KEY,
+      word_id INTEGER NOT NULL,
+      FOREIGN KEY (word_id) REFERENCES game_word_dictionary(id)
+    );
+  `);
+
+  // Seed словаря при пустой таблице
+  const wordCount = _db.prepare('SELECT COUNT(*) as c FROM game_word_dictionary').get();
+  if (wordCount.c === 0) {
+    try {
+      const words = require('../game-words.json');
+      const insert = _db.prepare('INSERT OR IGNORE INTO game_word_dictionary (word) VALUES (?)');
+      const seedAll = _db.transaction(list => { for (const w of list) insert.run(String(w).toLowerCase()); });
+      seedAll(words);
+      console.log(`[db] Seeded ${words.length} game words`);
+    } catch (e) {
+      console.warn('[db] game-words.json not found, skipping seed:', e.message);
+    }
+  }
+
   // Миграции: добавить новые колонки если нет
   try { _db.exec('ALTER TABLE users ADD COLUMN partner_code TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN notes TEXT'); } catch {}
@@ -124,6 +151,8 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN first_name TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN last_name TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN middle_name TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN game_wins_today INTEGER DEFAULT 0'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN game_day TEXT'); } catch {}
 
   return _db;
 }
@@ -779,6 +808,61 @@ function getAdminRecentBonuses(limit = 50) {
   `).all(limit);
 }
 
+// ─── Game: Пятибуквенное слово ───────────────────────────
+
+function getGameDailyWord(gameDay) {
+  const db = getDb();
+  const row = db.prepare(`
+    SELECT gd.date, gw.word
+    FROM game_daily_word gd
+    JOIN game_word_dictionary gw ON gw.id = gd.word_id
+    WHERE gd.date = ?
+  `).get(gameDay);
+  if (row) return row;
+
+  // Выбираем случайное слово, которое ещё не было сегодня и не было недавно
+  const random = db.prepare(`
+    SELECT id, word FROM game_word_dictionary
+    WHERE id NOT IN (SELECT word_id FROM game_daily_word ORDER BY date DESC LIMIT 30)
+    ORDER BY RANDOM() LIMIT 1
+  `).get() || db.prepare('SELECT id, word FROM game_word_dictionary ORDER BY RANDOM() LIMIT 1').get();
+
+  if (!random) return null;
+  db.prepare('INSERT OR IGNORE INTO game_daily_word (date, word_id) VALUES (?, ?)').run(gameDay, random.id);
+  return { date: gameDay, word: random.word };
+}
+
+function getGameStats(telegramId, gameDay) {
+  const db = getDb();
+  const user = db.prepare('SELECT game_wins_today, game_day FROM users WHERE telegram_id = ?').get(String(telegramId));
+  if (!user) return { winsToday: 0, gameDay };
+  // Если игровой день сменился — считаем нули
+  if (user.game_day !== gameDay) return { winsToday: 0, gameDay };
+  return { winsToday: user.game_wins_today || 0, gameDay };
+}
+
+function recordGameWin(telegramId, gameDay) {
+  const db = getDb();
+  const user = db.prepare('SELECT game_wins_today, game_day FROM users WHERE telegram_id = ?').get(String(telegramId));
+  if (!user) return 0;
+
+  const currentDay = user.game_day;
+  const currentWins = currentDay === gameDay ? (user.game_wins_today || 0) : 0;
+
+  if (currentWins >= 3) return currentWins; // лимит уже достигнут
+
+  const newWins = currentWins + 1;
+  db.prepare(`
+    UPDATE users SET game_wins_today = ?, game_day = ?, updated_at = datetime('now')
+    WHERE telegram_id = ?
+  `).run(newWins, gameDay, String(telegramId));
+
+  // Начисляем 3 SHC за победу
+  updateBalance(telegramId, 3);
+
+  return newWins;
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -823,4 +907,7 @@ module.exports = {
   findUserByPhoneExceptId,
   getAdminTopReferrers,
   getAdminRecentBonuses,
+  getGameDailyWord,
+  getGameStats,
+  recordGameWin,
 };
