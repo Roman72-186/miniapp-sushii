@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
 
   try {
     const gameDay = getGameDay();
-    const dailyWordRow = getGameDailyWord(gameDay);
+    const dailyWordRow = await getGameDailyWord(gameDay);
     if (!dailyWordRow) return res.status(500).json({ error: 'Слово дня не найдено' });
 
     const result = calculateGuessResult(cleaned, dailyWordRow.word);
@@ -54,9 +54,9 @@ module.exports = async (req, res) => {
     let shcEarned = false;
 
     if (isWon) {
-      const { winsToday: prev } = require('./_lib/db').getGameStats(userId, gameDay);
+      const { winsToday: prev } = await require('./_lib/db').getGameStats(userId, gameDay);
       if (prev < 3) {
-        winsToday = recordGameWin(userId, gameDay);
+        winsToday = await recordGameWin(userId, gameDay);
         shcEarned = true;
       } else {
         winsToday = prev;
