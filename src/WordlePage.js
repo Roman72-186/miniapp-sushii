@@ -40,11 +40,16 @@ function WordlePage() {
     setGameStats(prev => prev ? { ...prev, winsToday: newWinsToday, remainingWins: Math.max(0, 3 - newWinsToday) } : prev);
   }, []);
 
+  const handleGameOver = useCallback((newWinsToday) => {
+    if (newWinsToday === null) return; // проигрыш — winsToday не меняется
+    setGameStats(prev => prev ? { ...prev, winsToday: newWinsToday, remainingWins: Math.max(0, 3 - newWinsToday) } : prev);
+  }, []);
+
   const {
-    currentGuess, guesses, gameOver, toast,
+    currentGuess, guesses, gameOver, gameWon, toast, revealedWord,
     loading, handleChar, handleDelete, handleSubmit, resetGame,
     MAX_ATTEMPTS, WORD_LENGTH,
-  } = useWordle({ token, gameDay: gameStats?.gameDay, onWin: handleWin });
+  } = useWordle({ token, gameDay: gameStats?.gameDay, onWin: handleWin, onGameOver: handleGameOver });
 
   // Статус клавиш
   function getKeyStatus(key) {
@@ -146,6 +151,13 @@ function WordlePage() {
           maxAttempts={MAX_ATTEMPTS}
           wordLength={WORD_LENGTH}
         />
+
+        {revealedWord && !gameWon && (
+          <div className="wrd-reveal-banner">
+            <div className="wrd-reveal-banner__label">Загаданное слово</div>
+            <div className="wrd-reveal-banner__word">{revealedWord.toUpperCase()}</div>
+          </div>
+        )}
 
         {gameOver && (
           <div className="wrd-actions">

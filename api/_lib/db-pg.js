@@ -750,6 +750,11 @@ async function recordGameWin(telegramId, gameDay) {
   return newWins;
 }
 
+async function getGameWordExists(word) {
+  const { rows } = await query('SELECT 1 FROM game_word_dictionary WHERE word = $1', [word]);
+  return rows.length > 0;
+}
+
 // ─── Экспорт (совместим с db.js) ─────────────────────────────
 
 module.exports = {
@@ -801,4 +806,5 @@ module.exports = {
   getGameDailyWord,
   getGameStats,
   recordGameWin,
+  getGameWordExists,
 };

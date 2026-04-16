@@ -47,7 +47,7 @@ function cleanStaleProgress(currentDay) {
   } catch {}
 }
 
-export function useWordle({ token, gameDay, onWin }) {
+export function useWordle({ token, gameDay, onWin, onGameOver }) {
   const [currentGuess, setCurrentGuess] = useState('');
   const [guesses, setGuesses] = useState([]); // массив массивов { letter, status }
   const [gameOver, setGameOver] = useState(false);
@@ -132,16 +132,18 @@ export function useWordle({ token, gameDay, onWin }) {
           : 'Победа! 🎉 (лимит SHC на сегодня исчерпан)';
         showToast(msg, 'win');
         if (onWin) onWin(data.winsToday);
+        if (onGameOver) onGameOver(data.winsToday);
       } else if (newGuesses.length >= MAX_ATTEMPTS) {
         setGameOver(true);
         if (data.reveal) setRevealedWord(data.reveal);
-        showToast(`Слово: ${data.reveal || '?'}`, 'lose');
+        showToast('Не угадали 😔', 'lose');
+        if (onGameOver) onGameOver(null);
       }
     } catch {
       showToast('Ошибка соединения');
     }
     setLoading(false);
-  }, [currentGuess, guesses, gameOver, loading, token, onWin, showToast]);
+  }, [currentGuess, guesses, gameOver, loading, token, onWin, onGameOver, showToast]);
 
   const resetGame = useCallback(() => {
     if (gameDay) try { localStorage.removeItem(getStorageKey(gameDay)); } catch {}

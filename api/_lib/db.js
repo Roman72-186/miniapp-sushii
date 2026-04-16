@@ -863,6 +863,10 @@ function recordGameWin(telegramId, gameDay) {
   return newWins;
 }
 
+function getGameWordExists(word) {
+  return !!getDb().prepare('SELECT 1 FROM game_word_dictionary WHERE word = ?').get(word);
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -910,4 +914,5 @@ module.exports = {
   getGameDailyWord,
   getGameStats,
   recordGameWin,
+  getGameWordExists,
 };
