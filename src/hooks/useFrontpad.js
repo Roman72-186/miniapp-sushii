@@ -9,7 +9,7 @@ import { useState, useCallback, useMemo } from 'react';
 export function useCart() {
   const [items, setItems] = useState([]);
 
-  const addItem = useCallback((product, quantity = 1) => {
+  const addItem = useCallback((product, quantity = 1, extras = {}) => {
     setItems(prev => {
       const existing = prev.find(item => item.product.id === product.id);
       if (existing) {
@@ -20,7 +20,7 @@ export function useCart() {
             : item
         );
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product, quantity, ...extras }];
     });
   }, []);
 

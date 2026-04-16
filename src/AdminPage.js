@@ -32,6 +32,9 @@ function AdminPage() {
   const [upsellItems, setUpsellItems] = useState([]); // [{sku, name, price, catalog}]
   const [upsellSaving, setUpsellSaving] = useState(null);
   const [upsellClearing, setUpsellClearing] = useState(false);
+  const [promoGiftSkus, setPromoGiftSkus] = useState([]);
+  const [thresholdGiftSkus, setThresholdGiftSkus] = useState([]);
+  const [giftSaving, setGiftSaving] = useState(null);
 
   // Subscribers state
   const [subscribers, setSubscribers] = useState([]);
@@ -203,6 +206,40 @@ function AdminPage() {
     setUpsellClearing(false);
   };
 
+  // Загрузка подарочных товаров
+  const loadGifts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/gift-items');
+      const data = await res.json();
+      if (data.success) {
+        setPromoGiftSkus(data.promoSkus || []);
+        setThresholdGiftSkus(data.thresholdSkus || []);
+      }
+    } catch (_) {}
+  }, []);
+
+  const toggleGift = async (sku, type, inList) => {
+    const endpoint = type === 'promo' ? '/api/admin/promo-gift-toggle' : '/api/admin/threshold-gift-toggle';
+    setGiftSaving(`${type}-${sku}`);
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ sku: String(sku), action: inList ? 'remove' : 'add' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        await loadGifts();
+        showToast(inList ? 'Убрано из подарков' : 'Добавлено в подарки');
+      } else {
+        showToast(data.error || 'Ошибка', 'error');
+      }
+    } catch (_) {
+      showToast('Ошибка сети', 'error');
+    }
+    setGiftSaving(null);
+  };
+
   // Загрузка подписчиков
   const loadSubscribers = useCallback(async () => {
     setSubsLoading(true);
@@ -220,7 +257,7 @@ function AdminPage() {
   }, [headers]);
 
   useEffect(() => {
-    if (loggedIn && tab === 'products' && catalogs.length === 0) { loadProducts(); loadUpsell(); }
+    if (loggedIn && tab === 'products' && catalogs.length === 0) { loadProducts(); loadUpsell(); loadGifts(); }
     if (loggedIn && tab === 'upsell') loadUpsell();
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
@@ -818,13 +855,29 @@ function AdminPage() {
                   </div>
 
                   {item.sku && (
-                    <button
-                      style={upsellSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
-                      onClick={() => toggleUpsell(item.sku, upsellSkus.includes(String(item.sku)))}
-                      disabled={upsellSaving === String(item.sku)}
-                    >
-                      {upsellSaving === String(item.sku) ? '...' : (upsellSkus.includes(String(item.sku)) ? '★ В допродажах' : '☆ В допродажи')}
-                    </button>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                      <button
+                        style={upsellSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
+                        onClick={() => toggleUpsell(item.sku, upsellSkus.includes(String(item.sku)))}
+                        disabled={upsellSaving === String(item.sku)}
+                      >
+                        {upsellSaving === String(item.sku) ? '...' : (upsellSkus.includes(String(item.sku)) ? '★ Допрод' : '☆ Допрод')}
+                      </button>
+                      <button
+                        style={promoGiftSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
+                        onClick={() => toggleGift(item.sku, 'promo', promoGiftSkus.includes(String(item.sku)))}
+                        disabled={giftSaving === `promo-${item.sku}`}
+                      >
+                        {giftSaving === `promo-${item.sku}` ? '...' : (promoGiftSkus.includes(String(item.sku)) ? '🎁P ✓' : '🎁P')}
+                      </button>
+                      <button
+                        style={thresholdGiftSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
+                        onClick={() => toggleGift(item.sku, 'threshold', thresholdGiftSkus.includes(String(item.sku)))}
+                        disabled={giftSaving === `threshold-${item.sku}`}
+                      >
+                        {giftSaving === `threshold-${item.sku}` ? '...' : (thresholdGiftSkus.includes(String(item.sku)) ? '🎁T ✓' : '🎁T')}
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}

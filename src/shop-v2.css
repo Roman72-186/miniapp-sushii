@@ -828,3 +828,57 @@
   color: #eaeaf8;
   padding: 0 8px;
 }
+
+/* Промокод */
+.shop-cart__promo {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.shop-cart__promo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.shop-cart__promo-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: #eaeaf8;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.shop-cart__promo-input:focus {
+  border-color: #3CC8A1;
+}
+.shop-cart__promo-input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.shop-cart__promo-clear {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: #aaa;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shop-cart__promo-status {
+  font-size: 18px;
+  font-weight: 700;
+}
+.shop-cart__promo-status--ok { color: #3CC8A1; }
+.shop-cart__promo-status--err { color: #e74c3c; }
+.shop-cart__promo-msg {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.shop-cart__promo-msg--success { color: #3CC8A1; }
+.shop-cart__promo-msg--info { color: #f0c040; }

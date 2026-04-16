@@ -9,6 +9,7 @@ import ShopProductCard from './components/ShopProductCard';
 import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
+import { useCartGifts } from './hooks/useCartGifts';
 import './shop.css';
 
 // 3 категории с путями к JSON
@@ -64,6 +65,14 @@ function ShopPage() {
 
   const { products, loading, error, refetch } = useLocalMenu();
   const cart = useCart();
+
+  const [promoCode, setPromoCode] = useState('');
+  const { messages: promoMessages, isPromoValid } = useCartGifts({
+    items: cart.items,
+    promoCode,
+    addItem: cart.addItem,
+    removeItem: cart.removeItem,
+  });
 
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -264,6 +273,10 @@ function ShopPage() {
         onClose={() => setShowCart(false)}
         onCheckout={handleCheckout}
         onAddItem={cart.addItem}
+        promoCode={promoCode}
+        onPromoCodeChange={setPromoCode}
+        promoMessages={promoMessages}
+        isPromoValid={isPromoValid}
       />
     )}
 
@@ -274,6 +287,7 @@ function ShopPage() {
         telegramId={telegramId}
         onBack={() => setShowCheckout(false)}
         onSuccess={handleOrderSuccess}
+        promoCode={promoCode}
       />
     )}
     </>

@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import UpsellBlock from './UpsellBlock';
 
-function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem }) {
+function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem, promoCode, onPromoCodeChange, promoMessages, isPromoValid }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -36,7 +36,11 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                   <div className="shop-cart__item-info">
                     <p className="shop-cart__item-name">{item.product.cleanName || item.product.name}</p>
                     {item.product.gift ? (
-                      <p className="shop-cart__item-price shop-cart__item-price--gift">🎁 Подарок по подписке</p>
+                      <p className="shop-cart__item-price shop-cart__item-price--gift">
+                        🎁 {item.giftSource === 'promo' ? 'Подарок по промокоду'
+                           : item.giftSource === 'threshold2500' ? 'Подарок к заказу'
+                           : 'Подарок по подписке'}
+                      </p>
                     ) : (
                       <p className="shop-cart__item-price">{item.product.price}₽ / шт</p>
                     )}
@@ -82,6 +86,39 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                 onAddItem={onAddItem}
                 cartSkus={items.map(i => i.product.sku || i.product.id)}
               />
+            )}
+
+            {onPromoCodeChange && (
+              <div className="shop-cart__promo">
+                <div className="shop-cart__promo-row">
+                  <input
+                    type="text"
+                    className="shop-cart__promo-input"
+                    placeholder="Промокод"
+                    value={promoCode || ''}
+                    onChange={e => onPromoCodeChange(e.target.value.trim())}
+                    maxLength={10}
+                  />
+                  {promoCode && (
+                    <button
+                      className="shop-cart__promo-clear"
+                      onClick={() => onPromoCodeChange('')}
+                    >
+                      &times;
+                    </button>
+                  )}
+                  {promoCode && (
+                    <span className={`shop-cart__promo-status ${isPromoValid ? 'shop-cart__promo-status--ok' : 'shop-cart__promo-status--err'}`}>
+                      {isPromoValid ? '✓' : '✗'}
+                    </span>
+                  )}
+                </div>
+                {promoMessages && promoMessages.map((msg, i) => (
+                  <p key={i} className={`shop-cart__promo-msg shop-cart__promo-msg--${msg.type}`}>
+                    {msg.text}
+                  </p>
+                ))}
+              </div>
             )}
 
             <div className="shop-cart__footer">

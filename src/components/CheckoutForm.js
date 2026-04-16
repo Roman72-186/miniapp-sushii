@@ -26,7 +26,7 @@ function buildDatetime(timeStr) {
   return `${Y}-${M}-${D} ${timeStr}:00`;
 }
 
-function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
+function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -225,6 +225,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess }) {
           telegram_id: telegramId || '',
           order_type: 'discount',
           shc_used: shcApplied > 0 ? shcApplied : undefined,
+          promo_code: promoCode || undefined,
         }),
       });
 
