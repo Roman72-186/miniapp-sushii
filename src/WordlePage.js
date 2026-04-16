@@ -20,11 +20,12 @@ function WordlePage() {
     return () => document.body.classList.remove('shop-body');
   }, []);
 
-  useUser(); // нужен контекст для будущих расширений
+  useUser();
   const token = localStorage.getItem('web_token');
 
   const [gameStats, setGameStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
 
   const fetchStats = useCallback(() => {
     if (!token) { setStatsLoading(false); return; }
@@ -41,7 +42,7 @@ function WordlePage() {
   }, []);
 
   const handleGameOver = useCallback((newWinsToday) => {
-    if (newWinsToday === null) return; // проигрыш — winsToday не меняется
+    if (newWinsToday === null) return;
     setGameStats(prev => prev ? { ...prev, winsToday: newWinsToday, remainingWins: Math.max(0, 3 - newWinsToday) } : prev);
   }, []);
 
@@ -51,7 +52,6 @@ function WordlePage() {
     MAX_ATTEMPTS, WORD_LENGTH,
   } = useWordle({ token, sessionId: gameStats?.sessionId, onWin: handleWin, onGameOver: handleGameOver });
 
-  // Статус клавиш
   function getKeyStatus(key) {
     let best = 'unchecked';
     for (const row of guesses) {
@@ -73,7 +73,6 @@ function WordlePage() {
     else if (/^[а-яё]$/.test(key)) handleChar(key);
   }
 
-  // Клавиатура с физической клавиатуры
   useEffect(() => {
     function onKey(e) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -84,7 +83,7 @@ function WordlePage() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }); // без deps — всегда свежий handleKeyPress
+  });
 
   const isSubscriber = gameStats?.isSubscriber;
   const winsToday = gameStats?.winsToday ?? 0;
@@ -113,7 +112,7 @@ function WordlePage() {
           <div className="wrd-locked__icon">🔒</div>
           <div className="wrd-locked__title">Только для подписчиков</div>
           <div className="wrd-locked__desc">
-            Угадай слово дня за 6 попыток.<br/>
+            Угадай слово из 5 букв за 6 попыток.<br/>
             Получай по 3 SHC за каждую победу — до 3 раз в день.
           </div>
           <button className="wrd-locked__btn" onClick={() => window.location.href = '/'}>
@@ -129,10 +128,32 @@ function WordlePage() {
       <header className="wrd-header">
         <button className="wrd-header__back" onClick={() => window.history.back()}>←</button>
         <span className="wrd-header__title">5 букв</span>
+        <button className="wrd-header__help" onClick={() => setShowHelp(true)}>?</button>
         <span className="wrd-header__wins">
           {remainingWins > 0 ? `+3 SHC × ${remainingWins}` : '✓ SHC получены'}
         </span>
       </header>
+
+      {showHelp && (
+        <div className="wrd-help-overlay" onClick={() => setShowHelp(false)}>
+          <div className="wrd-help-modal" onClick={e => e.stopPropagation()}>
+            <button className="wrd-help-modal__close" onClick={() => setShowHelp(false)}>×</button>
+            <div className="wrd-help-modal__title">Как читать подсказки</div>
+            <div className="wrd-help-item">
+              <div className="wrd-cell wrd-cell--correct" style={{width:40,height:40,fontSize:18,flexShrink:0,borderRadius:8}}>А</div>
+              <span>Буква стоит на правильном месте</span>
+            </div>
+            <div className="wrd-help-item">
+              <div className="wrd-cell wrd-cell--present" style={{width:40,height:40,fontSize:18,flexShrink:0,borderRadius:8}}>А</div>
+              <span>Буква есть в слове, но не здесь</span>
+            </div>
+            <div className="wrd-help-item">
+              <div className="wrd-cell wrd-cell--absent" style={{width:40,height:40,fontSize:18,flexShrink:0,borderRadius:8}}>А</div>
+              <span>Буквы нет в слове</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className={`wrd-toast${toast.type === 'win' ? ' wrd-toast--win' : toast.type === 'lose' ? ' wrd-toast--lose' : ''}`}>
@@ -142,7 +163,7 @@ function WordlePage() {
 
       <div className="wrd-body">
         <div className="wrd-subtitle">
-          Угадай слово дня · {winsToday}/3 побед сегодня
+          Угадай слово из 5 букв · {winsToday}/3 побед сегодня
         </div>
 
         <WordleGrid
