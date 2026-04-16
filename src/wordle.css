@@ -162,6 +162,8 @@
   display: grid;
   grid-template-rows: repeat(6, 1fr);
   gap: 6px;
+  width: 100%;
+  max-width: 320px;
 }
 
 .wrd-row {
@@ -171,21 +173,17 @@
 }
 
 .wrd-cell {
-  width: 52px;
-  height: 52px;
+  aspect-ratio: 1;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  font-size: 22px;
+  font-size: clamp(16px, 5vw, 22px);
   font-weight: 800;
   text-transform: uppercase;
   transition: transform 0.1s ease;
   box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
-}
-
-@media (max-width: 360px) {
-  .wrd-cell { width: 44px; height: 44px; font-size: 18px; }
 }
 
 .wrd-cell--empty {
@@ -232,7 +230,7 @@
 .wrd-keyboard__row {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .wrd-key {
@@ -240,11 +238,13 @@
   align-items: center;
   justify-content: center;
   height: 44px;
-  min-width: 30px;
-  padding: 0 6px;
+  flex: 1;
+  min-width: 0;
+  max-width: 36px;
+  padding: 0 2px;
   border-radius: 9px;
   border: 1px solid rgba(255,255,255,0.06);
-  font-size: 15px;
+  font-size: clamp(12px, 3.5vw, 15px);
   font-weight: 700;
   color: #eaeaf8;
   background: #202024;
@@ -261,8 +261,9 @@
 }
 
 .wrd-key--wide {
-  min-width: 52px;
-  font-size: 13px;
+  flex: 1.7;
+  max-width: 56px;
+  font-size: clamp(10px, 3vw, 13px);
 }
 
 .wrd-key--correct {
