@@ -58,6 +58,9 @@ app.all('/api/admin/update-user', require('./api/admin-update-user'));
 app.get('/api/upsell-items', require('./api/upsell-items'));
 app.post('/api/admin/upsell-toggle', require('./api/admin/upsell-toggle'));
 app.post('/api/admin/upsell-clear', require('./api/admin/upsell-clear'));
+app.get('/api/gift-items', require('./api/gift-items'));
+app.post('/api/admin/promo-gift-toggle', require('./api/admin/promo-gift-toggle'));
+app.post('/api/admin/threshold-gift-toggle', require('./api/admin/threshold-gift-toggle'));
 
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {
