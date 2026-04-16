@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
     const isSubscriber = subscriptionStatus === 'активно';
 
     const gameDay = getGameDay();
-    const { winsToday } = isSubscriber ? getGameStats(userId, gameDay) : { winsToday: 0 };
+    const { winsToday } = isSubscriber ? await getGameStats(userId, gameDay) : { winsToday: 0 };
     const remainingWins = Math.max(0, 3 - winsToday);
 
     return res.status(200).json({
