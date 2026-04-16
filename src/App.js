@@ -20,6 +20,8 @@ import LoginPage from "./LoginPage"; // веб-вход по телефону
 import BenefitsPage from "./BenefitsPage"; // страница выгоды подписки
 import PartnerCodePage from "./PartnerCodePage"; // ввод кода партнёра после оплаты
 import NotFoundPage from "./NotFoundPage"; // страница 404
+import WordlePage from "./WordlePage"; // игра «Пятибуквенное слово»
+import FloatingGameWidget from "./components/FloatingGameWidget"; // плавающий виджет игры
 
 function App() {
   const pathname =
@@ -60,59 +62,38 @@ function App() {
     pathname === "/partner-code";
   const isLandingPage =
     pathname === "/";
+  const isGamePage =
+    pathname === "/game";
+
+  if (isGamePage) {
+    return <WordlePage />;
+  }
+
+  // Виджет игры — показывается на всех страницах кроме /game, /login, /admin
+  const showGameWidget = !isLoginPage && !isAdminPage && !isGamePage;
 
   if (isLoginPage) {
     return <LoginPage />;
   }
 
-  if (isBenefitsPage) {
-    return <BenefitsPage />;
-  }
+  const W = showGameWidget ? <FloatingGameWidget /> : null;
 
-  if (isPartnerCodePage) {
-    return <PartnerCodePage />;
-  }
+  if (isBenefitsPage) return <>{W}<BenefitsPage /></>;
+  if (isPartnerCodePage) return <>{W}<PartnerCodePage /></>;
+  if (isGiftRollsPage) return <>{W}<GiftRollsPage /></>;
+  if (isGiftSetsPage) return <>{W}<GiftSetsPage /></>;
+  if (isAdminPage) return <AdminPage />;
+  if (isSettingsPage) return <>{W}<SettingsPage /></>;
+  if (isProfilePage) return <>{W}<ProfilePage /></>;
+  if (isDiscountShopPage) return <>{W}<DiscountShopPage /></>;
+  if (isShopPage) return <>{W}<ShopPage /></>;
+  if (isPaymentPage) return <>{W}<PaymentPage /></>;
+  if (isLandingPage) return <>{W}<LandingPage /></>;
 
-  if (isGiftRollsPage) {
-    return <GiftRollsPage />;
-  }
-
-  if (isGiftSetsPage) {
-    return <GiftSetsPage />;
-  }
-
-  if (isAdminPage) {
-    return <AdminPage />;
-  }
-
-  if (isSettingsPage) {
-    return <SettingsPage />;
-  }
-
-  if (isProfilePage) {
-    return <ProfilePage />;
-  }
-
-  if (isDiscountShopPage) {
-    return <DiscountShopPage />;
-  }
-
-  if (isShopPage) {
-    return <ShopPage />;
-  }
-
-  if (isPaymentPage) {
-    return <PaymentPage />;
-  }
-
-  if (isLandingPage) {
-    return <LandingPage />;
-  }
-
-  if (isSetsReceivedPage) return <SetsReceivedPage />;
-  if (isSetsPage) return <SetsPage />;
-  if (isRollsPage) return <RollsPage />;
-  if (isSuccessPage) return <Success />;
+  if (isSetsReceivedPage) return <><SetsReceivedPage />{showGameWidget && <FloatingGameWidget />}</>;
+  if (isSetsPage) return <><SetsPage />{showGameWidget && <FloatingGameWidget />}</>;
+  if (isRollsPage) return <><RollsPage />{showGameWidget && <FloatingGameWidget />}</>;
+  if (isSuccessPage) return <><Success />{showGameWidget && <FloatingGameWidget />}</>;
 
   return <NotFoundPage />;
 }

@@ -62,6 +62,10 @@ app.get('/api/gift-items', require('./api/gift-items'));
 app.post('/api/admin/promo-gift-toggle', require('./api/admin/promo-gift-toggle'));
 app.post('/api/admin/threshold-gift-toggle', require('./api/admin/threshold-gift-toggle'));
 
+// Game API
+app.post('/api/game-guess', require('./api/game-guess'));
+app.get('/api/game-stats', require('./api/game-stats'));
+
 // no-cache для JSON и HTML (чтобы админские правки и обновления подхватывались сразу)
 function noCacheHeaders(res, filePath) {
   if (filePath.endsWith('.json') || filePath.endsWith('.html')) {
