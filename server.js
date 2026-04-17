@@ -123,4 +123,35 @@ app.listen(PORT, () => {
   }
 
   scheduleDailyCron();
+
+  // Еженедельный синк словаря игры (воскресенье, 03:00 UTC)
+  async function runDictSync() {
+    try {
+      const useSupabase = process.env.USE_SUPABASE === 'true';
+      const { syncGameDictionary } = useSupabase
+        ? require('./api/_lib/db-pg')
+        : require('./api/_lib/db');
+      await syncGameDictionary();
+    } catch (err) {
+      console.error('[dict-sync] ошибка:', err.message);
+    }
+  }
+
+  function scheduleWeeklyDictSync() {
+    const now = new Date();
+    const next = new Date(now);
+    const daysUntilSunday = (7 - now.getUTCDay()) % 7 || 7;
+    next.setUTCDate(now.getUTCDate() + daysUntilSunday);
+    next.setUTCHours(3, 0, 0, 0);
+
+    const delay = next.getTime() - now.getTime();
+    console.log(`dict-sync: следующий синк словаря ${next.toISOString()} (через ${Math.round(delay / 60000)} мин)`);
+
+    setTimeout(() => {
+      runDictSync();
+      scheduleWeeklyDictSync();
+    }, delay);
+  }
+
+  scheduleWeeklyDictSync();
 });
