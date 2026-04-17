@@ -36,6 +36,7 @@ const styles = {
   claimed: { ...rowBase, background: 'rgba(60, 200, 161, 0.08)', borderColor: 'rgba(60, 200, 161, 0.25)' },
   available: { ...rowBase, background: 'rgba(255, 200, 60, 0.1)', borderColor: 'rgba(255, 200, 60, 0.35)' },
   upcoming: { ...rowBase, background: 'rgba(255,255,255,0.03)' },
+  expired: { ...rowBase, background: 'rgba(255,255,255,0.02)', opacity: 0.55 },
   icon: { fontSize: 20, flex: '0 0 24px', textAlign: 'center' },
   title: { color: '#eaeaf8', fontSize: 13, fontWeight: 600 },
   meta: { color: '#9fb0c3', fontSize: 12, marginTop: 2 },
@@ -72,6 +73,19 @@ function WindowRow({ w, giftType, today }) {
         <div style={{ flex: 1 }}>
           <div style={styles.title}>{label} · {range}</div>
           <div style={styles.meta}>Откроется через {daysTo} дн.</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Период закончился, подарок не был получен — недоступно
+  if (end < today) {
+    return (
+      <div style={styles.expired}>
+        <div style={styles.icon}>✕</div>
+        <div style={{ flex: 1 }}>
+          <div style={styles.title}>{label} · {range}</div>
+          <div style={styles.meta}>Период прошёл — подарок недоступен</div>
         </div>
       </div>
     );
