@@ -48,7 +48,7 @@ Standalone веб-приложение для суши-ресторана. React
 **Data storage**: SQLite (`data/sushii.db`) in dev/staging; **PostgreSQL (Supabase) in production** (env `USE_SUPABASE=true`). The `api/_lib/db.js` is a proxy — when `USE_SUPABASE=true` it re-exports `api/_lib/db-pg.js` (async, `pg` pool). Both modules export identical function names. File-based caches: `data/users/{id}.json` (5-min TTL), `data/gifts/{id}.json` (gift windows blob-store).
 
 **Schema tables** (одинаковые для SQLite и PostgreSQL): `users`, `payments`, `transactions`, `referral_bonuses`, `gift_history`, `orders`. Runtime-миграции идут через `ALTER TABLE ... ADD COLUMN` (в SQLite — try/catch, в PG — `IF NOT EXISTS`). Колонки добавленные после initial schema:
-- `users`: `partner_code`, `notes`, `last_address`, `last_pickup_point`, `first_name`, `last_name`, `middle_name`
+- `users`: `partner_code`, `notes`, `last_address`, `last_pickup_point`, `first_name`, `last_name`, `middle_name`, `game_wins_today`, `game_day`, `game_current_word`, `game_word_status`, `game_session_id`
 - `gift_history`: `address`, `gift_name`
 
 Легаси поле `users.name` продолжает писаться синхронно с `first_name + ' ' + last_name` — много мест во фронте/бэке читают его, не удалять.
@@ -72,6 +72,7 @@ Standalone веб-приложение для суши-ресторана. React
 | `/gift-rolls` | `GiftRollsPage` — бот-страница подарочных роллов |
 | `/gift-sets` | `GiftSetsPage` — бот-страница подарочных сетов |
 | `/sets-received` | `SetsReceivedPage` — страница «сет уже получен» |
+| `/game` | `WordlePage` — игра «Пятибуквенное слово» (только для подписчиков) |
 | `/sets`, `/rolls` | `SetsPage`, `RollsPage` — legacy |
 | `/success` | `Success` |
 
@@ -217,6 +218,30 @@ Admin endpoints beyond products:
 Логика применения (фронт, `DiscountShopPage.js`/`CheckoutForm.js`):
 - **Промокод 102030** — пользователь вводит в поле → если сумма ≥ 2000 ₽, в корзину добавляется один товар из `promoGifts` бесплатно
 - **Порог 2500 ₽** — автоматически при достижении суммы корзины 2500 ₽ → добавляется один товар из `thresholdGifts`
+
+## Игра «Пятибуквенное слово» (Wordle)
+
+Маршрут `/game` → `WordlePage.js`. Доступна только подписчикам (проверка `subscriptionStatus === 'активно'`). На всех остальных страницах (кроме `/login`, `/admin`, `/game`) показывается `FloatingGameWidget` — плавающий виджет с кнопкой запуска.
+
+**Frontend файлы**: `src/WordlePage.js`, `src/components/WordleGrid.js`, `src/components/WordleKey.js`, `src/hooks/useWordle.js`, `src/components/FloatingGameWidget.js`, `src/wordle.css`.
+
+**Backend API**:
+- `GET /api/game-stats` — возвращает `{ isSubscriber, winsToday, remainingWins, maxWins: 3, gameDay, sessionId }`. Если у пользователя нет активной игры — автоматически назначает новое случайное слово (`assignUserWord`).
+- `POST /api/game-guess` — принимает `{ word, attempt }` (только русские буквы, 5 символов, слово из словаря). Возвращает `{ result, isWon, winsToday?, shcEarned?, reveal? }`. При победе начисляет 3 SHC (максимум 3 победы в день). При 6-й неудачной попытке возвращает `reveal: targetWord`.
+
+**БД таблицы** (SQLite и PostgreSQL):
+- `game_word_dictionary (id, word)` — словарь валидных слов (~480 слов, заполняется из `api/game-words.json` при старте)
+- `game_daily_word (date, word_id)` — история ежедневных слов (не используется активно — каждый юзер получает своё слово)
+
+**Колонки в таблице `users`** (добавлены через runtime-миграцию):
+- `game_current_word` — текущее загаданное слово (хранится в открытом виде, отправляется НА СЕРВЕР только при проверке — клиент слова не знает)
+- `game_word_status` — `'active'` | `'won'` | `'lost'`
+- `game_session_id` — случайный ID сессии (для reset-детекции на фронте)
+- `game_wins_today`, `game_day` — счётчик и дата победной серии
+
+**Игровой день**: сбрасывается в 20:10 UTC (22:10 Калининград, UTC+2). Реализовано в `api/_lib/wordle-logic.js` → `getGameDay()`.
+
+**Логика угадывания** (`calculateGuessResult`): двухпроходная — сначала точные совпадения, затем «есть в слове, но не на том месте».
 
 ## Environment Variables
 
