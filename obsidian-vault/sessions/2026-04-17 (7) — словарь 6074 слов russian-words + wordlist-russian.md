@@ -36,11 +36,23 @@
 
 ## Коммиты
 - `cc060e1` — feat: словарь угадывания 6074 слова (russian-words + wordlist-russian)
+- `3a625ea` — docs: сессия 2026-04-17(7), приоритеты обновлены
+- `b29de8a` — fix: wordlist-russian перенесён в dependencies (был в devDependencies)
+
+## Баг при деплое: wordlist-russian в devDependencies
+
+**Симптом:** После первого деплоя сервер падал с `Cannot find module 'wordlist-russian'`, 502 ошибка.
+
+**Причина:** `wordlist-russian` был установлен ранее как devDependency (кем-то или автоматически). В `package-lock.json` у него стоял флаг `"dev": true`. Docker prod-образ использует `npm ci --omit=dev` — пропускает все dev-зависимости.
+
+**Решение:** Перенести `wordlist-russian` из `devDependencies` в `dependencies` в `package.json`, затем `npm install` для обновления lock-файла (удаляет `"dev": true`).
+
+**Ловушка:** `npm install wordlist-russian --save` не убирает `"dev": true` если пакет уже есть в devDependencies — нужно вручную убрать из `devDependencies` и переустановить.
 
 ## Ключевые детали
 - `wordlist-russian` экспортирует `{ russian: [...] }`, первый элемент — счётчик (128905), нужно `.slice(1)`
 - Загадываемые слова по-прежнему только из 480 curated слов (именительный падеж, ед.ч.)
 - "права" (мн.ч. именительный) всё ещё не в словаре — оба пакета лемматические
 
-## Открытые вопросы
-- Нужно задеплоить на VPS
+## Результат
+Сервер поднялся, в логах: `[db-pg] syncGameDictionary: 6074 слов` ✅
