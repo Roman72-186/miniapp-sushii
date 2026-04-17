@@ -113,7 +113,7 @@ function WordlePage() {
           <div className="wrd-locked__title">Только для подписчиков</div>
           <div className="wrd-locked__desc">
             Угадай слово из 5 букв за 6 попыток.<br/>
-            Получай по 3 SHC за каждую победу — до 3 раз в день.
+            Получай по 5 SHC за каждую победу — до 3 раз в день. SHC можно потратить до 100% оплаты любого заказа.
           </div>
           <button className="wrd-locked__btn" onClick={() => window.location.href = '/'}>
             Оформить подписку
@@ -130,7 +130,7 @@ function WordlePage() {
         <span className="wrd-header__title">5 букв</span>
         <button className="wrd-header__help" onClick={() => setShowHelp(true)}>?</button>
         <span className="wrd-header__wins">
-          {remainingWins > 0 ? `+3 SHC × ${remainingWins}` : '✓ SHC получены'}
+          {remainingWins > 0 ? `+5 SHC × ${remainingWins}` : '✓ SHC получены'}
         </span>
       </header>
 

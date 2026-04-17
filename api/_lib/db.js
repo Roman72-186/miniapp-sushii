@@ -861,8 +861,8 @@ function recordGameWin(telegramId, gameDay) {
     WHERE telegram_id = ?
   `).run(newWins, gameDay, String(telegramId));
 
-  // Начисляем 3 SHC за победу
-  updateBalance(telegramId, 3);
+  // Начисляем 5 SHC за победу
+  updateBalance(telegramId, 5);
 
   return newWins;
 }

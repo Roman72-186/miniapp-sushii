@@ -749,7 +749,7 @@ async function recordGameWin(telegramId, gameDay) {
     WHERE telegram_id = $3
   `, [newWins, gameDay, String(telegramId)]);
 
-  await updateBalance(telegramId, 3);
+  await updateBalance(telegramId, 5);
   return newWins;
 }
 
