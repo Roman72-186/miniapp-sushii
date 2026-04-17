@@ -30,7 +30,9 @@ async function readGiftWindows(telegramId) {
 async function writeGiftWindows(telegramId, data) {
   await fs.promises.mkdir(DATA_DIR, { recursive: true });
   const filePath = path.join(DATA_DIR, `${telegramId}.json`);
-  await fs.promises.writeFile(filePath, JSON.stringify(data), 'utf8');
+  const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.promises.writeFile(tmpPath, JSON.stringify(data), 'utf8');
+  await fs.promises.rename(tmpPath, filePath);
 }
 
 module.exports = { readGiftWindows, writeGiftWindows };
