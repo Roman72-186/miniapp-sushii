@@ -1,5 +1,6 @@
 // src/SetsReceivedPage.js — Страница «Сет в этом месяце уже получен»
 import React from "react";
+import AppFooter from "./components/AppFooter";
 import "./App.css";
 
 function SetsReceivedPage() {
@@ -43,14 +44,7 @@ function SetsReceivedPage() {
         </p>
       </div>
 
-      <footer className="footer">
-        <img src="/logo.jpg" alt="Sushi House" className="footer-logo" />
-        <div className="footer-info">
-          <p><b>Телефон:</b> +7 (401) 290-27-90</p>
-          <p><b>Время работы:</b> 10:00 – 22:00</p>
-          <p><b>Адрес:</b> г. Калининград, ул. Ю.Гагарина, д. 16Б</p>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   );
 }

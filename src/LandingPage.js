@@ -5,6 +5,7 @@ import { useUser } from './UserContext';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 import LoginPage from './LoginPage';
+import AppFooter from './components/AppFooter';
 
 const TARIFFS = [
   {
@@ -153,6 +154,7 @@ function LandingPage() {
         </div>
 
       </div>
+      <AppFooter />
     </div>
   );
 }

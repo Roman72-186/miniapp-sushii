@@ -9,6 +9,7 @@ import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import { useCartGifts } from './hooks/useCartGifts';
+import AppFooter from './components/AppFooter';
 import './shop.css';
 import './shop-v2.css';
 
@@ -898,6 +899,7 @@ function DiscountShopPage() {
         promoCode={promoCode}
       />
     )}
+    <AppFooter />
     </>
   );
 }
