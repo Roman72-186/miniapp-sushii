@@ -57,9 +57,11 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
+  if (req.method !== 'POST' && req.method !== 'GET') {
+    return res.status(405).json({ error: 'Метод не поддерживается' });
+  }
 
-  const { telegram_id } = req.body || {};
+  const telegram_id = (req.method === 'GET' ? req.query : (req.body || {})).telegram_id;
   if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
 
   try {
