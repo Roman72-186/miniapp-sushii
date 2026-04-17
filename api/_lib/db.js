@@ -127,14 +127,17 @@ function getDb() {
     );
   `);
 
-  // Sync словаря при каждом старте (INSERT OR IGNORE — добавляет только новые)
+  // Sync словаря: только curated-список. Лишние слова удаляются.
   try {
     const { loadFiveLetterWords } = require('./game-dictionary');
     const words = loadFiveLetterWords();
+    const ph = words.map(() => '?').join(',');
+    _db.prepare(`DELETE FROM game_daily_word WHERE word_id IN (SELECT id FROM game_word_dictionary WHERE word NOT IN (${ph}))`).run(...words);
+    _db.prepare(`DELETE FROM game_word_dictionary WHERE word NOT IN (${ph})`).run(...words);
     const insert = _db.prepare('INSERT OR IGNORE INTO game_word_dictionary (word) VALUES (?)');
-    const seedAll = _db.transaction(list => { for (const w of list) insert.run(String(w).toLowerCase()); });
+    const seedAll = _db.transaction(list => { for (const w of list) insert.run(w); });
     seedAll(words);
-    console.log(`[db] syncGameDictionary: ${words.length} слов обработано`);
+    console.log(`[db] syncGameDictionary: ${words.length} слов`);
   } catch (e) {
     console.warn('[db] game-dictionary sync failed:', e.message);
   }
@@ -888,10 +891,13 @@ function syncGameDictionary() {
   const { loadFiveLetterWords } = require('./game-dictionary');
   const words = loadFiveLetterWords();
   const db = getDb();
+  const ph = words.map(() => '?').join(',');
+  db.prepare(`DELETE FROM game_daily_word WHERE word_id IN (SELECT id FROM game_word_dictionary WHERE word NOT IN (${ph}))`).run(...words);
+  db.prepare(`DELETE FROM game_word_dictionary WHERE word NOT IN (${ph})`).run(...words);
   const insert = db.prepare('INSERT OR IGNORE INTO game_word_dictionary (word) VALUES (?)');
-  const syncAll = db.transaction(list => { for (const w of list) insert.run(w.toLowerCase()); });
+  const syncAll = db.transaction(list => { for (const w of list) insert.run(w); });
   syncAll(words);
-  console.log(`[db] syncGameDictionary: ${words.length} слов обработано`);
+  console.log(`[db] syncGameDictionary: ${words.length} слов`);
 }
 
 module.exports = {
