@@ -858,6 +858,8 @@ function DiscountShopPage() {
           </div>
         </>
       )}
+
+      <AppFooter />
     </div>
 
     {/* Всё с position:fixed вынесено за shop-page (иначе transform анимации ломает fixed) */}
@@ -899,7 +901,6 @@ function DiscountShopPage() {
         promoCode={promoCode}
       />
     )}
-    <AppFooter />
     </>
   );
 }
