@@ -19,6 +19,7 @@
     "react-dom": "^19.1.1",
     "react-scripts": "5.0.1",
     "russian-words": "^1.0.1",
+    "wordlist-russian": "^1.0.0",
     "uuid": "^9.0.1",
     "web-vitals": "^2.1.4"
   },
@@ -47,5 +48,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@cspell/dict-ru_ru": "^2.3.2",
+    "dictionary-ru": "^3.0.0",
+    "russian-words-2mb": "^1.0.0",
+    "wordlist-russian": "^1.0.0"
   }
 }
