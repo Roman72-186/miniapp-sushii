@@ -767,25 +767,6 @@ function DiscountShopPage() {
         )}
       </div>
 
-      {!searchQuery && (
-        <div className="shop-quick-row">
-          <button
-            className="shop-quick-btn shop-quick-btn--sauces"
-            onClick={() => scrollToCategory('sub-sauces')}
-          >
-            <span className="shop-quick-btn__icon">🥄</span>
-            <span className="shop-quick-btn__label">Добавки</span>
-          </button>
-          <button
-            className="shop-quick-btn shop-quick-btn--games"
-            onClick={() => setGamesOpen(true)}
-          >
-            <span className="shop-quick-btn__icon">🎮</span>
-            <span className="shop-quick-btn__label">Игры</span>
-          </button>
-        </div>
-      )}
-
       {!searchQuery && <nav className="shop-tabs" ref={tabsNavRef}>
         {DISCOUNT_CATEGORIES.map(category => (
           <button
@@ -798,6 +779,13 @@ function DiscountShopPage() {
             <span className="shop-tabs__name">{category.tab}</span>
           </button>
         ))}
+        <button
+          className="shop-tabs__item shop-tabs__item--games"
+          onClick={() => setGamesOpen(true)}
+        >
+          <span className="shop-tabs__icon">🎮</span>
+          <span className="shop-tabs__name">Игры</span>
+        </button>
       </nav>}
 
       {loading ? (
