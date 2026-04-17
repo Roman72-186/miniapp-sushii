@@ -1,7 +1,7 @@
 // api/game-guess.js — проверка попытки в игре «Пятибуквенное слово»
 
 const { authMiddleware } = require('./_lib/auth');
-const { getUser, recordGameWin, setUserWordStatus } = require('./_lib/db');
+const { getUser, recordGameWin, getGameWordExists, setUserWordStatus } = require('./_lib/db');
 const { calculateGuessResult, CELL_STATUS, getGameDay } = require('./_lib/wordle-logic');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 
@@ -47,6 +47,9 @@ module.exports = async (req, res) => {
   const cleaned = word.trim().toLowerCase();
   if (cleaned.length !== 5) return res.status(400).json({ error: 'Слово должно содержать 5 букв' });
   if (!/^[а-яё]{5}$/.test(cleaned)) return res.status(400).json({ error: 'Слово должно содержать только русские буквы' });
+
+  const wordInDict = await getGameWordExists(cleaned);
+  if (!wordInDict) return res.status(400).json({ error: 'Такого слова нет в словаре' });
 
   try {
     const gameDay = getGameDay();

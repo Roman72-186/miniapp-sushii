@@ -45,18 +45,20 @@ async function ensureMigrations() {
       )
     `);
 
-    // Sync словаря при каждом старте (INSERT ON CONFLICT DO NOTHING — добавляет только новые)
+    // Sync словаря: только curated-список. Лишние слова удаляются.
     try {
       const { loadFiveLetterWords } = require('./game-dictionary');
       const words = loadFiveLetterWords();
+      const ph = words.map((_, i) => `$${i + 1}`).join(',');
       const client2 = await pool.connect();
       try {
         await client2.query('BEGIN');
-        for (const w of words) {
-          await client2.query('INSERT INTO game_word_dictionary (word) VALUES ($1) ON CONFLICT DO NOTHING', [String(w).toLowerCase()]);
-        }
+        await client2.query(`DELETE FROM game_daily_word WHERE word_id IN (SELECT id FROM game_word_dictionary WHERE word NOT IN (${ph}))`, words);
+        await client2.query(`DELETE FROM game_word_dictionary WHERE word NOT IN (${ph})`, words);
+        const vals = words.map((_, i) => `($${i + 1})`).join(',');
+        await client2.query(`INSERT INTO game_word_dictionary (word) VALUES ${vals} ON CONFLICT DO NOTHING`, words);
         await client2.query('COMMIT');
-        console.log(`[db-pg] syncGameDictionary: ${words.length} слов обработано`);
+        console.log(`[db-pg] syncGameDictionary: ${words.length} слов`);
       } catch (e) { await client2.query('ROLLBACK'); throw e; }
       finally { client2.release(); }
     } catch (e) {
@@ -774,14 +776,16 @@ async function setUserWordStatus(userId, status) {
 async function syncGameDictionary() {
   const { loadFiveLetterWords } = require('./game-dictionary');
   const words = loadFiveLetterWords();
+  const ph = words.map((_, i) => `$${i + 1}`).join(',');
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    for (const w of words) {
-      await client.query('INSERT INTO game_word_dictionary (word) VALUES ($1) ON CONFLICT DO NOTHING', [w.toLowerCase()]);
-    }
+    await client.query(`DELETE FROM game_daily_word WHERE word_id IN (SELECT id FROM game_word_dictionary WHERE word NOT IN (${ph}))`, words);
+    await client.query(`DELETE FROM game_word_dictionary WHERE word NOT IN (${ph})`, words);
+    const vals = words.map((_, i) => `($${i + 1})`).join(',');
+    await client.query(`INSERT INTO game_word_dictionary (word) VALUES ${vals} ON CONFLICT DO NOTHING`, words);
     await client.query('COMMIT');
-    console.log(`[db-pg] syncGameDictionary: ${words.length} слов обработано`);
+    console.log(`[db-pg] syncGameDictionary: ${words.length} слов`);
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
