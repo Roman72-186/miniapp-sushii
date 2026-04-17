@@ -150,6 +150,13 @@ body {
   line-height: 1.6;
 }
 
+.footer-version {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #bbb;
+  letter-spacing: 0.04em;
+}
+
 .nav {
   display: flex;
   justify-content: center;
