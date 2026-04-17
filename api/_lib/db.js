@@ -127,18 +127,16 @@ function getDb() {
     );
   `);
 
-  // Seed словаря при пустой таблице
-  const wordCount = _db.prepare('SELECT COUNT(*) as c FROM game_word_dictionary').get();
-  if (wordCount.c === 0) {
-    try {
-      const words = require('../game-words.json');
-      const insert = _db.prepare('INSERT OR IGNORE INTO game_word_dictionary (word) VALUES (?)');
-      const seedAll = _db.transaction(list => { for (const w of list) insert.run(String(w).toLowerCase()); });
-      seedAll(words);
-      console.log(`[db] Seeded ${words.length} game words`);
-    } catch (e) {
-      console.warn('[db] game-words.json not found, skipping seed:', e.message);
-    }
+  // Sync словаря при каждом старте (INSERT OR IGNORE — добавляет только новые)
+  try {
+    const { loadFiveLetterWords } = require('./game-dictionary');
+    const words = loadFiveLetterWords();
+    const insert = _db.prepare('INSERT OR IGNORE INTO game_word_dictionary (word) VALUES (?)');
+    const seedAll = _db.transaction(list => { for (const w of list) insert.run(String(w).toLowerCase()); });
+    seedAll(words);
+    console.log(`[db] syncGameDictionary: ${words.length} слов обработано`);
+  } catch (e) {
+    console.warn('[db] game-dictionary sync failed:', e.message);
   }
 
   // Миграции: добавить новые колонки если нет
@@ -886,6 +884,16 @@ function setUserWordStatus(userId, status) {
   getDb().prepare(`UPDATE users SET game_word_status = ? WHERE telegram_id = ?`).run(status, String(userId));
 }
 
+function syncGameDictionary() {
+  const { loadFiveLetterWords } = require('./game-dictionary');
+  const words = loadFiveLetterWords();
+  const db = getDb();
+  const insert = db.prepare('INSERT OR IGNORE INTO game_word_dictionary (word) VALUES (?)');
+  const syncAll = db.transaction(list => { for (const w of list) insert.run(w.toLowerCase()); });
+  syncAll(words);
+  console.log(`[db] syncGameDictionary: ${words.length} слов обработано`);
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -936,4 +944,5 @@ module.exports = {
   getGameWordExists,
   assignUserWord,
   setUserWordStatus,
+  syncGameDictionary,
 };

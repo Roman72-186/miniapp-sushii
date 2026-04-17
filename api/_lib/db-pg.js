@@ -45,24 +45,22 @@ async function ensureMigrations() {
       )
     `);
 
-    // Seed при пустой таблице
-    const { rows: cnt } = await pool.query('SELECT COUNT(*) as c FROM game_word_dictionary');
-    if (parseInt(cnt[0].c) === 0) {
+    // Sync словаря при каждом старте (INSERT ON CONFLICT DO NOTHING — добавляет только новые)
+    try {
+      const { loadFiveLetterWords } = require('./game-dictionary');
+      const words = loadFiveLetterWords();
+      const client2 = await pool.connect();
       try {
-        const words = require('../game-words.json');
-        const client2 = await pool.connect();
-        try {
-          await client2.query('BEGIN');
-          for (const w of words) {
-            await client2.query('INSERT INTO game_word_dictionary (word) VALUES ($1) ON CONFLICT DO NOTHING', [String(w).toLowerCase()]);
-          }
-          await client2.query('COMMIT');
-          console.log(`[db-pg] Seeded ${words.length} game words`);
-        } catch (e) { await client2.query('ROLLBACK'); throw e; }
-        finally { client2.release(); }
-      } catch (e) {
-        console.warn('[db-pg] game-words.json not found:', e.message);
-      }
+        await client2.query('BEGIN');
+        for (const w of words) {
+          await client2.query('INSERT INTO game_word_dictionary (word) VALUES ($1) ON CONFLICT DO NOTHING', [String(w).toLowerCase()]);
+        }
+        await client2.query('COMMIT');
+        console.log(`[db-pg] syncGameDictionary: ${words.length} слов обработано`);
+      } catch (e) { await client2.query('ROLLBACK'); throw e; }
+      finally { client2.release(); }
+    } catch (e) {
+      console.warn('[db-pg] game-dictionary sync failed:', e.message);
     }
   } catch (err) {
     console.error('[db-pg] migration error:', err.message);
@@ -773,6 +771,25 @@ async function setUserWordStatus(userId, status) {
   await query('UPDATE users SET game_word_status = $1 WHERE telegram_id = $2', [status, String(userId)]);
 }
 
+async function syncGameDictionary() {
+  const { loadFiveLetterWords } = require('./game-dictionary');
+  const words = loadFiveLetterWords();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    for (const w of words) {
+      await client.query('INSERT INTO game_word_dictionary (word) VALUES ($1) ON CONFLICT DO NOTHING', [w.toLowerCase()]);
+    }
+    await client.query('COMMIT');
+    console.log(`[db-pg] syncGameDictionary: ${words.length} слов обработано`);
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
 // ─── Экспорт (совместим с db.js) ─────────────────────────────
 
 module.exports = {
@@ -827,4 +844,5 @@ module.exports = {
   getGameWordExists,
   assignUserWord,
   setUserWordStatus,
+  syncGameDictionary,
 };
