@@ -10,6 +10,7 @@ import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import { useCartGifts } from './hooks/useCartGifts';
 import AppFooter from './components/AppFooter';
+import GamesModal from './components/GamesModal';
 import './shop.css';
 import './shop-v2.css';
 
@@ -259,6 +260,7 @@ function DiscountShopPage() {
   const [modalProduct, setModalProduct] = useState(null);
   const [lockedPopup, setLockedPopup] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [gamesOpen, setGamesOpen] = useState(false);
   const [giftStatus, setGiftStatus] = useState(null);
   const [giftStatusLoading, setGiftStatusLoading] = useState(true);
   const [adminGrants, setAdminGrants] = useState({ roll: false, set: false });
@@ -765,6 +767,25 @@ function DiscountShopPage() {
         )}
       </div>
 
+      {!searchQuery && (
+        <div className="shop-quick-row">
+          <button
+            className="shop-quick-btn shop-quick-btn--sauces"
+            onClick={() => scrollToCategory('sub-sauces')}
+          >
+            <span className="shop-quick-btn__icon">🥄</span>
+            <span className="shop-quick-btn__label">Добавки</span>
+          </button>
+          <button
+            className="shop-quick-btn shop-quick-btn--games"
+            onClick={() => setGamesOpen(true)}
+          >
+            <span className="shop-quick-btn__icon">🎮</span>
+            <span className="shop-quick-btn__label">Игры</span>
+          </button>
+        </div>
+      )}
+
       {!searchQuery && <nav className="shop-tabs" ref={tabsNavRef}>
         {DISCOUNT_CATEGORIES.map(category => (
           <button
@@ -845,6 +866,12 @@ function DiscountShopPage() {
       {modalProduct && (
         <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
       )}
+
+      <GamesModal
+        isOpen={gamesOpen}
+        onClose={() => setGamesOpen(false)}
+        isSubscriber={profile?.статусСписания === 'активно'}
+      />
 
       {lockedPopup && (
         <>
