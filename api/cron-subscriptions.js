@@ -247,7 +247,7 @@ module.exports = async (req, res) => {
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = req.headers['x-cron-secret'] || req.query?.secret;
 
-  if (cronSecret && authHeader !== cronSecret) {
+  if (!cronSecret || authHeader !== cronSecret) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
