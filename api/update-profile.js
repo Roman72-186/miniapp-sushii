@@ -67,6 +67,7 @@ module.exports = async (req, res) => {
   const last_name = sanitizeName(body.last_name);
   const middle_name = sanitizeName(body.middle_name);
   const rawPhone = body.phone;
+  const rawEmail = body.email != null ? String(body.email).trim().toLowerCase() : undefined;
 
   if (!isValidName(first_name)) {
     return res.status(400).json({ error: 'Укажите корректное имя' });
@@ -81,6 +82,14 @@ module.exports = async (req, res) => {
   const phone = normalizePhone(rawPhone);
   if (!/^7\d{10}$/.test(phone)) {
     return res.status(400).json({ error: 'Телефон должен быть в формате +7XXXXXXXXXX' });
+  }
+
+  let email;
+  if (rawEmail !== undefined && rawEmail !== '') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      return res.status(400).json({ error: 'Некорректный email' });
+    }
+    email = rawEmail;
   }
 
   try {
@@ -107,7 +116,7 @@ module.exports = async (req, res) => {
     }
 
     // Обновление профиля в БД
-    const updated = await updateUserProfile(userId, { first_name, last_name, middle_name, phone });
+    const updated = await updateUserProfile(userId, { first_name, last_name, middle_name, phone, email });
 
     // Инвалидация файлового кэша — следующий sync-user перечитает из БД
     try { await deleteUserCache(userId); } catch {}
@@ -121,6 +130,7 @@ module.exports = async (req, res) => {
         last_name: updated.last_name,
         middle_name: updated.middle_name,
         phone: updated.phone,
+        email: updated.email || null,
       },
     });
   } catch (err) {

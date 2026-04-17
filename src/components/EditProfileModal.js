@@ -27,11 +27,12 @@ function formatPhoneInput(digits) {
   return `+${n.slice(0, 1)} (${n.slice(1, 4)}) ${n.slice(4, 7)}-${n.slice(7, 9)}-${n.slice(9, 11)}`;
 }
 
-function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved }) {
+function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requireEmail = false }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [middleName, setMiddleName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -49,6 +50,7 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved }) {
       setMiddleName(parts.middle_name);
     }
     setPhone(currentUser.phone ? formatPhoneInput(currentUser.phone) : '');
+    setEmail(currentUser.email || '');
   }, [currentUser]);
 
   useEffect(() => {
@@ -62,12 +64,21 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved }) {
     const fn = firstName.trim();
     const ln = lastName.trim();
     const mn = middleName.trim();
+    const em = email.trim().toLowerCase();
     const normalizedPhone = normalizePhone(phone);
 
     if (!fn) { setError('Укажите имя'); return; }
     if (!ln) { setError('Укажите фамилию'); return; }
     if (!/^7\d{10}$/.test(normalizedPhone)) {
       setError('Телефон в формате +7 (XXX) XXX-XX-XX');
+      return;
+    }
+    if (requireEmail && !em) {
+      setError('Укажите email — чтобы получать уведомления о подписке и подарках');
+      return;
+    }
+    if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      setError('Некорректный email');
       return;
     }
 
@@ -90,6 +101,7 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved }) {
           last_name: ln,
           middle_name: mn,
           phone: normalizedPhone,
+          email: em || null,
         });
       } else {
         const token = localStorage.getItem(WEB_TOKEN_KEY) || '';
@@ -104,6 +116,7 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved }) {
           last_name: ln,
           middle_name: mn,
           phone: normalizedPhone,
+          email: em || null,
         });
       }
 
@@ -176,6 +189,22 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved }) {
               placeholder="+7 (___) ___-__-__"
               disabled={saving}
             />
+          </div>
+
+          <div className="edit-profile-modal__field">
+            <label>Email{requireEmail ? '' : ' (необязательно)'}</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="example@mail.ru"
+              disabled={saving}
+            />
+            {requireEmail && (
+              <div style={{ fontSize: '12px', color: '#9fb0c3', marginTop: '6px' }}>
+                Нужен для уведомлений о подписке, подарках и важных обновлениях.
+              </div>
+            )}
           </div>
 
           {error && <div className="edit-profile-modal__error">{error}</div>}

@@ -216,6 +216,7 @@ export function UserProvider({ children }) {
       first_name: v['first_name'] || null,
       last_name: v['last_name'] || null,
       middle_name: v['middle_name'] || null,
+      email: v['email'] || null,
       phone,
       статусСписания: v['статусСписания'] || null,
       balance_shc: v['balance_shc'] || null,

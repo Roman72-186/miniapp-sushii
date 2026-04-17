@@ -30,6 +30,19 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_current_word TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_word_status TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_session_id TEXT');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS email_notifications_log (
+        id SERIAL PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        notification_type TEXT NOT NULL,
+        context_key TEXT NOT NULL,
+        sent_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, notification_type, context_key)
+      )
+    `);
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_email_log_user ON email_notifications_log(user_id)');
 
     // Таблицы для игры «Пятибуквенное слово»
     await pool.query(`
@@ -503,18 +516,54 @@ async function updateUserProfile(telegramId, data) {
         last_name = $2,
         middle_name = $3,
         phone = $4,
-        name = $5,
+        email = COALESCE($5, email),
+        name = $6,
         updated_at = NOW()
-    WHERE telegram_id = $6
+    WHERE telegram_id = $7
   `, [
     data.first_name || null,
     data.last_name || null,
     data.middle_name || null,
     data.phone || null,
+    data.email || null,
     fullName,
     String(telegramId),
   ]);
   return await getUser(telegramId);
+}
+
+async function setUserEmail(telegramId, email) {
+  if (!email) return null;
+  await query(
+    'UPDATE users SET email = $1, updated_at = NOW() WHERE telegram_id = $2',
+    [String(email).trim().toLowerCase(), String(telegramId)]
+  );
+  return await getUser(telegramId);
+}
+
+async function getUserEmail(telegramId) {
+  const res = await query('SELECT email FROM users WHERE telegram_id = $1', [String(telegramId)]);
+  return res.rows[0]?.email || null;
+}
+
+async function hasEmailNotification(userId, notificationType, contextKey) {
+  const res = await query(
+    'SELECT 1 FROM email_notifications_log WHERE user_id = $1 AND notification_type = $2 AND context_key = $3',
+    [String(userId), String(notificationType), String(contextKey)]
+  );
+  return res.rows.length > 0;
+}
+
+async function recordEmailNotification(userId, notificationType, contextKey) {
+  try {
+    await query(
+      'INSERT INTO email_notifications_log (user_id, notification_type, context_key) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+      [String(userId), String(notificationType), String(contextKey)]
+    );
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function findUserByPhoneExceptId(phone, telegramId) {
@@ -837,6 +886,10 @@ module.exports = {
   setUserNotes,
   updateLastAddress,
   updateUserProfile,
+  setUserEmail,
+  getUserEmail,
+  hasEmailNotification,
+  recordEmailNotification,
   findUserByPhoneExceptId,
   getAdminSubscribersList,
   getMonthRevenue,

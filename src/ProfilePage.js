@@ -5,6 +5,7 @@ import { useUser } from './UserContext';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 import EditProfileModal from './components/EditProfileModal';
+import GiftPeriodsHistory from './components/GiftPeriodsHistory';
 
 function ProfilePage() {
   useEffect(() => {
@@ -16,6 +17,13 @@ function ProfilePage() {
 
   // === State ===
   const [editOpen, setEditOpen] = useState(false);
+  const [requireEmailOpen, setRequireEmailOpen] = useState(false);
+
+  useEffect(() => {
+    if (profile && !profile.email && !editOpen) {
+      setRequireEmailOpen(true);
+    }
+  }, [profile, editOpen]);
   const [referrals, setReferrals] = useState(null);
   const [tariffAction, setTariffAction] = useState(null); // 'extend' | 'upgrade' | 'downgrade'
   const [giftWindows, setGiftWindows] = useState(null);
@@ -514,6 +522,27 @@ function ProfilePage() {
               )}
             </div>
 
+            {/* История подарочных периодов */}
+            <div className="pf-accordion__item">
+              <button className="pf-accordion__hdr" onClick={() => toggleSection('giftPeriods')}>
+                <span>🎁 Подарочные периоды</span>
+                <span className="pf-accordion__arrow">{expandedSections.has('giftPeriods') ? '▾' : '▸'}</span>
+              </button>
+              {expandedSections.has('giftPeriods') && (
+                <div className="pf-accordion__body">
+                  {giftWindows === null ? (
+                    <div className="pf-accordion__empty">Загрузка...</div>
+                  ) : (
+                    <GiftPeriodsHistory
+                      windows={giftWindows?.windows || []}
+                      tarif={tarif}
+                      adminGrants={giftWindows?.adminGrants}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Начисления SHC */}
             {bonuses && bonuses.length > 0 && (
               <div className="pf-accordion__item">
@@ -730,9 +759,29 @@ function ProfilePage() {
             last_name: profile?.last_name,
             middle_name: profile?.middle_name,
             phone: profile?.phone,
+            email: profile?.email,
           }}
           onClose={() => setEditOpen(false)}
           onSaved={async () => { await sync(true); }}
+        />
+      )}
+
+      {/* ── МОДАЛКА: ОБЯЗАТЕЛЬНЫЙ EMAIL ─── */}
+      {requireEmailOpen && profile && !profile.email && (
+        <EditProfileModal
+          mode="user"
+          requireEmail={true}
+          currentUser={{
+            telegram_id: telegramId,
+            name: profile?.name,
+            first_name: profile?.first_name,
+            last_name: profile?.last_name,
+            middle_name: profile?.middle_name,
+            phone: profile?.phone,
+            email: '',
+          }}
+          onClose={() => setRequireEmailOpen(false)}
+          onSaved={async () => { await sync(true); setRequireEmailOpen(false); }}
         />
       )}
     </div>

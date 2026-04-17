@@ -157,6 +157,19 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN game_current_word TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN game_word_status TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN game_session_id TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN email TEXT'); } catch {}
+
+  _db.exec(`
+    CREATE TABLE IF NOT EXISTS email_notifications_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      notification_type TEXT NOT NULL,
+      context_key TEXT NOT NULL,
+      sent_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(user_id, notification_type, context_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_email_log_user ON email_notifications_log(user_id);
+  `);
 
   return _db;
 }
@@ -247,6 +260,7 @@ function updateUserProfile(telegramId, data) {
         last_name = ?,
         middle_name = ?,
         phone = ?,
+        email = COALESCE(?, email),
         name = ?,
         updated_at = datetime('now')
     WHERE telegram_id = ?
@@ -255,10 +269,42 @@ function updateUserProfile(telegramId, data) {
     data.last_name || null,
     data.middle_name || null,
     data.phone || null,
+    data.email || null,
     fullName,
     String(telegramId)
   );
   return getUser(telegramId);
+}
+
+function setUserEmail(telegramId, email) {
+  if (!email) return null;
+  getDb().prepare(
+    "UPDATE users SET email = ?, updated_at = datetime('now') WHERE telegram_id = ?"
+  ).run(String(email).trim().toLowerCase(), String(telegramId));
+  return getUser(telegramId);
+}
+
+function getUserEmail(telegramId) {
+  const row = getDb().prepare('SELECT email FROM users WHERE telegram_id = ?').get(String(telegramId));
+  return row?.email || null;
+}
+
+function hasEmailNotification(userId, notificationType, contextKey) {
+  const row = getDb().prepare(
+    'SELECT 1 FROM email_notifications_log WHERE user_id = ? AND notification_type = ? AND context_key = ?'
+  ).get(String(userId), String(notificationType), String(contextKey));
+  return !!row;
+}
+
+function recordEmailNotification(userId, notificationType, contextKey) {
+  try {
+    getDb().prepare(
+      'INSERT INTO email_notifications_log (user_id, notification_type, context_key) VALUES (?, ?, ?)'
+    ).run(String(userId), String(notificationType), String(contextKey));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function findUserByPhoneExceptId(phone, telegramId) {
@@ -941,6 +987,10 @@ module.exports = {
   getGiftOrders,
   updateLastAddress,
   updateUserProfile,
+  setUserEmail,
+  getUserEmail,
+  hasEmailNotification,
+  recordEmailNotification,
   findUserByPhoneExceptId,
   getAdminTopReferrers,
   getAdminRecentBonuses,

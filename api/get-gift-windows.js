@@ -3,8 +3,35 @@
 
 const { buildWindows, computeStatus } = require('./_lib/gift-windows');
 const { readGiftWindows, writeGiftWindows } = require('./_lib/blob-store');
-const { getUser } = require('./_lib/db');
+const { getUser, hasEmailNotification, recordEmailNotification } = require('./_lib/db');
 const { readUserCache } = require('./_lib/user-cache');
+const { sendGiftAvailableEmail } = require('./_lib/email-notifications');
+
+async function notifyGiftAvailable(user, tarif, windows) {
+  if (!user || !user.email) return;
+  if (tarif !== '490' && tarif !== '1190') return;
+  const giftType = tarif === '1190' ? 'set' : 'roll';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (const w of windows) {
+    if (w.status !== 'available') continue;
+    if (w.grantedBy === 'admin') continue;
+    // Только окна, которые уже открылись (start <= today)
+    const [dd, mm, yyyy] = String(w.start).split('.');
+    if (!dd || !mm || !yyyy) continue;
+    const startDate = new Date(`${yyyy}-${mm}-${dd}`);
+    if (startDate > today) continue;
+    const contextKey = `${giftType}_${w.start}`;
+    try {
+      const already = await hasEmailNotification(user.telegram_id, 'gift_available', contextKey);
+      if (already) continue;
+      const ok = await sendGiftAvailableEmail(user.email, user.first_name || user.name, giftType, w);
+      if (ok) await recordEmailNotification(user.telegram_id, 'gift_available', contextKey);
+    } catch (e) {
+      console.warn('[get-gift-windows] notify error:', e.message);
+    }
+  }
+}
 
 /**
  * При пересоздании окон сохраняет claimed статусы из старого массива
@@ -139,6 +166,9 @@ module.exports = async (req, res) => {
       roll: updatedAdminWindows.some(w => w.grantType === 'roll'),
       set: updatedAdminWindows.some(w => w.grantType === 'set'),
     };
+
+    // Fire-and-forget: email-уведомление о доступном окне
+    notifyGiftAvailable(dbUser, tarif, stored.windows).catch(() => {});
 
     return res.status(200).json({
       success: true,
