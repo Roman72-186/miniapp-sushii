@@ -12,7 +12,10 @@ const {
   renewSubscription,
   recordPayment,
   processReferralSHC,
+  hasEmailNotification,
+  recordEmailNotification,
 } = require('./_lib/db');
+const { sendRenewalReminderEmail } = require('./_lib/email-notifications');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
@@ -135,7 +138,7 @@ async function runSubscriptionCron() {
   const startTime = Date.now();
   console.log('cron: starting subscription check at', new Date().toISOString());
 
-  const results = { reminded1: 0, renewed: 0, deactivated: 0, errors: 0 };
+  const results = { reminded1: 0, emailsSent: 0, renewed: 0, deactivated: 0, errors: 0 };
 
   // 1. Напоминание за 1 день
   try {
@@ -152,6 +155,29 @@ async function runSubscriptionCron() {
         }
       );
       results.reminded1++;
+
+      // Email-напоминание: только если автосписание включено + есть email
+      if (user.email && user.payment_method_id) {
+        try {
+          const ctx = String(user.subscription_end || '');
+          const already = await hasEmailNotification(user.telegram_id, 'renewal_reminder', ctx);
+          if (!already) {
+            const ok = await sendRenewalReminderEmail(
+              user.email,
+              user.first_name || user.name,
+              user.tariff,
+              user.subscription_end
+            );
+            if (ok) {
+              await recordEmailNotification(user.telegram_id, 'renewal_reminder', ctx);
+              results.emailsSent++;
+              await new Promise(r => setTimeout(r, 200));
+            }
+          }
+        } catch (e) {
+          console.warn(`cron: renewal email failed for ${user.telegram_id}:`, e.message);
+        }
+      }
     }
   } catch (err) {
     console.error('cron: error in 1-day reminder:', err.message);

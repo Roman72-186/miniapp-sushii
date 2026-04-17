@@ -5,9 +5,9 @@ const TTL_MS = 5 * 60 * 1000;   // 5 минут
 const MAX_ATTEMPTS = 5;
 const COOLDOWN_MS = 60 * 1000;  // 1 минута между повторными запросами
 
-function set(phone) {
+function set(phone, email) {
   const code = String(Math.floor(1000 + Math.random() * 9000));
-  store.set(phone, { code, expiresAt: Date.now() + TTL_MS, attempts: 0, sentAt: Date.now() });
+  store.set(phone, { code, email: email || null, expiresAt: Date.now() + TTL_MS, attempts: 0, sentAt: Date.now() });
   return code;
 }
 
@@ -38,8 +38,9 @@ function verify(phone, inputCode) {
   if (String(inputCode).trim() !== entry.code) {
     return { ok: false, reason: 'wrong', attemptsLeft: MAX_ATTEMPTS - entry.attempts };
   }
+  const verifiedEmail = entry.email || null;
   store.delete(phone);
-  return { ok: true };
+  return { ok: true, email: verifiedEmail };
 }
 
 module.exports = { set, canResend, timeUntilResend, verify };

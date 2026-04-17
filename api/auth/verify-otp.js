@@ -1,6 +1,6 @@
 // POST /api/auth/verify-otp — Проверка OTP кода, выдача JWT
 
-const { getUserByPhone } = require('../_lib/db');
+const { getUserByPhone, setUserEmail } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const otpStore = require('./_otp-store');
 
@@ -40,6 +40,15 @@ module.exports = async (req, res) => {
   try {
     const user = await getUserByPhone(phone);
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+
+    if (result.email && !user.email) {
+      try {
+        await setUserEmail(user.telegram_id, result.email);
+        user.email = result.email;
+      } catch (e) {
+        console.warn('[verify-otp] setUserEmail failed:', e.message);
+      }
+    }
 
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);

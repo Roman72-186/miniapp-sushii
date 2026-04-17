@@ -34,8 +34,9 @@ module.exports = async (req, res) => {
     return res.status(429).json({ error: `Подождите ${wait} сек. перед повторной отправкой` });
   }
 
-  const code = otpStore.set(phone);
-  const sent = await sendOtpViaEmail(email, code);
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const code = otpStore.set(phone, normalizedEmail);
+  const sent = await sendOtpViaEmail(normalizedEmail, code);
   if (!sent) {
     return res.status(500).json({ error: 'Не удалось отправить письмо. Попробуйте позже.' });
   }

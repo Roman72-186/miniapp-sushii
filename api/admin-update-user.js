@@ -52,6 +52,14 @@ module.exports = async (req, res) => {
   const last_name = sanitizeName(body.last_name);
   const middle_name = sanitizeName(body.middle_name);
   const phone = normalizePhone(body.phone);
+  const rawEmail = body.email != null ? String(body.email).trim().toLowerCase() : undefined;
+  let email;
+  if (rawEmail !== undefined && rawEmail !== '') {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      return res.status(400).json({ error: 'Некорректный email' });
+    }
+    email = rawEmail;
+  }
 
   if (!isValidName(first_name)) {
     return res.status(400).json({ error: 'Укажите корректное имя' });
@@ -87,7 +95,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    const updated = await updateUserProfile(targetId, { first_name, last_name, middle_name, phone });
+    const updated = await updateUserProfile(targetId, { first_name, last_name, middle_name, phone, email });
 
     try { await deleteUserCache(targetId); } catch {}
 
@@ -100,6 +108,7 @@ module.exports = async (req, res) => {
         last_name: updated.last_name,
         middle_name: updated.middle_name,
         phone: updated.phone,
+        email: updated.email || null,
       },
     });
   } catch (err) {
