@@ -77,7 +77,7 @@ module.exports = async (req, res) => {
 
     if (isWon) {
       response.winsToday = winsToday;
-      response.shcEarned = shcEarned ? 3 : 0;
+      response.shcEarned = shcEarned ? 5 : 0;
     }
 
     if (isLastAttempt && !isWon) {
