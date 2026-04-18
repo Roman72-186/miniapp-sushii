@@ -3,7 +3,6 @@
 const { authMiddleware } = require('./_lib/auth');
 const { getUser, recordGameWin, setUserWordStatus } = require('./_lib/db');
 const { calculateGuessResult, CELL_STATUS, getGameDay } = require('./_lib/wordle-logic');
-const { deriveFromDbUser } = require('./_lib/subscription-state');
 const { loadFiveLetterWords } = require('./_lib/game-dictionary');
 
 const VALID_WORDS = new Set(loadFiveLetterWords());
@@ -28,14 +27,8 @@ module.exports = async (req, res) => {
   const userId = req.userId;
   if (!userId) return res.status(401).json({ error: 'Требуется авторизация' });
 
-  // Проверка подписки
   const user = await getUser(userId);
   if (!user) return res.status(403).json({ error: 'Пользователь не найден' });
-
-  const { subscriptionStatus } = deriveFromDbUser(user);
-  if (subscriptionStatus !== 'активно') {
-    return res.status(403).json({ error: 'Игра доступна только для подписчиков', code: 'not_subscriber' });
-  }
 
   // Проверка активной игры
   const targetWord = user.game_current_word;

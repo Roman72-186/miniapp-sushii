@@ -30,13 +30,13 @@ module.exports = async (req, res) => {
     const isSubscriber = subscriptionStatus === 'активно';
 
     const gameDay = getGameDay();
-    const { winsToday } = isSubscriber ? await getGameStats(userId, gameDay) : { winsToday: 0 };
+    const { winsToday } = await getGameStats(userId, gameDay);
     const remainingWins = Math.max(0, 3 - winsToday);
 
     let sessionId = user.game_session_id || null;
 
     // Назначить новое слово если нет активной игры (новый юзер, или игра уже завершена)
-    if (isSubscriber && user.game_word_status !== 'active') {
+    if (user.game_word_status !== 'active') {
       const assigned = await assignUserWord(userId);
       if (assigned) sessionId = assigned.sessionId;
     }

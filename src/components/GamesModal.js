@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GAMES } from '../config/games';
 import '../games-modal.css';
 
-function GamesModal({ isOpen, onClose, isSubscriber }) {
+function GamesModal({ isOpen, onClose }) {
   const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ function GamesModal({ isOpen, onClose, isSubscriber }) {
   const selected = selectedId ? GAMES.find(g => g.id === selectedId) : null;
 
   const handlePlay = () => {
-    if (!selected || !isSubscriber) return;
+    if (!selected) return;
     window.location.href = selected.path;
   };
 
@@ -69,13 +69,9 @@ function GamesModal({ isOpen, onClose, isSubscriber }) {
             <button
               className="games-modal__play"
               onClick={handlePlay}
-              disabled={!isSubscriber}
             >
-              {isSubscriber ? 'Играть' : '🔒 Нужна активная подписка'}
+              Играть
             </button>
-            {!isSubscriber && (
-              <p className="games-modal__play-hint">Игры доступны только подписчикам</p>
-            )}
           </>
         )}
       </div>
