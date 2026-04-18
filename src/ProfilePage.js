@@ -264,59 +264,8 @@ function ProfilePage() {
               )}
             </div>
 
-            {/* Амбассадор */}
-            {isAmb && (
-              <div className="pf-amb">
-                <div className="pf-amb__badge">АМБАССАДОР</div>
-                <div className="pf-counters">
-                  <div className="pf-counter">
-                    <span className="pf-counter__value">{referrals === null ? '…' : referrals.referrals_count}</span>
-                    <span className="pf-counter__label">Рефералов</span>
-                  </div>
-                  <div className="pf-counter">
-                    <span className="pf-counter__value pf-counter__value--gold">{referrals === null ? '…' : referrals.ambassadors_count}</span>
-                    <span className="pf-counter__label">Амбассадоров</span>
-                  </div>
-                  <div className="pf-counter">
-                    <span className="pf-counter__value pf-counter__value--green">{earnings ? `${earnings.total}₽` : '…'}</span>
-                    <span className="pf-counter__label">Заработок</span>
-                  </div>
-                </div>
-                {(() => {
-                  const ambCount = referrals?.ambassadors_count || 0;
-                  const isUnlocked = ambCount >= 10;
-                  return (
-                    <div className="pf-level2">
-                      <div className="pf-level2__header">
-                        <span>Уровень 2</span>
-                        <span className={`pf-level2__status${isUnlocked ? ' pf-level2__status--open' : ''}`}>
-                          {isUnlocked ? 'Открыт ✓' : `${ambCount} / 10 амб.`}
-                        </span>
-                      </div>
-                      <div className="pf-progress-bar">
-                        <div className="pf-progress-bar__fill pf-progress-bar__fill--gold" style={{ width: `${Math.min(ambCount / 10, 1) * 100}%` }} />
-                      </div>
-                      {!isUnlocked && (
-                        <div className="pf-level2__hint">Ещё {10 - ambCount} амбассадоров до +5% с их рефералов</div>
-                      )}
-                    </div>
-                  );
-                })()}
-                {refLink && (
-                  <div className="pf-reflink">
-                    <div className="pf-reflink__label">Ваша реферальная ссылка</div>
-                    <div className="pf-reflink__url">sushi-house-39.ru/?invited_by={telegramId}</div>
-                    <div className="pf-reflink__btns">
-                      <button className="pf-reflink__btn" onClick={handleCopyLink}>{copiedLink ? '✓ Скопировано' : 'Скопировать'}</button>
-                      <button className="pf-reflink__btn" onClick={handleShareLink}>Поделиться</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Обычный пользователь с подпиской */}
-            {!isAmb && tarif && tarif !== '9990' && (
+            {/* Пользователь с подпиской */}
+            {tarif && (
               <div className="pf-hero__sub">
                 {profile?.датаОКОНЧАНИЯ && (
                   <>
@@ -360,7 +309,7 @@ function ProfilePage() {
             )}
 
             {/* Нет подписки */}
-            {!isAmb && !tarif && (
+            {!tarif && (
               <div className="pf-hero__sub">
                 <div className="pf-hero__no-sub">Подписка не оформлена</div>
                 <button className="pf-hero__cta" onClick={() => setTariffAction('upgrade')}>
@@ -381,7 +330,7 @@ function ProfilePage() {
           </div>
 
           {/* ── БЛОК 2: SHC И РЕФЕРАЛЬНАЯ ПРОГРАММА ─ */}
-          {!isAmb && (
+          {(
             <div className="pf-shc">
               <div className="pf-shc__title">💎 SHC баллы</div>
 
@@ -574,40 +523,8 @@ function ProfilePage() {
               </div>
             )}
 
-            {/* Амбассадор: история начислений ₽ */}
-            {isAmb && transactions && transactions.length > 0 && (
-              <div className="pf-accordion__item">
-                <button className="pf-accordion__hdr" onClick={() => toggleSection('transactions')}>
-                  <span>История начислений ({transactions.length})</span>
-                  <span className="pf-accordion__arrow">{expandedSections.has('transactions') ? '▾' : '▸'}</span>
-                </button>
-                {expandedSections.has('transactions') && (
-                  <div className="pf-accordion__body">
-                    {(showAllTxns ? transactions : transactions.slice(0, 5)).map((t, i) => (
-                      <div key={i} className="pf-txn">
-                        <div className="pf-txn__top">
-                          <span className="pf-txn__name">{t.referral_name}</span>
-                          <span className="pf-txn__amount">+{t.commission_amount} ₽</span>
-                        </div>
-                        <div className="pf-txn__meta">
-                          <span>{t.commission_percent}% от {t.payment_amount} ₽</span>
-                          {t.level === 2 && <span className="pf-badge">LVL2</span>}
-                          <span>{new Date(t.date).toLocaleDateString('ru-RU')}</span>
-                        </div>
-                      </div>
-                    ))}
-                    {transactions.length > 5 && (
-                      <button className="pf-accordion__more" onClick={() => setShowAllTxns(v => !v)}>
-                        {showAllTxns ? 'Свернуть' : `Показать все (${transactions.length})`}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Амбассадор: приглашённые */}
-            {isAmb && referrals && referrals.referrals.length > 0 && (
+            {/* Приглашённые (все подписчики с рефералами) */}
+            {isActive && referrals && referrals.referrals.length > 0 && (
               <div className="pf-accordion__item">
                 <button className="pf-accordion__hdr" onClick={() => toggleSection('referrals')}>
                   <span>Приглашённые ({referrals.referrals_count})</span>
@@ -618,7 +535,6 @@ function ProfilePage() {
                     {(showAllReferrals ? referrals.referrals : referrals.referrals.slice(0, 5)).map((r, i) => (
                       <div key={i} className="pf-txn pf-txn--row">
                         <span className="pf-txn__name">{r.name}</span>
-                        {r.is_ambassador && <span className="pf-badge pf-badge--gold">AMB</span>}
                       </div>
                     ))}
                     {referrals.referrals.length > 5 && (
