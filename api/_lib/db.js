@@ -317,7 +317,7 @@ function getReferrals(telegramId) {
   const db = getDb();
   return db.prepare(`
     SELECT telegram_id, name, phone, tariff, is_ambassador, created_at
-    FROM users WHERE invited_by = ?
+    FROM users WHERE invited_by = ? AND subscription_status = 'активно'
     ORDER BY created_at DESC
   `).all(String(telegramId));
 }
@@ -836,10 +836,10 @@ function getGiftOrders(limit = 300) {
 function getAdminTopReferrers(limit = 20) {
   return getDb().prepare(`
     SELECT u.telegram_id, u.name, u.phone, u.tariff, u.balance_shc,
-           (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id) AS referrals_count,
+           (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id AND r.subscription_status = 'активно') AS referrals_count,
            COALESCE((SELECT SUM(rb.total_amount) FROM referral_bonuses rb WHERE rb.user_id = u.telegram_id), 0) AS shc_earned
     FROM users u
-    WHERE (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id) > 0
+    WHERE (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id AND r.subscription_status = 'активно') > 0
     ORDER BY referrals_count DESC
     LIMIT ?
   `).all(limit);
