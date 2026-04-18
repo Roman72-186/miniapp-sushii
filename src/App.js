@@ -21,6 +21,7 @@ import BenefitsPage from "./BenefitsPage"; // страница выгоды по
 import PartnerCodePage from "./PartnerCodePage"; // ввод кода партнёра после оплаты
 import NotFoundPage from "./NotFoundPage"; // страница 404
 import WordlePage from "./WordlePage"; // игра «Пятибуквенное слово»
+import WebRegistrationPrompt from "./components/WebRegistrationPrompt";
 
 function App() {
   const pathname =
@@ -64,32 +65,35 @@ function App() {
   const isGamePage =
     pathname === "/game";
 
-  if (isGamePage) {
-    return <WordlePage />;
-  }
+  let page;
+  if (isGamePage) page = <WordlePage />;
+  else if (isLoginPage) page = <LoginPage />;
+  else if (isBenefitsPage) page = <BenefitsPage />;
+  else if (isPartnerCodePage) page = <PartnerCodePage />;
+  else if (isGiftRollsPage) page = <GiftRollsPage />;
+  else if (isGiftSetsPage) page = <GiftSetsPage />;
+  else if (isAdminPage) page = <AdminPage />;
+  else if (isSettingsPage) page = <SettingsPage />;
+  else if (isProfilePage) page = <ProfilePage />;
+  else if (isDiscountShopPage) page = <DiscountShopPage />;
+  else if (isShopPage) page = <ShopPage />;
+  else if (isPaymentPage) page = <PaymentPage />;
+  else if (isLandingPage) page = <LandingPage />;
+  else if (isSetsReceivedPage) page = <SetsReceivedPage />;
+  else if (isSetsPage) page = <SetsPage />;
+  else if (isRollsPage) page = <RollsPage />;
+  else if (isSuccessPage) page = <Success />;
+  else page = <NotFoundPage />;
 
-  if (isLoginPage) {
-    return <LoginPage />;
-  }
+  // Не показываем промпт на страницах логина и админки
+  const showWebRegPrompt = !isLoginPage && !isAdminPage;
 
-  if (isBenefitsPage) return <BenefitsPage />;
-  if (isPartnerCodePage) return <PartnerCodePage />;
-  if (isGiftRollsPage) return <GiftRollsPage />;
-  if (isGiftSetsPage) return <GiftSetsPage />;
-  if (isAdminPage) return <AdminPage />;
-  if (isSettingsPage) return <SettingsPage />;
-  if (isProfilePage) return <ProfilePage />;
-  if (isDiscountShopPage) return <DiscountShopPage />;
-  if (isShopPage) return <ShopPage />;
-  if (isPaymentPage) return <PaymentPage />;
-  if (isLandingPage) return <LandingPage />;
-
-  if (isSetsReceivedPage) return <SetsReceivedPage />;
-  if (isSetsPage) return <SetsPage />;
-  if (isRollsPage) return <RollsPage />;
-  if (isSuccessPage) return <Success />;
-
-  return <NotFoundPage />;
+  return (
+    <>
+      {page}
+      {showWebRegPrompt && <WebRegistrationPrompt />}
+    </>
+  );
 }
 
 export default App;

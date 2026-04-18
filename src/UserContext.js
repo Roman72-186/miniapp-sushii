@@ -229,6 +229,7 @@ export function UserProvider({ children }) {
       payment_method_id: v['PaymentID'] || null,
       has_payment_id: !!v['PaymentID'],
       contact_id: contactId,
+      needsWebRegistration: userData?.needsWebRegistration || false,
     };
   }, [userData, contactName, phone, contactId]);
 

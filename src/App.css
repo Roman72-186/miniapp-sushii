@@ -265,3 +265,71 @@ body {
   background: #ffeaea;
   border-radius: 8px;
 }
+
+/* === Модалка веб-регистрации === */
+.web-reg-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.web-reg-modal {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 28px 24px 32px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
+}
+
+.web-reg-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.web-reg-title {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.web-reg-text {
+  margin: 0 0 24px;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.web-reg-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #3CC8A1;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.web-reg-btn:active {
+  opacity: 0.85;
+}
+
+.web-reg-later {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+}
