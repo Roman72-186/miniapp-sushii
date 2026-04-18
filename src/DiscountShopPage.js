@@ -858,7 +858,6 @@ function DiscountShopPage() {
       <GamesModal
         isOpen={gamesOpen}
         onClose={() => setGamesOpen(false)}
-        isSubscriber={profile?.статусСписания === 'активно'}
       />
 
       {lockedPopup && (

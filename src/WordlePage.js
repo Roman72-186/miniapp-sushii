@@ -85,7 +85,6 @@ function WordlePage() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const isSubscriber = gameStats?.isSubscriber;
   const winsToday = gameStats?.winsToday ?? 0;
   const remainingWins = gameStats?.remainingWins ?? 3;
 
@@ -97,28 +96,6 @@ function WordlePage() {
           <span className="wrd-header__title">5 букв</span>
         </header>
         <div className="wrd-loading">Загрузка...</div>
-      </div>
-    );
-  }
-
-  if (!isSubscriber) {
-    return (
-      <div className="wrd-page">
-        <header className="wrd-header">
-          <button className="wrd-header__back" onClick={() => window.history.back()}>←</button>
-          <span className="wrd-header__title">5 букв</span>
-        </header>
-        <div className="wrd-locked">
-          <div className="wrd-locked__icon">🔒</div>
-          <div className="wrd-locked__title">Только для подписчиков</div>
-          <div className="wrd-locked__desc">
-            Угадай слово из 5 букв за 6 попыток.<br/>
-            Получай по 5 SHC за каждую победу — до 3 раз в день. SHC можно потратить до 100% оплаты любого заказа.
-          </div>
-          <button className="wrd-locked__btn" onClick={() => window.location.href = '/'}>
-            Оформить подписку
-          </button>
-        </div>
       </div>
     );
   }
