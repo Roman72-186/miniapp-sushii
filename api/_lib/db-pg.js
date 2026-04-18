@@ -201,7 +201,7 @@ async function updateBalance(telegramId, amount, client) {
 
 async function getReferrals(telegramId) {
   const res = await query(
-    'SELECT telegram_id, name, phone, tariff, is_ambassador, created_at FROM users WHERE invited_by = $1 ORDER BY created_at DESC',
+    "SELECT telegram_id, name, phone, tariff, is_ambassador, created_at FROM users WHERE invited_by = $1 AND subscription_status = 'активно' ORDER BY created_at DESC",
     [String(telegramId)]
   );
   return res.rows;
@@ -729,10 +729,10 @@ async function getMonthRevenue(monthStart) {
 async function getAdminTopReferrers(limit = 20) {
   const res = await query(`
     SELECT u.telegram_id, u.name, u.phone, u.tariff, u.balance_shc,
-           (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id) AS referrals_count,
+           (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id AND r.subscription_status = 'активно') AS referrals_count,
            COALESCE((SELECT SUM(rb.total_amount) FROM referral_bonuses rb WHERE rb.user_id = u.telegram_id), 0) AS shc_earned
     FROM users u
-    WHERE (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id) > 0
+    WHERE (SELECT COUNT(*) FROM users r WHERE r.invited_by = u.telegram_id AND r.subscription_status = 'активно') > 0
     ORDER BY referrals_count DESC
     LIMIT $1
   `, [limit]);
