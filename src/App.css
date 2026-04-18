@@ -133,27 +133,14 @@ body {
 
 .footer {
   margin-top: 30px;
-  background: #fff;
-  padding: 20px;
-  border-top: 1px solid #ddd;
+  background: transparent;
+  padding: 12px 20px;
   text-align: center;
 }
 
-.footer-logo {
-  height: 50px;
-  margin-bottom: 10px;
-}
-
-.footer-info {
-  font-size: 14px;
-  color: #444;
-  line-height: 1.6;
-}
-
 .footer-version {
-  margin-top: 8px;
   font-size: 11px;
-  color: #bbb;
+  color: #666;
   letter-spacing: 0.04em;
 }
 
