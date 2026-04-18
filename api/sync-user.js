@@ -5,6 +5,7 @@ const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { getUser, upsertUser, generatePartnerCode, getPartnerByCode } = require('./_lib/db');
 const { readGiftWindows } = require('./_lib/blob-store');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
+const { supabase } = require('./_lib/supabase');
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 минут
 
@@ -189,6 +190,18 @@ module.exports = async (req, res) => {
     const derived = deriveFromDbUser(dbUser);
     console.log('[sync-user] Derived subscription:', derived);
 
+    // Проверяем, нужна ли веб-регистрация (только для legacy Telegram-пользователей)
+    let needsWebRegistration = false;
+    const isLegacyUser = dbUser?.phone && !/^web_/.test(String(telegram_id));
+    if (isLegacyUser) {
+      const { data: webCred } = await supabase
+        .from('web_credentials')
+        .select('phone')
+        .eq('phone', dbUser.phone)
+        .maybeSingle();
+      needsWebRegistration = !webCred;
+    }
+
     const cacheData = {
       telegram_id: String(telegram_id),
       syncedAt: new Date().toISOString(),
@@ -196,7 +209,8 @@ module.exports = async (req, res) => {
       variables,
       tags,
       tarif,
-      derived, // Добавляем вычисленный статус подписки
+      derived,
+      needsWebRegistration,
       listItem: dbUser ? { name: dbUser.name, telefon: dbUser.phone } : null,
     };
     
