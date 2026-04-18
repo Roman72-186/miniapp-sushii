@@ -6,6 +6,7 @@ const UserContext = createContext(null);
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
 const WEB_TOKEN_KEY = 'web_token';
 const WEB_USER_ID_KEY = 'web_user_id';
+const PENDING_REFERRAL_KEY = 'pending_invited_by';
 
 // Декодирует JWT без верификации (верификация на сервере)
 function decodeJwt(token) {
@@ -125,6 +126,15 @@ export function UserProvider({ children }) {
     const isPaymentReturn = params.get('payment') === 'success';
     const invitedBy = params.get('invited_by');
 
+    // Сохраняем invited_by в sessionStorage — на случай если юзер ещё не вошёл
+    if (invitedBy) {
+      sessionStorage.setItem(PENDING_REFERRAL_KEY, invitedBy);
+      const cleanParams = new URLSearchParams(window.location.search);
+      cleanParams.delete('invited_by');
+      const clean = cleanParams.toString();
+      window.history.replaceState({}, '', window.location.pathname + (clean ? '?' + clean : ''));
+    }
+
     sync(isPaymentReturn).then(() => {
       if (isPaymentReturn) {
         params.delete('payment');
@@ -134,20 +144,17 @@ export function UserProvider({ children }) {
       }
     });
 
-    // Регистрируем реферальную связь если пришли по реф-ссылке
-    if (invitedBy && telegramId && String(invitedBy) !== String(telegramId)) {
+    // Регистрируем реферальную связь: из URL или из sessionStorage (после логина)
+    const pendingInvitedBy = invitedBy || sessionStorage.getItem(PENDING_REFERRAL_KEY);
+    if (pendingInvitedBy && telegramId && String(pendingInvitedBy) !== String(telegramId)) {
       fetch('/api/register-referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_id: telegramId, invited_by: invitedBy }),
+        body: JSON.stringify({ telegram_id: telegramId, invited_by: pendingInvitedBy }),
       })
         .then(r => r.json())
         .then(() => {
-          // Убираем invited_by из URL чтобы не регистрировать повторно
-          const cleanParams = new URLSearchParams(window.location.search);
-          cleanParams.delete('invited_by');
-          const clean = cleanParams.toString();
-          window.history.replaceState({}, '', window.location.pathname + (clean ? '?' + clean : ''));
+          sessionStorage.removeItem(PENDING_REFERRAL_KEY);
         })
         .catch(() => {});
     }
