@@ -25,6 +25,7 @@ function LoginPage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
+  const [otpToken, setOtpToken] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [loading, setLoading] = useState(false);
@@ -111,6 +112,7 @@ function LoginPage() {
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Ошибка отправки'); return; }
       setCode('');
+      setOtpToken('');
       setStep('otp');
       startResendCountdown(60);
     } catch {
@@ -121,13 +123,28 @@ function LoginPage() {
   };
 
   // Шаг 3: подтверждение OTP кода
-  const handleOtpNext = (e) => {
+  const handleOtpNext = async (e) => {
     e.preventDefault();
     setError('');
     if (code.length < 4) { setError('Введите 4-значный код'); return; }
-    setPassword('');
-    setPasswordConfirm('');
-    setStep('set-password');
+    setLoading(true);
+    try {
+      const resp = await fetch('/api/auth/verify-password-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: normalizePhone(phone), code }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) { setError(data.error || 'Неверный код'); return; }
+      setOtpToken(data.otpToken);
+      setPassword('');
+      setPasswordConfirm('');
+      setStep('set-password');
+    } catch {
+      setError('Ошибка соединения.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Повторная отправка OTP
@@ -135,6 +152,7 @@ function LoginPage() {
     if (resendIn > 0) return;
     setError('');
     setCode('');
+    setOtpToken('');
     setLoading(true);
     try {
       const resp = await fetch('/api/auth/send-email-otp', {
@@ -199,6 +217,7 @@ function LoginPage() {
         body: JSON.stringify({
           phone: normalizePhone(phone),
           code,
+          otpToken,
           password,
           name: isNewUser ? name.trim() : undefined,
         }),

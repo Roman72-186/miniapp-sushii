@@ -32,6 +32,7 @@ app.all('/api/update-profile', require('./api/update-profile'));
 // Auth API
 app.all('/api/auth/login-by-phone', require('./api/auth/login-by-phone'));
 app.all('/api/auth/verify-otp', require('./api/auth/verify-otp'));
+app.all('/api/auth/verify-password-otp', require('./api/auth/verify-password-otp'));
 app.all('/api/auth/login-with-password', require('./api/auth/login-with-password'));
 app.all('/api/auth/set-password', require('./api/auth/set-password'));
 app.all('/api/auth/send-email-otp', require('./api/auth/send-email-otp'));
@@ -102,6 +103,14 @@ app.get('/{*splat}', (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // Проверка критичных переменных окружения
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[config] Внимание: RESEND_API_KEY не задана — отправка email через Resend отключена');
+  }
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your-super-secret-jwt-key-change-this-in-production-$(openssl rand -hex 32)') {
+    console.warn('[config] Внимание: используйте надежный JWT_SECRET в production');
+  }
 
   // Cron: проверка подписок каждый день в 10:00 UTC (13:00 МСК)
   const { runSubscriptionCron } = require('./api/cron-subscriptions');
