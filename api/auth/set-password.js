@@ -1,10 +1,11 @@
 // POST /api/auth/set-password — Установка/сброс пароля после OTP верификации
 
 const bcrypt = require('bcrypt');
-const { getUserByPhone, getUser, upsertUser } = require('../_lib/db');
+const { getUserByPhone, getUser, upsertUser, setUserEmail } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
 const otpStore = require('./_otp-store');
+const { verifyOtpProof } = require('./_otp-proof');
 
 function normalizePhone(raw) {
   const nums = String(raw || '').replace(/\D/g, '');
@@ -22,8 +23,8 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { phone: rawPhone, code, password, name } = req.body || {};
-  if (!rawPhone || !code || !password) {
+  const { phone: rawPhone, code, otpToken, password, name } = req.body || {};
+  if (!rawPhone || (!code && !otpToken) || !password) {
     return res.status(400).json({ error: 'Укажите телефон, код и новый пароль' });
   }
   if (password.length < 6) {
@@ -33,7 +34,9 @@ module.exports = async (req, res) => {
   const phone = normalizePhone(rawPhone);
 
   // Проверяем OTP код
-  const result = otpStore.verify(phone, code);
+  const result = otpToken
+    ? verifyOtpProof(otpToken, phone)
+    : otpStore.verify(phone, code);
   if (!result.ok) {
     if (result.reason === 'expired') return res.status(400).json({ error: 'Код истёк. Запросите новый.' });
     if (result.reason === 'too_many') return res.status(429).json({ error: 'Слишком много попыток. Запросите новый код.' });
@@ -59,7 +62,7 @@ module.exports = async (req, res) => {
     let user = await getUserByPhone(phone);
     if (!user) {
       const webId = 'web_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
-      await upsertUser({ telegram_id: webId, phone, name: name || null });
+      await upsertUser({ telegram_id: webId, phone, name: name || null, email: result.email || null });
       user = await getUser(webId);
     } else if (name) {
       await upsertUser({ telegram_id: user.telegram_id, name });
@@ -67,6 +70,14 @@ module.exports = async (req, res) => {
     }
     if (!user) {
       return res.status(500).json({ error: 'Не удалось создать пользователя' });
+    }
+
+    if (result.email && !user.email) {
+      try {
+        user = await setUserEmail(user.telegram_id, result.email);
+      } catch (e) {
+        console.warn('[set-password] setUserEmail failed:', e.message);
+      }
     }
 
     const token = generateToken(user);
