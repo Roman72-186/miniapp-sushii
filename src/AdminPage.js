@@ -1452,26 +1452,31 @@ function AdminPage() {
                   const p = dashStats.periods[key] || {};
                   return (
                     <div key={key} style={{ ...styles.statCard, gridColumn: '1 / -1' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                        <div style={{ ...styles.statLabel, fontSize: 12, color: '#3CC8A1', letterSpacing: '0.08em' }}>
-                          {label.toUpperCase()}
+                      <div style={{ ...styles.statLabel, fontSize: 12, color: '#3CC8A1', letterSpacing: '0.08em', marginBottom: 10 }}>
+                        {label.toUpperCase()}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+                        <div>
+                          <div style={{ ...styles.statVal, fontSize: 18 }}>
+                            {(p.subsRevenue || 0).toLocaleString('ru-RU')} ₽
+                          </div>
+                          <div style={styles.statLabel}>Подписки · {p.newSubs || 0} опл.</div>
                         </div>
-                        <div style={{ fontSize: 12, color: '#888' }}>
-                          {p.orders || 0} заказов · {(p.revenue || 0).toLocaleString('ru-RU')} ₽
+                        <div>
+                          <div style={{ ...styles.statVal, fontSize: 18 }}>
+                            {(p.ordersRevenue || 0).toLocaleString('ru-RU')} ₽
+                          </div>
+                          <div style={styles.statLabel}>Заказы · {p.orders || 0} шт.</div>
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                         <div>
-                          <div style={{ ...styles.statVal, fontSize: 20 }}>{p.promoGifts || 0}</div>
+                          <div style={{ ...styles.statVal, fontSize: 18 }}>{p.promoGifts || 0}</div>
                           <div style={styles.statLabel}>Промокод 102030</div>
                         </div>
                         <div>
-                          <div style={{ ...styles.statVal, fontSize: 20 }}>{p.thresholdGifts || 0}</div>
+                          <div style={{ ...styles.statVal, fontSize: 18 }}>{p.thresholdGifts || 0}</div>
                           <div style={styles.statLabel}>За чек ≥2500₽</div>
-                        </div>
-                        <div>
-                          <div style={{ ...styles.statVal, fontSize: 20 }}>{p.newSubs || 0}</div>
-                          <div style={styles.statLabel}>Новые оплаты</div>
                         </div>
                       </div>
                     </div>

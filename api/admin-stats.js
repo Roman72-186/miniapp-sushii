@@ -4,7 +4,7 @@ const {
   getAllUsersForStats,
   getMonthRevenue,
   getOrdersStats,
-  getPaymentsCount,
+  getPaymentsStats,
   getOrdersDaily,
 } = require('./_lib/db');
 
@@ -24,16 +24,17 @@ async function buildPeriod(days) {
   const since = new Date();
   since.setDate(since.getDate() - days);
   const sinceIso = toIso(since);
-  const [orders, newSubs] = await Promise.all([
+  const [orders, payments] = await Promise.all([
     getOrdersStats(sinceIso),
-    getPaymentsCount(sinceIso),
+    getPaymentsStats(sinceIso),
   ]);
   return {
     orders: orders.orders,
-    revenue: orders.revenue,
+    ordersRevenue: orders.revenue,
     promoGifts: orders.promoGifts,
     thresholdGifts: orders.thresholdGifts,
-    newSubs,
+    newSubs: payments.count,
+    subsRevenue: payments.revenue,
   };
 }
 

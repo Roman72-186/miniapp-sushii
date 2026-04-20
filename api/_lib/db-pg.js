@@ -653,6 +653,16 @@ async function getPaymentsCount(sinceIso) {
   return Number(res.rows[0]?.cnt) || 0;
 }
 
+async function getPaymentsStats(sinceIso) {
+  const res = await query(`
+    SELECT COUNT(*)::int AS cnt, COALESCE(SUM(amount), 0)::float AS revenue
+    FROM payments
+    WHERE status = 'succeeded' AND created_at >= $1
+  `, [sinceIso]);
+  const row = res.rows[0] || {};
+  return { count: Number(row.cnt) || 0, revenue: Number(row.revenue) || 0 };
+}
+
 async function getOrdersDaily(days) {
   const res = await query(`
     SELECT to_char(created_at, 'YYYY-MM-DD') AS day,
@@ -941,6 +951,7 @@ module.exports = {
   getMonthRevenue,
   getOrdersStats,
   getPaymentsCount,
+  getPaymentsStats,
   getOrdersDaily,
   getAdminTopReferrers,
   getAdminRecentBonuses,

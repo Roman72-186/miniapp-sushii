@@ -809,6 +809,15 @@ function getPaymentsCount(sinceIso) {
   return Number(row.cnt) || 0;
 }
 
+function getPaymentsStats(sinceIso) {
+  const row = getDb().prepare(`
+    SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS revenue
+    FROM payments
+    WHERE status = 'succeeded' AND created_at >= ?
+  `).get(sinceIso) || {};
+  return { count: Number(row.cnt) || 0, revenue: Number(row.revenue) || 0 };
+}
+
 function getOrdersDaily(days) {
   const rows = getDb().prepare(`
     SELECT substr(created_at, 1, 10) AS day,
@@ -1030,6 +1039,7 @@ module.exports = {
   getMonthRevenue,
   getOrdersStats,
   getPaymentsCount,
+  getPaymentsStats,
   getOrdersDaily,
   getGiftOrders,
   updateLastAddress,
