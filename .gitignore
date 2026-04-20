@@ -26,6 +26,7 @@ yarn-error.log*
 
 .vercel
 .env*.local
+.secrets.lock.local
 
 # Archive of old scripts (kept locally but not in git)
 /_archive

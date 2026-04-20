@@ -28,6 +28,11 @@
     "build": "react-scripts build",
     "backup:db": "node scripts/backup-db.js",
     "catalog": "python scripts/build-catalog-master.py",
+    "secrets:check": "node scripts/protect-secrets.js --check",
+    "secrets:lock": "node scripts/protect-secrets.js --lock",
+    "secrets:list": "node scripts/protect-secrets.js --list",
+    "secrets:freeze": "node scripts/protect-secrets.js --freeze",
+    "secrets:unfreeze": "node scripts/protect-secrets.js --unfreeze",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
