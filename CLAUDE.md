@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Language
 
-Always respond in Russian.
+Always respond in Russian. Все ответы, комментарии, сообщения коммитов и отчёты (включая итоговые отчёты о выполненной работе) — на русском языке.
 
 ## ⚠️ Project is a standalone web app (not a Telegram Mini App anymore)
 

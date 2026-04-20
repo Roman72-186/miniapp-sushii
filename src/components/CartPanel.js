@@ -37,8 +37,8 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     <p className="shop-cart__item-name">{item.product.cleanName || item.product.name}</p>
                     {item.product.gift ? (
                       <p className="shop-cart__item-price shop-cart__item-price--gift">
-                        🎁 {item.giftSource === 'promo' ? 'Подарок по промокоду'
-                           : item.giftSource === 'threshold2500' ? 'Подарок к заказу'
+                        🎁 {item.giftSource === 'promo' ? 'По промокоду'
+                           : item.giftSource === 'threshold2500' ? 'За горячий чек'
                            : 'Подарок по подписке'}
                       </p>
                     ) : (

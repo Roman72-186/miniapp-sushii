@@ -221,8 +221,17 @@ module.exports = async (req, res) => {
         const orderAddress = isPickupOrder
           ? (body.pickup_point_address || client.street || null)
           : ([client.street, client.home].filter(Boolean).join(', ') || null);
-        const productsList = products.map(p => ({ name: p.name || String(p.id), qty: p.quantity || 1, price: p.price || 0 }));
+        const productsList = products.map(p => ({
+          name: p.name || String(p.id),
+          qty: p.quantity || 1,
+          price: p.price || 0,
+          giftSource: p.gift_source || undefined,
+        }));
         const total = products.reduce((sum, p) => sum + (p.price || 0) * (p.quantity || 1), 0);
+        const rawPromo = String(body.promo_code || '').trim();
+        const promoCode = /^[A-Za-z0-9]{1,20}$/.test(rawPromo) ? rawPromo : null;
+        const hasPromoGift = products.some(p => p.gift_source === 'promo');
+        const hasThresholdGift = products.some(p => p.gift_source === 'threshold2500');
         await insertOrder({
           telegramId: telegram_id,
           frontpadOrderId: String(orderResult.data.orderId || ''),
@@ -233,6 +242,9 @@ module.exports = async (req, res) => {
           productsJson: JSON.stringify(productsList),
           totalPrice: Math.round(total),
           clientName: client.name || null,
+          promoCode,
+          hasPromoGift,
+          hasThresholdGift,
         });
       } catch (saveErr) {
         console.error('[ORDER] Ошибка сохранения в БД:', saveErr.message);
