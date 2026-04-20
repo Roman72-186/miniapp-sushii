@@ -58,7 +58,9 @@ module.exports = async (req, res) => {
 
   try {
     const existingUser = await getUserByPhone(normalizedPhone);
-    const telegram_id = existingUser ? existingUser.telegram_id : `web_${normalizedPhone}`;
+    const telegram_id = existingUser
+      ? existingUser.telegram_id
+      : 'web_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
     const isNew = !existingUser;
 
     const finalName = (name && name.trim()) || existingUser?.name || `Клиент ${normalizedPhone}`;

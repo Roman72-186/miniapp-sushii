@@ -35,7 +35,7 @@ npm run backup:db      # Backup SQLite database
 cd miniapp-sushii && git pull && docker compose up -d --build && docker compose restart app
 ```
 
-Тесты есть (CRA default, `App.test.js`), но покрывают только базовый рендер: `npm test`. Линтер не настроен.
+Тесты есть (CRA default, `App.test.js`), но покрывают только базовый рендер: `npm test`. Запуск одного теста: `npm test -- --testNamePattern="имя теста"`. Линтер не настроен.
 
 ## Architecture
 
