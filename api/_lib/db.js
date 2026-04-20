@@ -158,6 +158,9 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN game_word_status TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN game_session_id TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN email TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE orders ADD COLUMN promo_code TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE orders ADD COLUMN has_promo_gift INTEGER DEFAULT 0'); } catch {}
+  try { _db.exec('ALTER TABLE orders ADD COLUMN has_threshold_gift INTEGER DEFAULT 0'); } catch {}
 
   _db.exec(`
     CREATE TABLE IF NOT EXISTS email_notifications_log (
@@ -761,10 +764,10 @@ function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Orders ─────────────────────────────────────────────
 
-function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName }) {
+function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift }) {
   getDb().prepare(`
-    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     String(telegramId),
     frontpadOrderId || null,
@@ -775,7 +778,48 @@ function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderTy
     productsJson || null,
     totalPrice || 0,
     clientName || null,
+    promoCode || null,
+    hasPromoGift ? 1 : 0,
+    hasThresholdGift ? 1 : 0,
   );
+}
+
+function getOrdersStats(sinceIso) {
+  const row = getDb().prepare(`
+    SELECT
+      COUNT(*) AS orders,
+      COALESCE(SUM(total_price), 0) AS revenue,
+      COALESCE(SUM(CASE WHEN has_promo_gift = 1 THEN 1 ELSE 0 END), 0) AS promo_gifts,
+      COALESCE(SUM(CASE WHEN has_threshold_gift = 1 THEN 1 ELSE 0 END), 0) AS threshold_gifts
+    FROM orders
+    WHERE created_at >= ?
+  `).get(sinceIso) || {};
+  return {
+    orders: Number(row.orders) || 0,
+    revenue: Number(row.revenue) || 0,
+    promoGifts: Number(row.promo_gifts) || 0,
+    thresholdGifts: Number(row.threshold_gifts) || 0,
+  };
+}
+
+function getPaymentsCount(sinceIso) {
+  const row = getDb().prepare(
+    "SELECT COUNT(*) AS cnt FROM payments WHERE status = 'succeeded' AND created_at >= ?"
+  ).get(sinceIso) || {};
+  return Number(row.cnt) || 0;
+}
+
+function getOrdersDaily(days) {
+  const rows = getDb().prepare(`
+    SELECT substr(created_at, 1, 10) AS day,
+           COUNT(*) AS count,
+           COALESCE(SUM(total_price), 0) AS revenue
+    FROM orders
+    WHERE created_at >= datetime('now', ?)
+    GROUP BY day
+    ORDER BY day ASC
+  `).all(`-${Number(days) || 30} days`);
+  return rows.map(r => ({ date: r.day, count: Number(r.count) || 0, revenue: Number(r.revenue) || 0 }));
 }
 
 function getOrderHistory(telegramId, limit = 50) {
@@ -984,6 +1028,9 @@ module.exports = {
   getAdminSubscribersList,
   getAllUsersForStats,
   getMonthRevenue,
+  getOrdersStats,
+  getPaymentsCount,
+  getOrdersDaily,
   getGiftOrders,
   updateLastAddress,
   updateUserProfile,

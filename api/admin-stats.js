@@ -1,11 +1,40 @@
 // api/admin-stats.js — Статистика для дашборда (admin)
 const { checkAuth } = require('./_lib/admin-auth');
-const { getAllUsersForStats, getMonthRevenue } = require('./_lib/db');
+const {
+  getAllUsersForStats,
+  getMonthRevenue,
+  getOrdersStats,
+  getPaymentsCount,
+  getOrdersDaily,
+} = require('./_lib/db');
 
 function parseDate(ddmmyyyy) {
   if (!ddmmyyyy) return null;
   const [dd, mm, yyyy] = ddmmyyyy.split('.');
   return new Date(`${yyyy}-${mm}-${dd}`);
+}
+
+function toIso(date) {
+  // YYYY-MM-DD HH:MM:SS — подходит и SQLite (datetime(...)), и PG (сравнение с timestamp)
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+async function buildPeriod(days) {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const sinceIso = toIso(since);
+  const [orders, newSubs] = await Promise.all([
+    getOrdersStats(sinceIso),
+    getPaymentsCount(sinceIso),
+  ]);
+  return {
+    orders: orders.orders,
+    revenue: orders.revenue,
+    promoGifts: orders.promoGifts,
+    thresholdGifts: orders.thresholdGifts,
+    newSubs,
+  };
 }
 
 module.exports = async (req, res) => {
@@ -46,6 +75,15 @@ module.exports = async (req, res) => {
     const monthStart = `${now2.getFullYear()}-${String(now2.getMonth()+1).padStart(2,'0')}-01`;
     const revenue = await getMonthRevenue(monthStart);
 
+    // Периодные агрегаты + дневной график
+    const [p1, p7, p15, p30, ordersDaily] = await Promise.all([
+      buildPeriod(1),
+      buildPeriod(7),
+      buildPeriod(15),
+      buildPeriod(30),
+      getOrdersDaily(30),
+    ]);
+
     return res.status(200).json({
       success: true,
       stats: {
@@ -56,6 +94,8 @@ module.exports = async (req, res) => {
         expiringSoon,
         newThisWeek,
         revenueThisMonth: revenue.total,
+        periods: { '1d': p1, '7d': p7, '15d': p15, '30d': p30 },
+        ordersDaily,
       },
     });
   } catch (e) {

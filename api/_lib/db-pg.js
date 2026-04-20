@@ -31,6 +31,9 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_word_status TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_session_id TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code TEXT');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_promo_gift BOOLEAN DEFAULT FALSE');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_threshold_gift BOOLEAN DEFAULT FALSE');
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS email_notifications_log (
@@ -603,10 +606,10 @@ async function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Orders ──────────────────────────────────────────────────
 
-async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName }) {
+async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift }) {
   await query(`
-    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
   `, [
     String(telegramId),
     frontpadOrderId || null,
@@ -617,7 +620,50 @@ async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, o
     productsJson || null,
     totalPrice || 0,
     clientName || null,
+    promoCode || null,
+    !!hasPromoGift,
+    !!hasThresholdGift,
   ]);
+}
+
+async function getOrdersStats(sinceIso) {
+  const res = await query(`
+    SELECT
+      COUNT(*)::int AS orders,
+      COALESCE(SUM(total_price), 0)::int AS revenue,
+      COALESCE(SUM(CASE WHEN has_promo_gift THEN 1 ELSE 0 END), 0)::int AS promo_gifts,
+      COALESCE(SUM(CASE WHEN has_threshold_gift THEN 1 ELSE 0 END), 0)::int AS threshold_gifts
+    FROM orders
+    WHERE created_at >= $1
+  `, [sinceIso]);
+  const row = res.rows[0] || {};
+  return {
+    orders: Number(row.orders) || 0,
+    revenue: Number(row.revenue) || 0,
+    promoGifts: Number(row.promo_gifts) || 0,
+    thresholdGifts: Number(row.threshold_gifts) || 0,
+  };
+}
+
+async function getPaymentsCount(sinceIso) {
+  const res = await query(
+    "SELECT COUNT(*)::int AS cnt FROM payments WHERE status = 'succeeded' AND created_at >= $1",
+    [sinceIso]
+  );
+  return Number(res.rows[0]?.cnt) || 0;
+}
+
+async function getOrdersDaily(days) {
+  const res = await query(`
+    SELECT to_char(created_at, 'YYYY-MM-DD') AS day,
+           COUNT(*)::int AS count,
+           COALESCE(SUM(total_price), 0)::int AS revenue
+    FROM orders
+    WHERE created_at >= NOW() - ($1 || ' days')::interval
+    GROUP BY day
+    ORDER BY day ASC
+  `, [String(Number(days) || 30)]);
+  return res.rows.map(r => ({ date: r.day, count: Number(r.count) || 0, revenue: Number(r.revenue) || 0 }));
 }
 
 async function getOrderHistory(telegramId, limit = 50) {
@@ -893,6 +939,9 @@ module.exports = {
   findUserByPhoneExceptId,
   getAdminSubscribersList,
   getMonthRevenue,
+  getOrdersStats,
+  getPaymentsCount,
+  getOrdersDaily,
   getAdminTopReferrers,
   getAdminRecentBonuses,
   getGameDailyWord,

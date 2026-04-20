@@ -198,6 +198,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
             quantity: item.quantity,
             name: item.product.cleanName || item.product.name,
             price: item.product.price,
+            gift_source: item.giftSource || (item.product.gift ? 'subscription' : undefined),
           })),
           client: {
             name: name.trim(),

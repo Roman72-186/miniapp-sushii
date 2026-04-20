@@ -59,7 +59,14 @@
       "Bash(npm install *)",
       "Bash(npm search *)",
       "Bash(npm view *)",
-      "Bash(xargs wc *)"
+      "Bash(xargs wc *)",
+      "Bash(command -v plink)",
+      "Bash(command -v sshpass)",
+      "Bash(command -v ssh)",
+      "Bash(where plink *)",
+      "Bash(/c/Program Files/PuTTY/plink *)",
+      "Bash(\"/c/Program Files/PuTTY/plink\" -ssh -pw 'kMy1QZ-zkfgJr_' root@64.188.63.249 \"echo connected\")",
+      "Bash([ -s \"$OUT\" ])"
     ]
   }
 }

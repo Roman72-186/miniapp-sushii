@@ -1438,6 +1438,97 @@ function AdminPage() {
               </div>
             </div>
           )}
+
+          {dashStats?.periods && (
+            <>
+              <h4 style={{ ...styles.addTitle, marginTop: 22, fontSize: 14 }}>За период</h4>
+              <div style={styles.statsGrid}>
+                {[
+                  { key: '1d',  label: '1 день' },
+                  { key: '7d',  label: '7 дней' },
+                  { key: '15d', label: '15 дней' },
+                  { key: '30d', label: '30 дней' },
+                ].map(({ key, label }) => {
+                  const p = dashStats.periods[key] || {};
+                  return (
+                    <div key={key} style={{ ...styles.statCard, gridColumn: '1 / -1' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+                        <div style={{ ...styles.statLabel, fontSize: 12, color: '#3CC8A1', letterSpacing: '0.08em' }}>
+                          {label.toUpperCase()}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#888' }}>
+                          {p.orders || 0} заказов · {(p.revenue || 0).toLocaleString('ru-RU')} ₽
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                        <div>
+                          <div style={{ ...styles.statVal, fontSize: 20 }}>{p.promoGifts || 0}</div>
+                          <div style={styles.statLabel}>Промокод 102030</div>
+                        </div>
+                        <div>
+                          <div style={{ ...styles.statVal, fontSize: 20 }}>{p.thresholdGifts || 0}</div>
+                          <div style={styles.statLabel}>За чек ≥2500₽</div>
+                        </div>
+                        <div>
+                          <div style={{ ...styles.statVal, fontSize: 20 }}>{p.newSubs || 0}</div>
+                          <div style={styles.statLabel}>Новые оплаты</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {Array.isArray(dashStats?.ordersDaily) && dashStats.ordersDaily.length > 0 && (() => {
+            const daily = dashStats.ordersDaily;
+            const maxCount = Math.max(1, ...daily.map(d => d.count || 0));
+            const W = 560;
+            const H = 140;
+            const padL = 8;
+            const padR = 8;
+            const padT = 8;
+            const padB = 22;
+            const barW = (W - padL - padR) / daily.length;
+            return (
+              <div style={{ ...styles.statCard, marginTop: 16 }}>
+                <div style={{ ...styles.statLabel, marginBottom: 8 }}>
+                  Заказы по дням (30 дней) · макс {maxCount}
+                </div>
+                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+                  {daily.map((d, i) => {
+                    const h = ((d.count || 0) / maxCount) * (H - padT - padB);
+                    const x = padL + i * barW;
+                    const y = H - padB - h;
+                    return (
+                      <g key={d.date}>
+                        <rect
+                          x={x + 1}
+                          y={y}
+                          width={Math.max(1, barW - 2)}
+                          height={h}
+                          fill="#3CC8A1"
+                          opacity={0.85}
+                        >
+                          <title>{`${d.date}: ${d.count} заказов, ${(d.revenue || 0).toLocaleString('ru-RU')} ₽`}</title>
+                        </rect>
+                      </g>
+                    );
+                  })}
+                  {daily.length > 0 && (
+                    <>
+                      <text x={padL} y={H - 6} fontSize="10" fill="#888">{daily[0].date.slice(5)}</text>
+                      <text x={W - padR} y={H - 6} fontSize="10" fill="#888" textAnchor="end">
+                        {daily[daily.length - 1].date.slice(5)}
+                      </text>
+                    </>
+                  )}
+                </svg>
+              </div>
+            );
+          })()}
+
           {!dashStats && !dashLoading && <p style={styles.muted}>Нажмите «Обновить»</p>}
         </div>
       )}
