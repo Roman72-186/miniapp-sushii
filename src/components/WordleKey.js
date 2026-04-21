@@ -1,20 +1,17 @@
 // src/components/WordleKey.js
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 
-const LONG_PRESS_MS = 450;
+const LONG_PRESS_MS = 400;
 
 function WordleKey({ char, onClick, status, disabled, wide, altChars }) {
   const hasAlt = Array.isArray(altChars) && altChars.length > 0;
   const options = hasAlt ? [char, ...altChars] : null;
 
   const [popupOpen, setPopupOpen] = useState(false);
-  const [hoverIndex, setHoverIndex] = useState(0);
-
   const timerRef = useRef(null);
   const longPressFiredRef = useRef(false);
-  const btnRef = useRef(null);
-  const popupRef = useRef(null);
+  const rootRef = useRef(null);
 
   const statusClass = status && status !== 'unchecked' ? `wrd-key--${status}` : '';
 
@@ -25,12 +22,20 @@ function WordleKey({ char, onClick, status, disabled, wide, altChars }) {
     }
   }, []);
 
-  const closePopup = useCallback(() => {
-    setPopupOpen(false);
-    setHoverIndex(0);
-  }, []);
+  // Закрытие popup при клике вне кнопки
+  useEffect(() => {
+    if (!popupOpen) return;
+    const onDocPointer = (e) => {
+      if (!rootRef.current) return;
+      if (!rootRef.current.contains(e.target)) {
+        setPopupOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onDocPointer);
+    return () => document.removeEventListener('pointerdown', onDocPointer);
+  }, [popupOpen]);
 
-  // --- Без альтернатив: обычная кнопка с onClick ---
+  // --- Без альтернатив: обычная кнопка ---
   if (!hasAlt) {
     return (
       <button
@@ -44,11 +49,11 @@ function WordleKey({ char, onClick, status, disabled, wide, altChars }) {
     );
   }
 
-  // --- С альтернативами: long-press с popup ---
+  // --- С альтернативами: long-press → popup → tap выбор ---
   const handlePointerDown = (e) => {
     if (disabled) return;
-    e.preventDefault();
-    try { btnRef.current?.setPointerCapture(e.pointerId); } catch {}
+    if (popupOpen) return; // popup уже открыт, pointerdown на кнопке — игнор (выбор идёт кликом)
+    e.preventDefault(); // блокируем scroll/selection на мобильных
     longPressFiredRef.current = false;
     clearTimer();
     timerRef.current = setTimeout(() => {
@@ -58,80 +63,63 @@ function WordleKey({ char, onClick, status, disabled, wide, altChars }) {
     }, LONG_PRESS_MS);
   };
 
-  const handlePointerMove = (e) => {
-    if (!popupOpen || !popupRef.current) return;
-    const items = popupRef.current.querySelectorAll('[data-alt-idx]');
-    let idx = -1;
-    items.forEach((el) => {
-      const r = el.getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 20) {
-        idx = Number(el.getAttribute('data-alt-idx'));
-      }
-    });
-    if (idx >= 0) setHoverIndex(idx);
-  };
-
-  const handlePointerUp = (e) => {
+  const handlePointerUp = () => {
     clearTimer();
-    try { btnRef.current?.releasePointerCapture(e.pointerId); } catch {}
-
-    if (popupOpen) {
-      // Проверим, палец отпущен на элементе popup? Если да — выбираем его; иначе — отменяем.
-      let chosenIdx = -1;
-      if (popupRef.current) {
-        const items = popupRef.current.querySelectorAll('[data-alt-idx]');
-        items.forEach((el) => {
-          const r = el.getBoundingClientRect();
-          if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 20) {
-            chosenIdx = Number(el.getAttribute('data-alt-idx'));
-          }
-        });
-      }
-      closePopup();
-      if (chosenIdx >= 0) onClick(options[chosenIdx]);
-      return;
-    }
-
-    // Короткое нажатие без popup — обычный ввод буквы
+    if (popupOpen) return; // popup открыт — закрывать/выбирать будет клик по пункту
     if (!longPressFiredRef.current) {
-      onClick(char);
+      onClick(char); // короткий тап
     }
-    longPressFiredRef.current = false;
   };
 
   const handlePointerCancel = () => {
     clearTimer();
-    closePopup();
+    // popup сам закроется при тапе вне
+  };
+
+  const handleItemPointerDown = (e) => {
+    // не даём document-listener'у считать это внешним кликом
+    e.stopPropagation();
+  };
+
+  const handleItemClick = (opt) => (e) => {
+    e.stopPropagation();
+    setPopupOpen(false);
     longPressFiredRef.current = false;
+    onClick(opt);
   };
 
   return (
-    <button
-      ref={btnRef}
-      type="button"
+    <div
+      ref={rootRef}
       className={`wrd-key wrd-key--has-alt${wide ? ' wrd-key--wide' : ''} ${statusClass}${popupOpen ? ' wrd-key--active-popup' : ''}`}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
       onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       onContextMenu={(e) => e.preventDefault()}
-      disabled={disabled}
     >
       <span className="wrd-key__label">{char}</span>
       {popupOpen && options && (
-        <div className="wrd-key-popup" ref={popupRef}>
-          {options.map((opt, i) => (
-            <div
+        <div
+          className="wrd-key-popup"
+          onPointerDown={handleItemPointerDown}
+        >
+          {options.map((opt) => (
+            <button
+              type="button"
               key={opt}
-              data-alt-idx={i}
-              className={`wrd-key-popup__item${i === hoverIndex ? ' wrd-key-popup__item--active' : ''}`}
+              className="wrd-key-popup__item"
+              onClick={handleItemClick(opt)}
+              onPointerDown={handleItemPointerDown}
             >
               {opt}
-            </div>
+            </button>
           ))}
         </div>
       )}
-    </button>
+    </div>
   );
 }
 
