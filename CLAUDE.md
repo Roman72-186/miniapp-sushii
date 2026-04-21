@@ -37,11 +37,22 @@ cd miniapp-sushii && git pull && docker compose up -d --build && docker compose 
 
 Тесты есть (CRA default, `App.test.js`), но покрывают только базовый рендер: `npm test`. Запуск одного теста: `npm test -- --testNamePattern="имя теста"`. Линтер не настроен.
 
+**Автодеплой**: предпочтительный способ пуша+деплоя на VPS — slash-команда `/git-pushing` (под Windows через `plink`, project-aware через `projects.json`). Ручной `ssh root@...` — fallback.
+
+## Версионирование
+
+- Текущая версия: см. `src/version.js` → `APP_VERSION` (сейчас `v1.0.0`).
+- Отображается в футере на всех страницах (компонент `AppFooter`).
+- История изменений: `CHANGELOG.md` (формат Keep a Changelog).
+- При выпуске версии обновлять **все четыре**: `src/version.js`, `package.json`, `CHANGELOG.md`, `git tag vX.Y.Z`.
+
 ## Architecture
 
 Standalone веб-приложение для суши-ресторана. React SPA (CRA) + Express backend + SQLite (dev) / PostgreSQL Supabase (prod).
 
-**Frontend** (`src/`): React 19, plain CSS (`shop.css`, `App.css`, `shop-v2.css`). Routing via `window.location.pathname` in `App.js` (no react-router). Global state via `UserContext.js` (`useUser()` hook). `shop-v2.css` (~830 строк) — CSS-override для neumorphic дизайна всех страниц магазина; импортируется в `App.js` последним и перекрывает стили из `shop.css`. **Правило**: изменения дизайна магазина — только в `shop-v2.css`, не трогать JSX и `shop.css`.
+**Frontend** (`src/`): React 19, plain CSS (`shop.css`, `App.css`, `shop-v2.css`). Routing via `window.location.pathname` in `App.js` (no react-router). Global state via `UserContext.js` (`useUser()` hook).
+
+> ⚠️ **Правило `shop-v2.css`**: это override-слой (~830 строк) для neumorphic-дизайна всех страниц магазина. Импортируется в `App.js` **последним** и перекрывает `shop.css`. Любые изменения дизайна магазина — **только** в `shop-v2.css`. Не трогать JSX и `shop.css` для косметики.
 
 **Backend** (`server.js` + `api/`): Express on port 3001. API handlers as individual files in `api/`. Shared utilities in `api/_lib/`.
 
@@ -282,6 +293,19 @@ Domain: `https://sushi-house-39.ru`. VPS: `ssh root@64.188.63.249`.
 **Dockerfile** копирует в прод-образ: `build/`, `api/`, `config/`, `public/`, `scripts/`, `server.js`. Разовые миграции через `docker exec miniapp-sushii-app-1 node /app/scripts/<name>.js` — например `backfill-names.js` уже запущен разово после добавления полей `first_name/last_name/middle_name`.
 
 **Built-in cron**: `server.js` schedules `runSubscriptionCron()` daily at 10:00 UTC (13:00 MSK) via `setTimeout`. There is also an external HTTP endpoint `POST /api/cron-subscriptions` (requires `CRON_SECRET` header) for manual triggers.
+
+## Obsidian Knowledge Base
+
+Проект использует локальный Obsidian-vault (`obsidian-vault/`) как долговременную память между сессиями. Структура:
+
+- `00-home/index.md` — карта проекта, точка входа
+- `00-home/текущие приоритеты.md` — активные задачи и backlog
+- `sessions/YYYY-MM-DD — описание.md` — лог каждой завершённой задачи (успех или `[ОТКАТ]`)
+- `knowledge/debugging/` — пойманные баги и ловушки
+- `knowledge/decisions/` — архитектурные решения
+- `inbox/` — быстрые заметки, которые ещё не разложены
+
+Работа с vault'ом — **обязательная** часть рабочего цикла, не опционально.
 
 ### При старте сессии
 1. Прочитай `obsidian-vault/00-home/index.md` — общая карта проекта

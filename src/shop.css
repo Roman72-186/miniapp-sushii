@@ -1,6 +1,44 @@
 /* shop.css — Стили магазина /shop (тёмная тема, стиль otnafani.ru) */
 /* Изолированы от App.css — все стили с префиксом .shop- */
 
+/* === Дизайн-токены магазина === */
+:root {
+  --shop-accent: #3CC8A1;
+  --shop-accent-contrast: #0f1114;
+  --shop-error: #e53935;
+  --shop-error-soft: #e74c3c;
+  --shop-warning: #f5923a;
+  --shop-text: #fff;
+  --shop-text-muted: #999;
+  --shop-text-dim: #666;
+  --shop-bg: #1a1a1a;
+  --shop-surface: #2a2a2e;
+  --shop-surface-2: #1e1e22;
+  --shop-border: #3a3a3e;
+  --shop-focus-ring: 0 0 0 3px rgba(60, 200, 161, 0.45);
+  --shop-tap-min: 44px;
+}
+
+/* === Глобальный focus-visible для магазина === */
+.shop-page *:focus-visible,
+.shop-cart *:focus-visible,
+.shop-checkout *:focus-visible {
+  outline: none;
+  box-shadow: var(--shop-focus-ring);
+  border-radius: 6px;
+}
+
+/* === Респект prefers-reduced-motion === */
+@media (prefers-reduced-motion: reduce) {
+  .shop-page *,
+  .shop-cart *,
+  .shop-checkout * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 /* === Переопределение body для тёмной темы магазина === */
 body:has(.shop-page) {
   background: #1a1a1a !important;
@@ -131,8 +169,8 @@ body.shop-body {
 
 /* === Подарочная секция === */
 .shop-gift-section {
-  background: linear-gradient(135deg, #2b1500 0%, #1a2018 100%);
-  border-bottom: 2px solid #f5923a66;
+  background: #1f1a14;
+  border-bottom: 1px solid rgba(245, 146, 58, 0.35);
   padding: 10px 0 12px;
 }
 
@@ -154,8 +192,8 @@ body.shop-body {
 }
 
 @keyframes gift-glow {
-  0%, 100% { box-shadow: 0 0 8px 2px rgba(245, 146, 58, 0.45); }
-  50%       { box-shadow: 0 0 18px 5px rgba(245, 146, 58, 0.85); }
+  0%, 100% { box-shadow: 0 0 10px 2px rgba(245, 146, 58, 0.5); }
+  50%       { box-shadow: 0 0 14px 3px rgba(245, 146, 58, 0.7); }
 }
 
 .shop-gift-btn {
@@ -200,7 +238,8 @@ body.shop-body {
 }
 
 .shop-gift-btn--available {
-  animation: gift-glow 2s ease-in-out infinite;
+  animation: gift-glow 2.4s ease-in-out 3;
+  box-shadow: 0 0 10px 2px rgba(245, 146, 58, 0.5);
 }
 
 .shop-gift-btn--available:active {
@@ -719,15 +758,21 @@ body.shop-body {
 .shop-cart__close {
   background: none;
   border: none;
-  color: #999;
+  color: var(--shop-text-muted);
   font-size: 28px;
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  min-width: var(--shop-tap-min);
+  min-height: var(--shop-tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
 }
 
 .shop-cart__close:hover {
-  color: #fff;
+  color: var(--shop-text);
 }
 
 .shop-cart__items {
@@ -783,18 +828,24 @@ body.shop-body {
 .shop-cart__item-remove {
   background: none;
   border: none;
-  color: #666;
-  font-size: 20px;
+  color: var(--shop-text-dim);
+  font-size: 22px;
   cursor: pointer;
   padding: 0;
   line-height: 1;
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
+  min-width: var(--shop-tap-min);
+  min-height: var(--shop-tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
 .shop-cart__item-remove:hover {
-  color: #e53935;
+  color: var(--shop-error);
 }
 
 .shop-cart__item-controls {
@@ -806,13 +857,13 @@ body.shop-body {
 }
 
 .shop-cart__item-btn {
-  width: 28px;
-  height: 28px;
+  width: var(--shop-tap-min);
+  height: var(--shop-tap-min);
   border-radius: 50%;
   border: none;
-  background: #3CC8A1;
-  color: #fff;
-  font-size: 16px;
+  background: var(--shop-accent);
+  color: var(--shop-text);
+  font-size: 18px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -1018,14 +1069,20 @@ body.shop-body {
 .shop-checkout__back {
   background: none;
   border: none;
-  color: #999;
+  color: var(--shop-text-muted);
   font-size: 24px;
   cursor: pointer;
   padding: 0;
+  min-width: var(--shop-tap-min);
+  min-height: var(--shop-tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
 }
 
 .shop-checkout__back:hover {
-  color: #fff;
+  color: var(--shop-text);
 }
 
 .shop-checkout__title {
@@ -1300,7 +1357,92 @@ body.shop-body {
 
 .shop-form-field__error {
   font-size: 12px;
-  color: #e53935;
+  color: var(--shop-error);
+}
+
+.shop-form-field__required {
+  color: var(--shop-error);
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+.shop-form-field__confirm {
+  color: var(--shop-accent);
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+.shop-form-field--relative {
+  position: relative;
+}
+
+.shop-form-row--spaced {
+  margin-top: 12px;
+}
+
+.shop-radio-hint--block {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.shop-nearest-store--spaced {
+  margin-top: 12px;
+}
+
+/* Error-область формы — постоянный блок, контент рендерится только при наличии */
+.shop-form-error {
+  color: var(--shop-error);
+  text-align: center;
+  font-size: 14px;
+  min-height: 20px;
+  margin-bottom: 12px;
+}
+.shop-form-error:empty {
+  display: none;
+}
+
+/* Модалка оформления (SubCheckoutModal) */
+.shop-checkout--modal {
+  z-index: 202;
+}
+
+/* Preview подарка в SubCheckoutModal */
+.shop-gift-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.shop-gift-preview__img {
+  width: 60px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.shop-gift-preview__name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--shop-text);
+}
+.shop-gift-preview__tag {
+  color: var(--shop-accent);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.shop-checkout__summary-total--accent {
+  color: var(--shop-accent);
+}
+
+.shop-cart__promo-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--shop-accent);
+  margin-bottom: 6px;
+}
+.shop-cart__promo-msgs:empty {
+  display: none;
 }
 
 /* Адрес (при доставке) */

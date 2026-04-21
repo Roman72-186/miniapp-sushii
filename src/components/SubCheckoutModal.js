@@ -27,10 +27,10 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
     return (
       <>
         <div className="shop-cart-overlay" onClick={onClose} />
-        <div className="shop-checkout" style={{ zIndex: 202 }}>
+        <div className="shop-checkout shop-checkout--modal" role="dialog" aria-modal="true" aria-label="Оформление подарка">
           <div className="shop-checkout__inner">
             <div className="shop-checkout__header">
-              <button type="button" className="shop-checkout__back" onClick={onClose}>←</button>
+              <button type="button" className="shop-checkout__back" onClick={onClose} aria-label="Закрыть">←</button>
               <h2 className="shop-checkout__title">Оформление</h2>
             </div>
             <div className="shop-checkout__closed">
@@ -120,10 +120,10 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
   return (
     <>
       <div className="shop-cart-overlay" onClick={onClose} />
-      <div className="shop-checkout" style={{ zIndex: 202 }}>
+      <div className="shop-checkout shop-checkout--modal" role="dialog" aria-modal="true" aria-label="Оформление подарка">
         <div className="shop-checkout__inner">
           <div className="shop-checkout__header">
-            <button type="button" className="shop-checkout__back" onClick={onClose}>
+            <button type="button" className="shop-checkout__back" onClick={onClose} aria-label="Закрыть">
               ←
             </button>
             <h2 className="shop-checkout__title">Оформление</h2>
@@ -132,16 +132,16 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
           {/* Выбранный товар */}
           <div className="shop-form-section">
             <h3 className="shop-form-section__title">Ваш выбор</h3>
-            <div className="shop-form-section__block" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="shop-form-section__block shop-gift-preview">
               <img
+                className="shop-gift-preview__img"
                 src={product.image}
-                alt={product.name}
-                style={{ width: 60, height: 44, borderRadius: 8, objectFit: 'cover' }}
+                alt=""
                 onError={e => { e.target.src = '/logo.jpg'; }}
               />
               <div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{product.name}</div>
-                <div style={{ color: '#3CC8A1', fontSize: 13, marginTop: 2 }}>Подарок по подписке</div>
+                <div className="shop-gift-preview__name">{product.name}</div>
+                <div className="shop-gift-preview__tag">Подарок по подписке</div>
               </div>
             </div>
           </div>
@@ -175,35 +175,50 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
             <div className="shop-form-section__block">
               <div className="shop-form-row">
                 <div className="shop-form-field">
-                  <label className="shop-form-field__label">Имя</label>
+                  <label className="shop-form-field__label" htmlFor="sub-checkout-name">
+                    Имя <span className="shop-form-field__required" aria-hidden="true">*</span>
+                  </label>
                   <input
+                    id="sub-checkout-name"
                     className="shop-form-field__input"
                     type="text"
                     placeholder="Имя"
                     value={name}
                     onChange={e => setName(e.target.value)}
+                    required
+                    aria-required="true"
+                    autoComplete="given-name"
                   />
                 </div>
                 <div className="shop-form-field">
-                  <label className="shop-form-field__label">Телефон</label>
+                  <label className="shop-form-field__label" htmlFor="sub-checkout-phone">
+                    Телефон <span className="shop-form-field__required" aria-hidden="true">*</span>
+                  </label>
                   <input
+                    id="sub-checkout-phone"
                     className="shop-form-field__input"
                     type="tel"
+                    inputMode="tel"
                     placeholder="+7XXXXXXXXXX"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
                     onBlur={() => { if (phone.trim()) setPhone(normalizePhone(phone.trim())); }}
+                    required
+                    aria-required="true"
+                    autoComplete="tel"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {error && (
-            <div style={{ color: '#e53935', textAlign: 'center', marginBottom: 12, fontSize: 14 }}>
-              {error}
-            </div>
-          )}
+          <div
+            className="shop-form-error"
+            role="alert"
+            aria-live="assertive"
+          >
+            {error}
+          </div>
         </div>
 
         {/* Фиксированный футер */}
@@ -213,8 +228,10 @@ function SubCheckoutModal({ product, telegramId, contactId, onClose, onSuccess }
               <div>Самовывоз: <span className="shop-checkout__summary-total">{selectedPickup?.address}</span></div>
             </div>
             <button
+              type="button"
               className="shop-checkout__submit"
               disabled={submitting}
+              aria-busy={submitting}
               onClick={handleSubmit}
             >
               {submitting ? 'Отправка...' : 'ПОДТВЕРДИТЬ'}

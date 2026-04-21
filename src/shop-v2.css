@@ -760,8 +760,8 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #eaeaf8;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   font-size: 20px;
   font-weight: 700;
@@ -860,14 +860,20 @@
   background: rgba(255,255,255,0.08);
   border: none;
   color: #aaa;
-  font-size: 18px;
-  width: 32px;
-  height: 32px;
+  font-size: 20px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+.shop-cart__promo-clear:hover,
+.shop-cart__promo-clear:focus-visible {
+  background: rgba(255,255,255,0.14);
+  color: #eaeaf8;
 }
 .shop-cart__promo-status {
   font-size: 18px;

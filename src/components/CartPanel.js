@@ -1,6 +1,6 @@
 // src/components/CartPanel.js — Выдвижная панель корзины (тёмная тема)
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import UpsellBlock from './UpsellBlock';
 
 function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem, promoCode, onPromoCodeChange, promoMessages, isPromoValid }) {
@@ -9,13 +9,25 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
     return () => { document.body.style.overflow = ''; };
   }, []);
 
+  const cartSkus = useMemo(
+    () => items.map(i => i.product.sku || i.product.id),
+    [items]
+  );
+
   return (
     <>
       <div className="shop-cart-overlay" onClick={onClose} />
-      <div className="shop-cart">
+      <div className="shop-cart" role="dialog" aria-modal="true" aria-label="Корзина">
         <div className="shop-cart__header">
           <h2 className="shop-cart__title">Вы добавили</h2>
-          <button className="shop-cart__close" onClick={onClose}>&times;</button>
+          <button
+            type="button"
+            className="shop-cart__close"
+            onClick={onClose}
+            aria-label="Закрыть корзину"
+          >
+            &times;
+          </button>
         </div>
 
         {items.length === 0 ? (
@@ -46,9 +58,10 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     )}
                   </div>
                   <button
+                    type="button"
                     className="shop-cart__item-remove"
                     onClick={() => onRemove(item.product.id)}
-                    aria-label="Удалить из корзины"
+                    aria-label={`Удалить из корзины: ${item.product.cleanName || item.product.name}`}
                   >
                     &times;
                   </button>
@@ -58,15 +71,19 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     <>
                       <div className="shop-cart__item-controls">
                         <button
+                          type="button"
                           className="shop-cart__item-btn"
                           onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
+                          aria-label="Уменьшить количество"
                         >
                           −
                         </button>
-                        <span className="shop-cart__item-qty">{item.quantity}</span>
+                        <span className="shop-cart__item-qty" aria-live="polite">{item.quantity}</span>
                         <button
+                          type="button"
                           className="shop-cart__item-btn"
                           onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
+                          aria-label="Увеличить количество"
                         >
                           +
                         </button>
@@ -76,7 +93,7 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                   )}
                 </div>
               ))}
-              <button className="shop-cart__clear" onClick={onClear}>
+              <button type="button" className="shop-cart__clear" onClick={onClear}>
                 Очистить корзину
               </button>
             </div>
@@ -84,40 +101,53 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
             {items.length > 0 && onAddItem && (
               <UpsellBlock
                 onAddItem={onAddItem}
-                cartSkus={items.map(i => i.product.sku || i.product.id)}
+                cartSkus={cartSkus}
               />
             )}
 
             {onPromoCodeChange && (
               <div className="shop-cart__promo">
+                <label className="shop-cart__promo-label" htmlFor="cart-promo">Промокод</label>
                 <div className="shop-cart__promo-row">
                   <input
+                    id="cart-promo"
                     type="text"
                     className="shop-cart__promo-input"
                     placeholder="Промокод"
                     value={promoCode || ''}
                     onChange={e => onPromoCodeChange(e.target.value.trim())}
                     maxLength={10}
+                    autoComplete="off"
+                    aria-describedby={promoCode ? 'cart-promo-status' : undefined}
+                    aria-invalid={promoCode ? !isPromoValid : undefined}
                   />
                   {promoCode && (
                     <button
+                      type="button"
                       className="shop-cart__promo-clear"
                       onClick={() => onPromoCodeChange('')}
+                      aria-label="Очистить промокод"
                     >
                       &times;
                     </button>
                   )}
                   {promoCode && (
-                    <span className={`shop-cart__promo-status ${isPromoValid ? 'shop-cart__promo-status--ok' : 'shop-cart__promo-status--err'}`}>
+                    <span
+                      id="cart-promo-status"
+                      className={`shop-cart__promo-status ${isPromoValid ? 'shop-cart__promo-status--ok' : 'shop-cart__promo-status--err'}`}
+                      aria-label={isPromoValid ? 'Промокод применён' : 'Промокод не действует'}
+                    >
                       {isPromoValid ? '✓' : '✗'}
                     </span>
                   )}
                 </div>
-                {promoMessages && promoMessages.map((msg, i) => (
-                  <p key={i} className={`shop-cart__promo-msg shop-cart__promo-msg--${msg.type}`}>
-                    {msg.text}
-                  </p>
-                ))}
+                <div className="shop-cart__promo-msgs" aria-live="polite">
+                  {promoMessages && promoMessages.map((msg, i) => (
+                    <p key={i} className={`shop-cart__promo-msg shop-cart__promo-msg--${msg.type}`}>
+                      {msg.text}
+                    </p>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -126,7 +156,7 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                 <span className="shop-cart__total-label">Сумма заказа:</span>
                 <span className="shop-cart__total-value">{total}₽</span>
               </div>
-              <button className="shop-cart__checkout-btn" onClick={onCheckout}>
+              <button type="button" className="shop-cart__checkout-btn" onClick={onCheckout}>
                 Оформить заказ
               </button>
             </div>
