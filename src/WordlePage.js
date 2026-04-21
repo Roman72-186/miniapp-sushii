@@ -7,8 +7,9 @@ import WordleGrid from './components/WordleGrid';
 import WordleKey from './components/WordleKey';
 import './wordle.css';
 
+// Раскладка iOS ЙЦУКЕН: 12 / 11 / 9 + ⌫ / Enter (у нас без shift и пробела)
 const KEYBOARD_ROWS = [
-  ['й','ц','у','к','е','н','г','ш','щ','з','х'],
+  ['й','ц','у','к','е','н','г','ш','щ','з','х','ъ'],
   ['ф','ы','в','а','п','р','о','л','д','ж','э'],
   ['я','ч','с','м','и','т','ь','б','ю'],
   ['Enter','⌫'],
