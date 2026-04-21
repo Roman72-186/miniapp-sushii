@@ -173,7 +173,8 @@ function WordlePage() {
                   key={key}
                   char={key}
                   wide={key === 'Enter' || key === '⌫'}
-                  onClick={() => handleKeyPress(key)}
+                  altChars={key === 'е' ? ['ё'] : undefined}
+                  onClick={handleKeyPress}
                   status={getKeyStatus(key.toLowerCase())}
                   disabled={gameOver || loading}
                 />

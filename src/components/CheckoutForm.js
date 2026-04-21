@@ -300,12 +300,12 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           <h3 className="shop-form-section__title">Способ получения заказа</h3>
           <div className="shop-form-section__block">
             {hasOnlyGiftItems && (
-              <div className="shop-radio-hint" style={{ marginBottom: 12 }}>
+              <div className="shop-radio-hint shop-radio-hint--block">
                 Подарки по подписке доступны только на самовывоз.
               </div>
             )}
             {hasGiftItems && hasNonGiftItems && (
-              <div className="shop-radio-hint" style={{ marginBottom: 12 }}>
+              <div className="shop-radio-hint shop-radio-hint--block">
                 Подарок будет включён в ваш заказ на доставку.
               </div>
             )}
@@ -441,24 +441,37 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           <div className="shop-form-section__block">
             <div className="shop-form-row">
               <div className="shop-form-field">
-                <label className="shop-form-field__label">Имя</label>
+                <label className="shop-form-field__label" htmlFor="checkout-name">
+                  Имя <span className="shop-form-field__required" aria-hidden="true">*</span>
+                </label>
                 <input
+                  id="checkout-name"
                   className="shop-form-field__input"
                   type="text"
                   placeholder="Имя"
                   value={name}
                   onChange={e => setName(e.target.value)}
+                  required
+                  aria-required="true"
+                  autoComplete="given-name"
                 />
               </div>
               <div className="shop-form-field">
-                <label className="shop-form-field__label">Телефон</label>
+                <label className="shop-form-field__label" htmlFor="checkout-phone">
+                  Телефон <span className="shop-form-field__required" aria-hidden="true">*</span>
+                </label>
                 <input
+                  id="checkout-phone"
                   className="shop-form-field__input"
                   type="tel"
+                  inputMode="tel"
                   placeholder="+7 (___) ___-__-__"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   onBlur={() => { if (phone.trim()) setPhone(normalizePhone(phone.trim())); }}
+                  required
+                  aria-required="true"
+                  autoComplete="tel"
                 />
               </div>
             </div>
@@ -466,13 +479,16 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
             {/* Адрес (только при доставке) */}
             {deliveryType === 'delivery' && (
               <div className="shop-address-fields">
-                <div className="shop-form-row" style={{ marginTop: 12 }}>
-                  <div className="shop-form-field" style={{ position: 'relative' }}>
-                    <label className="shop-form-field__label">
-                      Улица
-                      {streetConfirmed && <span style={{ color: '#3CC8A1', marginLeft: 6 }}>✓</span>}
+                <div className="shop-form-row shop-form-row--spaced">
+                  <div className="shop-form-field shop-form-field--relative">
+                    <label className="shop-form-field__label" htmlFor="checkout-street">
+                      Улица <span className="shop-form-field__required" aria-hidden="true">*</span>
+                      {streetConfirmed && (
+                        <span className="shop-form-field__confirm" aria-label="улица подтверждена">✓</span>
+                      )}
                     </label>
                     <input
+                      id="checkout-street"
                       className="shop-form-field__input"
                       type="text"
                       placeholder="Начните вводить название улицы"
@@ -486,9 +502,15 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
                       onFocus={() => setSuggestOpen(true)}
                       onBlur={() => setTimeout(() => setSuggestOpen(false), 200)}
                       autoComplete="off"
+                      required
+                      aria-required="true"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded={suggestOpen && !streetConfirmed}
+                      aria-controls="checkout-street-suggest"
                     />
                     {suggestOpen && !streetConfirmed && street.trim().length >= 2 && (
-                      <div className="shop-suggest-dropdown">
+                      <div id="checkout-street-suggest" className="shop-suggest-dropdown" role="listbox">
                         {suggestLoading && (
                           <div className="shop-suggest-dropdown__loading">Поиск...</div>
                         )}
@@ -499,6 +521,8 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
                           <div
                             key={i}
                             className="shop-suggest-dropdown__item"
+                            role="option"
+                            aria-selected="false"
                             onMouseDown={(e) => { e.preventDefault(); handleSuggestPick(s); }}
                           >
                             {s.formatted}
@@ -508,22 +532,27 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
                     )}
                   </div>
                   <div className="shop-form-field">
-                    <label className="shop-form-field__label">
-                      Дом <span style={{ color: '#e53935' }}>*</span>
+                    <label className="shop-form-field__label" htmlFor="checkout-home">
+                      Дом <span className="shop-form-field__required" aria-hidden="true">*</span>
                     </label>
                     <input
+                      id="checkout-home"
                       className="shop-form-field__input"
                       type="text"
                       placeholder="Дом"
                       value={home}
                       onChange={e => setHome(e.target.value)}
+                      required
+                      aria-required="true"
+                      autoComplete="address-line2"
                     />
                   </div>
                 </div>
-                <div className="shop-form-row shop-form-row--triple" style={{ marginTop: 12 }}>
+                <div className="shop-form-row shop-form-row--triple shop-form-row--spaced">
                   <div className="shop-form-field">
-                    <label className="shop-form-field__label">Квартира</label>
+                    <label className="shop-form-field__label" htmlFor="checkout-apart">Квартира</label>
                     <input
+                      id="checkout-apart"
                       className="shop-form-field__input"
                       type="text"
                       placeholder="Кв."
@@ -532,8 +561,9 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
                     />
                   </div>
                   <div className="shop-form-field">
-                    <label className="shop-form-field__label">Подъезд</label>
+                    <label className="shop-form-field__label" htmlFor="checkout-pod">Подъезд</label>
                     <input
+                      id="checkout-pod"
                       className="shop-form-field__input"
                       type="text"
                       placeholder="Подъезд"
@@ -542,8 +572,9 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
                     />
                   </div>
                   <div className="shop-form-field">
-                    <label className="shop-form-field__label">Этаж</label>
+                    <label className="shop-form-field__label" htmlFor="checkout-et">Этаж</label>
                     <input
+                      id="checkout-et"
                       className="shop-form-field__input"
                       type="text"
                       placeholder="Этаж"
@@ -557,7 +588,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
 
             {/* Ближайший пункт (при доставке) */}
             {deliveryType === 'delivery' && (nearestStore || nearestLoading) && (
-              <div className="shop-nearest-store" style={{ marginTop: 12 }}>
+              <div className="shop-nearest-store shop-nearest-store--spaced" aria-live="polite">
                 {nearestLoading ? (
                   <div className="shop-nearest-store__loading">Определяем ближайший пункт...</div>
                 ) : nearestStore && (
@@ -570,10 +601,11 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
               </div>
             )}
 
-            <div className="shop-form-row shop-form-row--single" style={{ marginTop: 12 }}>
+            <div className="shop-form-row shop-form-row--single shop-form-row--spaced">
               <div className="shop-form-field">
-                <label className="shop-form-field__label">Комментарий</label>
+                <label className="shop-form-field__label" htmlFor="checkout-comment">Комментарий</label>
                 <textarea
+                  id="checkout-comment"
                   className="shop-form-field__textarea"
                   placeholder="Ваш комментарий к заказу"
                   value={comment}
@@ -584,11 +616,13 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           </div>
         </div>
 
-        {error && (
-          <div style={{ color: '#e53935', textAlign: 'center', marginBottom: 12, fontSize: 14 }}>
-            {error}
-          </div>
-        )}
+        <div
+          className="shop-form-error"
+          role="alert"
+          aria-live="assertive"
+        >
+          {error}
+        </div>
       </form>
 
       {/* SHC баллы */}
@@ -640,7 +674,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           <div className="shop-checkout__summary">
             <div>Сумма заказа: <span className="shop-checkout__summary-total">{total}₽</span></div>
             {shcApplied > 0 && (
-              <div>SHC скидка: <span className="shop-checkout__summary-total" style={{ color: '#3CC8A1' }}>−{shcApplied}₽</span></div>
+              <div>SHC скидка: <span className="shop-checkout__summary-total shop-checkout__summary-total--accent">−{shcApplied}₽</span></div>
             )}
             {deliveryType === 'delivery' ? (
               <>
@@ -651,8 +685,10 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
             )}
           </div>
           <button
+            type="submit"
             className="shop-checkout__submit"
             disabled={submitting}
+            aria-busy={submitting}
             onClick={handleSubmit}
           >
             {submitting ? 'Отправка...' : `ЗАКАЗАТЬ: ${effectiveTotal} ₽`}
