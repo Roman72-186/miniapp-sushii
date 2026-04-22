@@ -7,9 +7,9 @@ import WordleGrid from './components/WordleGrid';
 import WordleKey from './components/WordleKey';
 import './wordle.css';
 
-// Раскладка iOS ЙЦУКЕН: 12 / 11 / 9 + ⌫ / Enter (у нас без shift и пробела)
+// Раскладка ЙЦУКЕН: 11 / 11 / 9 + ⌫ / Enter. «ъ» вводится через long-press на «ь» (e → ё тем же способом)
 const KEYBOARD_ROWS = [
-  ['й','ц','у','к','е','н','г','ш','щ','з','х','ъ'],
+  ['й','ц','у','к','е','н','г','ш','щ','з','х'],
   ['ф','ы','в','а','п','р','о','л','д','ж','э'],
   ['я','ч','с','м','и','т','ь','б','ю'],
   ['Enter','⌫'],
@@ -174,7 +174,7 @@ function WordlePage() {
                   key={key}
                   char={key}
                   wide={key === 'Enter' || key === '⌫'}
-                  altChars={key === 'е' ? ['ё'] : undefined}
+                  altChars={key === 'е' ? ['ё'] : key === 'ь' ? ['ъ'] : undefined}
                   onClick={handleKeyPress}
                   status={getKeyStatus(key.toLowerCase())}
                   disabled={gameOver || loading}
