@@ -61,10 +61,11 @@ async function ensureMigrations() {
       )
     `);
 
-    // Sync словаря: только curated-список. Лишние слова удаляются.
+    // Sync словаря ЗАГАДОК: только curated-список из api/game-words.json.
+    // Валидация введённых слов живёт отдельно через loadFiveLetterWords (6074 слов).
     try {
-      const { loadFiveLetterWords } = require('./game-dictionary');
-      const words = loadFiveLetterWords();
+      const words = require('../game-words.json').map(w => String(w).toLowerCase());
+      if (!Array.isArray(words) || words.length === 0) throw new Error('empty curated list');
       const ph = words.map((_, i) => `$${i + 1}`).join(',');
       const client2 = await pool.connect();
       try {
@@ -74,11 +75,21 @@ async function ensureMigrations() {
         const vals = words.map((_, i) => `($${i + 1})`).join(',');
         await client2.query(`INSERT INTO game_word_dictionary (word) VALUES ${vals} ON CONFLICT DO NOTHING`, words);
         await client2.query('COMMIT');
-        console.log(`[db-pg] syncGameDictionary: ${words.length} слов`);
+        console.log(`[db-pg] syncGameDictionary (curated): ${words.length} слов`);
       } catch (e) { await client2.query('ROLLBACK'); throw e; }
       finally { client2.release(); }
+      // Сброс активных игр, где текущее слово не в curated-словаре
+      try {
+        const r = await pool.query(`
+          UPDATE users
+          SET game_current_word = NULL, game_word_status = NULL, game_session_id = NULL
+          WHERE game_current_word IS NOT NULL
+            AND game_current_word NOT IN (SELECT word FROM game_word_dictionary)
+        `);
+        if (r.rowCount > 0) console.log(`[db-pg] сброшено активных игр: ${r.rowCount}`);
+      } catch (e) { /* колонки могут ещё не существовать */ }
     } catch (e) {
-      console.warn('[db-pg] game-dictionary sync failed:', e.message);
+      console.warn('[db-pg] game-words.json sync failed:', e.message);
     }
   } catch (err) {
     console.error('[db-pg] migration error:', err.message);

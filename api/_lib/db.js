@@ -127,19 +127,31 @@ function getDb() {
     );
   `);
 
-  // Sync словаря: только curated-список. Лишние слова удаляются.
+  // Sync словаря ЗАГАДОК: только curated-список из api/game-words.json.
+  // Валидация введённых слов (VALID_WORDS в api/game-guess.js) живёт отдельно и использует
+  // полный словарь russian-words + wordlist-russian через loadFiveLetterWords().
   try {
-    const { loadFiveLetterWords } = require('./game-dictionary');
-    const words = loadFiveLetterWords();
+    const words = require('../game-words.json').map(w => String(w).toLowerCase());
+    if (!Array.isArray(words) || words.length === 0) throw new Error('empty curated list');
     const ph = words.map(() => '?').join(',');
     _db.prepare(`DELETE FROM game_daily_word WHERE word_id IN (SELECT id FROM game_word_dictionary WHERE word NOT IN (${ph}))`).run(...words);
     _db.prepare(`DELETE FROM game_word_dictionary WHERE word NOT IN (${ph})`).run(...words);
     const insert = _db.prepare('INSERT OR IGNORE INTO game_word_dictionary (word) VALUES (?)');
     const seedAll = _db.transaction(list => { for (const w of list) insert.run(w); });
     seedAll(words);
-    console.log(`[db] syncGameDictionary: ${words.length} слов`);
+    console.log(`[db] syncGameDictionary (curated): ${words.length} слов`);
+    // Сбрасываем активные игры, где загаданное слово больше не в curated-словаре
+    try {
+      const reset = _db.prepare(`
+        UPDATE users
+        SET game_current_word = NULL, game_word_status = NULL, game_session_id = NULL
+        WHERE game_current_word IS NOT NULL
+          AND game_current_word NOT IN (SELECT word FROM game_word_dictionary)
+      `).run();
+      if (reset.changes > 0) console.log(`[db] сброшено активных игр: ${reset.changes}`);
+    } catch (e) { /* колонки могут ещё не существовать на старте */ }
   } catch (e) {
-    console.warn('[db] game-dictionary sync failed:', e.message);
+    console.warn('[db] game-words.json sync failed:', e.message);
   }
 
   // Миграции: добавить новые колонки если нет
