@@ -21,7 +21,6 @@ function AdminPage() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [tab, setTab] = useState('products');
-  const [moreOpen, setMoreOpen] = useState(false);
 
   // Products state
   const [catalogs, setCatalogs] = useState([]);
@@ -44,7 +43,6 @@ function AdminPage() {
   const [subsFilter, setSubsFilter] = useState('all');
   const [subsSearch, setSubsSearch] = useState('');
   const [grantingGift, setGrantingGift] = useState(null); // telegram_id пока идёт запрос
-  const [grantTgId, setGrantTgId] = useState(''); // ввод telegram_id для выдачи подарка
   const [resettingSub, setResettingSub] = useState(null); // telegram_id пока идёт сброс подписки
   const [settingTariff, setSettingTariff] = useState(null); // telegram_id пока идёт смена тарифа
   const [extendingDays, setExtendingDays] = useState({}); // {telegram_id: '5'}
@@ -64,6 +62,8 @@ function AdminPage() {
 
   // UI state
   const [expandedActions, setExpandedActions] = useState(new Set());
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [toasts, setToasts] = useState([]);
 
   // Banners state
@@ -266,6 +266,13 @@ function AdminPage() {
     if (loggedIn && tab === 'orders') loadGiftOrders();
     if (loggedIn && tab === 'referrals') loadReferralData();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (selectedUser) {
+      const updated = subscribers.find(s => s.telegram_id === selectedUser.telegram_id);
+      if (updated) setSelectedUser(updated);
+    }
+  }, [subscribers]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Сохранение товара
   const saveItem = async (catalogId, index, updates) => {
@@ -713,71 +720,34 @@ function AdminPage() {
     return true;
   });
 
+  const TAB_LABELS = {
+    products:      '📦 Товары',
+    upsell:        '🛒 Допродажи',
+    subscribers:   '👥 Люди',
+    orders:        '📋 Заказы',
+    banners:       '🖼 Баннеры',
+    pricing:       '💰 Цены',
+    stats:         '📊 Статистика',
+    referrals:     '🔗 Рефералы',
+    add:           '👤 Добавить пользователя',
+    'add-product': '➕ Добавить товар',
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>Админка</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => { window.location.href = telegramId ? `/discount-shop?telegram_id=${telegramId}` : '/discount-shop'; }} style={styles.btnSmall}>Назад</button>
+        <button style={styles.burgerBtn} onClick={() => setMenuOpen(true)} aria-label="Открыть меню">
+          <div style={styles.burgerLine} />
+          <div style={styles.burgerLine} />
+          <div style={styles.burgerLine} />
+        </button>
+        <span style={styles.currentTabLabel}>{TAB_LABELS[tab] || 'Админка'}</span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => { window.location.href = telegramId ? `/discount-shop?telegram_id=${telegramId}` : '/discount-shop'; }} style={styles.btnSmall}>←</button>
           <button onClick={logout} style={styles.btnSmall}>Выйти</button>
         </div>
       </div>
 
-      {/* Навигация — плоские табы + выпадающее «Ещё» */}
-      <div style={{ position: 'relative', marginBottom: 14 }}>
-        <div style={styles.navRow}>
-          {[
-            { id: 'products',    label: '⬡ Товары' },
-            { id: 'upsell',      label: '◈ Допродажи' },
-            { id: 'subscribers', label: '◈ Люди' },
-            { id: 'orders',      label: '◷ Заказы' },
-          ].map(({ id, label }) => (
-            <button
-              key={id}
-              style={tab === id ? styles.navTabActive : styles.navTab}
-              onClick={() => { setTab(id); setMoreOpen(false); }}
-            >
-              {label}
-            </button>
-          ))}
-          <button
-            style={moreOpen || ['banners','pricing','add-product','add','stats','referrals'].includes(tab) ? styles.navTabActive : styles.navTab}
-            onClick={() => setMoreOpen(v => !v)}
-          >
-            ··· Ещё
-          </button>
-        </div>
-
-        {/* Backdrop */}
-        {moreOpen && (
-          <div
-            style={{ position: 'fixed', inset: 0, zIndex: 98 }}
-            onClick={() => setMoreOpen(false)}
-          />
-        )}
-
-        {/* Dropdown */}
-        {moreOpen && (
-          <div style={styles.moreMenu}>
-            {[
-              { id: 'banners',     label: '▣ Баннеры' },
-              { id: 'pricing',     label: '◎ Цены' },
-              { id: 'add-product', label: '⊕ Добавить товар' },
-              { id: 'add',         label: '⊕ Добавить пользователя' },
-              { id: 'stats',       label: '◉ Статистика' },
-              { id: 'referrals',   label: '⇄ Рефералы' },
-            ].map(({ id, label }) => (
-              <button
-                key={id}
-                style={tab === id ? styles.moreItemActive : styles.moreItem}
-                onClick={() => { setTab(id); setMoreOpen(false); }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* ─── Products Tab ─── */}
       {tab === 'products' && (
@@ -893,20 +863,120 @@ function AdminPage() {
       {/* ─── Subscribers Tab ─── */}
       {tab === 'subscribers' && (
         <div>
-          <div style={styles.grantRow}>
+          {stats && (
+            <div style={styles.statsRow}>
+              <span style={styles.statBadge}>Всего: {stats.total}</span>
+              {Object.entries(stats.by_tariff).map(([t, count]) => (
+                <span key={t} style={styles.statBadge}>{t}₽: {count}</span>
+              ))}
+              <span style={styles.statBadge}>Активных: {stats.active}</span>
+              <span style={styles.statBadge}>Амбассадоров: {stats.ambassadors}</span>
+            </div>
+          )}
+
+          <div style={styles.filterRow}>
+            <select value={subsFilter} onChange={e => setSubsFilter(e.target.value)} style={styles.select}>
+              <option value="all">Все тарифы</option>
+              <option value="290">290₽</option>
+              <option value="490">490₽</option>
+              <option value="1190">1190₽</option>
+              <option value="9990">9990₽ (Амбасс.)</option>
+            </select>
             <input
               type="text"
-              placeholder="telegram_id"
-              value={grantTgId}
-              onChange={e => setGrantTgId(e.target.value)}
-              style={styles.grantInput}
+              placeholder="Поиск имени, телефона, ID..."
+              value={subsSearch}
+              onChange={e => setSubsSearch(e.target.value)}
+              style={styles.searchInput}
             />
-            <button style={styles.grantBtn} onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'roll'); }} disabled={!!grantingGift || !grantTgId.trim()}>+R</button>
-            <button style={styles.claimBtn} onClick={() => { if (grantTgId.trim()) claimGift(grantTgId.trim(), 'roll'); }} disabled={!!grantingGift || !grantTgId.trim()}>-R</button>
-            <button style={styles.grantBtn} onClick={() => { if (grantTgId.trim()) grantGift(grantTgId.trim(), 'set'); }} disabled={!!grantingGift || !grantTgId.trim()}>+S</button>
-            <button style={styles.claimBtn} onClick={() => { if (grantTgId.trim()) claimGift(grantTgId.trim(), 'set'); }} disabled={!!grantingGift || !grantTgId.trim()}>-S</button>
           </div>
 
+          {subsLoading && <p style={styles.muted}>Загрузка...</p>}
+          <div style={styles.subsCount}>Показано: {filteredSubs.length}</div>
+
+          <div style={styles.userCardGrid}>
+            {filteredSubs.map(s => (
+              <button
+                key={s.telegram_id}
+                style={styles.userCard}
+                onClick={() => setSelectedUser(s)}
+              >
+                <div style={styles.userCardAvatar}>
+                  {(s.first_name || s.name || '?')[0].toUpperCase()}
+                </div>
+                <div style={styles.userCardInfo}>
+                  <div style={styles.userCardName}>{s.first_name || s.name || 'Без имени'}</div>
+                  <div style={styles.userCardMeta}>
+                    <span style={styles.tariffBadge(s.tariff)}>{s.tariff}₽</span>
+                    <span style={{ fontSize: 10, color: s.subscription_status === 'активно' ? AP.accent : AP.muted }}>
+                      {s.subscription_status === 'активно' ? '● актив' : '○ неакт'}
+                    </span>
+                  </div>
+                  {s.phone && <div style={styles.userCardPhone}>{s.phone}</div>}
+                  {s.subscription_end && <div style={styles.userCardDate}>до {s.subscription_end}</div>}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <button onClick={loadSubscribers} style={{ ...styles.btnSmall, marginTop: 16 }} disabled={subsLoading}>
+            Обновить
+          </button>
+        </div>
+      )}
+
+      {/* ─── Banners Tab ─── */}
+      {tab === 'banners' && (
+        <div>
+          {bannersLoading && <p style={styles.muted}>Загрузка...</p>}
+          <div style={styles.bannerGrid}>
+            {[1,2,3,4,5,6,7,8].map(slot => {
+              const banner = banners.find(b => b.id === slot);
+              const hasImage = banner && banner.image;
+              return (
+                <div key={slot} style={styles.bannerSlot}>
+                  <div style={styles.bannerHeader}>
+                    <span style={styles.slotLabel}>#{slot}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => uploadBanner(slot, e.target.files[0])}
+                      style={{ display: 'none' }}
+                      id={`banner-${slot}`}
+                      disabled={!!bannerUploading}
+                    />
+                    <button
+                      onClick={() => document.getElementById(`banner-${slot}`).click()}
+                      style={styles.uploadBtn}
+                      disabled={!!bannerUploading}
+                    >
+                      {bannerUploading === slot ? '...' : hasImage ? 'Изменить' : 'Загрузить'}
+                    </button>
+                  </div>
+                  {hasImage ? (
+                    <img src={banner.image} alt={`Баннер ${slot}`} style={styles.bannerPreview} />
+                  ) : (
+                    <div style={styles.bannerPlaceholder}>Нет изображения</div>
+                  )}
+                  {hasImage && (
+                    <button
+                      onClick={() => deleteBanner(slot)}
+                      style={styles.deleteBtn}
+                      disabled={!!bannerUploading}
+                    >
+                      Удалить
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Banners Tab ─── */}
+      {tab === 'banners' && (
+        <div>
           {stats && (
             <div style={styles.statsRow}>
               <span style={styles.statBadge}>Всего: {stats.total}</span>
@@ -1919,6 +1989,251 @@ function AdminPage() {
         </div>
       )}
 
+{/* ─── Бургер меню ─── */}
+{menuOpen && (
+  <>
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 198, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+      onClick={() => setMenuOpen(false)}
+    />
+    <div style={styles.menuSheet}>
+      <div style={styles.menuHandle} />
+      <div style={{ fontSize: 11, fontWeight: 700, color: AP.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8, paddingLeft: 4 }}>
+        Разделы
+      </div>
+      {[
+        { id: 'subscribers',  emoji: '👥', label: 'Люди',                  sub: 'Подписчики и их действия' },
+        { id: 'products',     emoji: '📦', label: 'Товары',                sub: 'Включение, цены' },
+        { id: 'upsell',       emoji: '🛒', label: 'Допродажи',             sub: 'Товары в корзине' },
+        { id: 'orders',       emoji: '📋', label: 'Заказы',                sub: 'Подарочные заказы' },
+        { id: 'banners',      emoji: '🖼',  label: 'Баннеры',               sub: 'Слайдер на главной' },
+        { id: 'pricing',      emoji: '💰', label: 'Цены',                  sub: 'Тарифы и скидки' },
+        { id: 'stats',        emoji: '📊', label: 'Статистика',            sub: 'Выручка и активность' },
+        { id: 'referrals',    emoji: '🔗', label: 'Рефералы',              sub: 'Топ и история SHC' },
+        { id: 'add',          emoji: '👤', label: 'Добавить пользователя', sub: 'Ручное добавление' },
+        { id: 'add-product',  emoji: '➕', label: 'Добавить товар',        sub: 'Новая позиция в каталоге' },
+      ].map(({ id, emoji, label, sub }) => (
+        <button
+          key={id}
+          style={tab === id ? styles.menuItemActive : styles.menuItem}
+          onClick={() => { setTab(id); setMenuOpen(false); }}
+        >
+          <span style={{ fontSize: 22, width: 28, textAlign: 'center', flexShrink: 0 }}>{emoji}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: tab === id ? AP.accent : AP.text }}>{label}</span>
+            <span style={{ fontSize: 12, color: AP.muted, marginTop: 1 }}>{sub}</span>
+          </div>
+          {tab === id && <span style={{ fontSize: 14, color: AP.accent, fontWeight: 700 }}>✓</span>}
+        </button>
+      ))}
+    </div>
+  </>
+)}
+
+{/* ─── Шторка пользователя ─── */}
+{selectedUser && (
+  <>
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 298, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+      onClick={() => setSelectedUser(null)}
+    />
+    <div style={styles.userSheet}>
+      <div style={styles.menuHandle} />
+
+      {/* Профиль */}
+      <div style={styles.sheetHeader}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={styles.sheetName}>{selectedUser.name || 'Без имени'}</div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
+            <span style={styles.tariffBadge(selectedUser.tariff)}>{selectedUser.tariff}₽</span>
+            {selectedUser.is_ambassador && <span style={styles.ambBadge}>AMB</span>}
+            <span style={{ fontSize: 11, fontWeight: 700, color: selectedUser.subscription_status === 'активно' ? AP.accent : AP.danger }}>
+              {selectedUser.subscription_status || '—'}
+            </span>
+            {selectedUser.balance_shc > 0 && (
+              <span style={{ fontSize: 11, color: AP.yellow }}>💎 {Math.round(selectedUser.balance_shc)} SHC</span>
+            )}
+          </div>
+          <div style={{ fontSize: 11, color: AP.muted, marginTop: 4 }}>
+            {selectedUser.phone && <span>{selectedUser.phone} · </span>}
+            <span>ID {selectedUser.telegram_id}</span>
+          </div>
+          {selectedUser.subscription_start && (
+            <div style={{ fontSize: 11, color: AP.muted, marginTop: 2 }}>
+              {selectedUser.subscription_start} → {selectedUser.subscription_end}
+            </div>
+          )}
+        </div>
+        <button
+          style={styles.sheetClose}
+          onClick={() => setSelectedUser(null)}
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Подарки — PROMINENTLY */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>🎁 Подарки</div>
+        {selectedUser.gifts && (
+          <div style={{ fontSize: 13, color: AP.muted, marginBottom: 8 }}>
+            Получено: {selectedUser.gifts.claimed || 0} из {selectedUser.gifts.totalWindows || 0} окон
+            {selectedUser.gifts.lastClaimed ? ` · Последний: ${selectedUser.gifts.lastClaimed}` : ''}
+          </div>
+        )}
+        <div style={styles.giftBtnsGrid}>
+          <button
+            style={styles.giftBtnAdd}
+            onClick={() => grantGift(selectedUser.telegram_id, 'roll')}
+            disabled={!!grantingGift}
+          >
+            {grantingGift === selectedUser.telegram_id + '+roll' ? '...' : '＋ Добавить ролл'}
+          </button>
+          <button
+            style={styles.giftBtnRemove}
+            onClick={() => claimGift(selectedUser.telegram_id, 'roll')}
+            disabled={!!grantingGift}
+          >
+            {grantingGift === selectedUser.telegram_id + '-roll' ? '...' : '− Списать ролл'}
+          </button>
+          <button
+            style={styles.giftBtnAdd}
+            onClick={() => grantGift(selectedUser.telegram_id, 'set')}
+            disabled={!!grantingGift}
+          >
+            {grantingGift === selectedUser.telegram_id + '+set' ? '...' : '＋ Добавить сет'}
+          </button>
+          <button
+            style={styles.giftBtnRemove}
+            onClick={() => claimGift(selectedUser.telegram_id, 'set')}
+            disabled={!!grantingGift}
+          >
+            {grantingGift === selectedUser.telegram_id + '-set' ? '...' : '− Списать сет'}
+          </button>
+        </div>
+        <div style={{ fontSize: 11, color: AP.muted, marginTop: 8 }}>
+          «Добавить» — выдать новый подарок. «Списать» — отметить как полученный.
+        </div>
+      </div>
+
+      {/* Тариф */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>📋 Смена тарифа</div>
+        <div style={styles.tariffRow}>
+          {['290', '490', '1190'].map(t => (
+            <button
+              key={t}
+              style={subEdit?.telegram_id === selectedUser.telegram_id && subEdit?.tariff === t
+                ? styles.tariffBtnActive
+                : selectedUser.tariff === t
+                  ? { ...styles.tariffBtnActive, boxShadow: NEU.btnIn }
+                  : styles.tariffBtnInactive}
+              onClick={() => setSubEdit(
+                subEdit?.telegram_id === selectedUser.telegram_id && subEdit?.tariff === t
+                  ? null
+                  : { telegram_id: selectedUser.telegram_id, tariff: t, end_date: defaultEndDate() }
+              )}
+              disabled={!!settingTariff}
+            >
+              {settingTariff === selectedUser.telegram_id ? '...' : `${t}₽`}
+            </button>
+          ))}
+        </div>
+        {subEdit?.telegram_id === selectedUser.telegram_id && (
+          <div style={styles.subEditRow}>
+            <span style={{ color: AP.accent, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+              {subEdit.tariff}₽ до:
+            </span>
+            <input
+              type="date"
+              value={subEdit.end_date}
+              onChange={e => setSubEdit(prev => ({ ...prev, end_date: e.target.value }))}
+              style={styles.dateInput}
+            />
+            <button style={styles.applyBtn} onClick={applySubscription} disabled={!!settingTariff}>
+              {settingTariff === selectedUser.telegram_id ? '...' : '✓ Применить'}
+            </button>
+            <button style={styles.btnCancel} onClick={() => setSubEdit(null)}>✕</button>
+          </div>
+        )}
+      </div>
+
+      {/* Продление */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>⏱ Продление подписки</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="number" min="1" max="365"
+            placeholder="Количество дней"
+            value={extendingDays[selectedUser.telegram_id] || ''}
+            onChange={e => setExtendingDays(prev => ({ ...prev, [selectedUser.telegram_id]: e.target.value }))}
+            style={{ ...styles.daysInput, flex: 1, width: 'auto', fontSize: 14 }}
+          />
+          <button
+            style={{ ...styles.extendBtn, padding: '10px 18px', fontSize: 13 }}
+            onClick={() => extendSub(selectedUser.telegram_id)}
+            disabled={!!extending || !extendingDays[selectedUser.telegram_id]}
+          >
+            {extending === selectedUser.telegram_id ? '...' : 'Продлить'}
+          </button>
+        </div>
+      </div>
+
+      {/* Редактирование профиля */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>👤 Профиль пользователя</div>
+        <button
+          style={{ ...styles.btnSmall, width: '100%', textAlign: 'center', padding: '12px 14px', fontSize: 13, color: AP.text }}
+          onClick={() => setEditingUser(selectedUser)}
+        >
+          ✎ Редактировать имя и телефон
+        </button>
+      </div>
+
+      {/* Заметка */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>📝 Заметка</div>
+        <input
+          type="text"
+          placeholder="Заметка об этом пользователе..."
+          defaultValue={selectedUser.notes || ''}
+          key={selectedUser.telegram_id + '_sheet_notes'}
+          onBlur={e => { if (e.target.value !== (selectedUser.notes || '')) saveNotes(selectedUser.telegram_id, e.target.value); }}
+          onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }}
+          style={styles.notesInput}
+        />
+      </div>
+
+      {/* Рефералы */}
+      {(selectedUser.referrals_count > 0 || selectedUser.invited_by) && (
+        <div style={styles.sheetSection}>
+          <div style={styles.sheetSectionTitle}>📈 Рефералы</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12 }}>
+            {selectedUser.referrals_count > 0 && <span style={{ color: AP.accent }}>👥 {selectedUser.referrals_count} рефералов</span>}
+            {Number(selectedUser.shc_earned) > 0 && <span style={{ color: AP.yellow }}>💎 {Math.round(selectedUser.shc_earned)} SHC заработано</span>}
+            {selectedUser.invited_by && <span style={{ color: AP.muted }}>↑ Пригласил: {selectedUser.invited_by_name || selectedUser.invited_by}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* Опасная зона */}
+      <div style={{ ...styles.sheetSection, marginBottom: 40 }}>
+        <div style={{ ...styles.sheetSectionTitle, color: AP.danger }}>⚠️ Опасная зона</div>
+        <button
+          style={{ ...styles.resetSubBtn, width: '100%', textAlign: 'center' }}
+          onClick={() => resetSubscription(selectedUser.telegram_id, selectedUser.name)}
+          disabled={!!resettingSub}
+        >
+          {resettingSub === selectedUser.telegram_id ? '...' : '🗑 Сбросить подписку'}
+        </button>
+        <div style={{ fontSize: 11, color: AP.muted, marginTop: 6 }}>
+          Пользователь увидит экран оплаты при следующем входе.
+        </div>
+      </div>
+    </div>
+  </>
+)}
+
       {/* ─── Toast уведомления ─── */}
       {toasts.length > 0 && (
         <div style={{
@@ -2710,6 +3025,241 @@ const styles = {
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: NEU.tealSm,
+  },
+  // ─── Burger button ────────────────────────────────────────────
+  burgerBtn: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    gap: 5,
+    width: 44,
+    height: 44,
+    background: AP.surface,
+    border: 'none',
+    borderRadius: 12,
+    cursor: 'pointer',
+    padding: '11px 10px',
+    boxShadow: NEU.btnOut,
+    flexShrink: 0,
+  },
+  burgerLine: {
+    display: 'block',
+    height: 2,
+    background: AP.text,
+    borderRadius: 2,
+    width: '100%',
+  },
+  currentTabLabel: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: AP.text,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    flex: 1,
+    textAlign: 'center',
+  },
+  // ─── Burger menu sheet ────────────────────────────────────────
+  menuSheet: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 199,
+    background: AP.surface,
+    borderRadius: '20px 20px 0 0',
+    padding: '8px 12px 32px',
+    maxHeight: '85vh',
+    overflowY: 'auto',
+    boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
+  },
+  menuHandle: {
+    width: 36,
+    height: 4,
+    background: AP.border,
+    borderRadius: 2,
+    margin: '0 auto 14px',
+  },
+  menuItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    padding: '13px 14px',
+    background: 'transparent',
+    border: 'none',
+    borderRadius: 14,
+    cursor: 'pointer',
+    textAlign: 'left',
+    minHeight: 54,
+  },
+  menuItemActive: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+    padding: '13px 14px',
+    background: 'rgba(60,200,161,0.1)',
+    border: 'none',
+    borderRadius: 14,
+    cursor: 'pointer',
+    textAlign: 'left',
+    minHeight: 54,
+  },
+  // ─── 2-column user card grid ──────────────────────────────────
+  userCardGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 10,
+    marginTop: 10,
+  },
+  userCard: {
+    background: AP.surface,
+    border: 'none',
+    borderRadius: 14,
+    padding: '12px 10px',
+    cursor: 'pointer',
+    textAlign: 'left',
+    boxShadow: NEU.card,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    minHeight: 110,
+    transition: 'transform 0.1s',
+  },
+  userCardAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    background: 'rgba(60,200,161,0.15)',
+    color: AP.accent,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 16,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  userCardInfo: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+  },
+  userCardName: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: AP.text,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  userCardMeta: {
+    display: 'flex',
+    gap: 5,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  userCardPhone: {
+    fontSize: 10,
+    color: AP.muted,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  userCardDate: {
+    fontSize: 10,
+    color: AP.muted,
+  },
+  // ─── User detail sheet ────────────────────────────────────────
+  userSheet: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 299,
+    background: AP.bg,
+    borderRadius: '20px 20px 0 0',
+    padding: '8px 16px 40px',
+    maxHeight: '92vh',
+    overflowY: 'auto',
+    boxShadow: '0 -8px 40px rgba(0,0,0,0.7)',
+  },
+  sheetHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottom: `1px solid ${AP.border}`,
+    gap: 10,
+  },
+  sheetName: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: AP.text,
+  },
+  sheetClose: {
+    width: 34,
+    height: 34,
+    background: AP.surface,
+    border: 'none',
+    borderRadius: 10,
+    color: AP.muted,
+    fontSize: 16,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    boxShadow: NEU.btnOut,
+  },
+  sheetSection: {
+    background: AP.surface,
+    borderRadius: 14,
+    padding: '14px 14px',
+    marginBottom: 10,
+    boxShadow: NEU.card,
+  },
+  sheetSectionTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: AP.muted,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  giftBtnsGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 10,
+    marginTop: 4,
+  },
+  giftBtnAdd: {
+    padding: '14px 8px',
+    background: 'rgba(60,200,161,0.12)',
+    color: AP.accent,
+    border: '1px solid rgba(60,200,161,0.3)',
+    borderRadius: 12,
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    minHeight: 52,
+    boxShadow: NEU.tealSm,
+    lineHeight: 1.3,
+  },
+  giftBtnRemove: {
+    padding: '14px 8px',
+    background: 'rgba(255,77,106,0.1)',
+    color: AP.danger,
+    border: '1px solid rgba(255,77,106,0.25)',
+    borderRadius: 12,
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    minHeight: 52,
+    boxShadow: NEU.danger,
+    lineHeight: 1.3,
   },
 };
 
