@@ -66,7 +66,9 @@
       "Bash(where plink *)",
       "Bash(/c/Program Files/PuTTY/plink *)",
       "Bash(\"/c/Program Files/PuTTY/plink\" -ssh -pw 'kMy1QZ-zkfgJr_' root@64.188.63.249 \"echo connected\")",
-      "Bash([ -s \"$OUT\" ])"
+      "Bash([ -s \"$OUT\" ])",
+      "Bash([ -f \"$OUTFILE\" ])",
+      "Bash(plink *)"
     ]
   }
 }

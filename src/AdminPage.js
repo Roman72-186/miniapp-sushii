@@ -735,6 +735,55 @@ function AdminPage() {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        .adm-user-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .adm-user-card {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 12px;
+          background: #202024;
+          border: none;
+          border-radius: 14px;
+          padding: 12px 14px;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 6px 6px 16px #111113, -4px -4px 12px #2c2c30;
+          width: 100%;
+          min-height: 68px;
+          transition: transform 0.12s;
+          box-sizing: border-box;
+          font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+        }
+        .adm-user-card:active { transform: scale(0.97); }
+        .adm-user-avatar {
+          width: 44px; height: 44px; border-radius: 50%;
+          background: rgba(60,200,161,0.15); color: #3CC8A1;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 18px; font-weight: 700; flex-shrink: 0;
+        }
+        .adm-user-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .adm-user-name { font-size: 14px; font-weight: 700; color: #e8e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .adm-user-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .adm-user-phone, .adm-user-date { font-size: 11px; color: #888899; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .adm-user-arrow { font-size: 16px; color: #555566; flex-shrink: 0; }
+        @media (min-width: 480px) {
+          .adm-user-grid { grid-template-columns: 1fr 1fr; }
+          .adm-user-card { flex-direction: column; align-items: flex-start; min-height: 110px; }
+          .adm-user-arrow { display: none; }
+        }
+        @media (min-width: 768px) {
+          .adm-user-grid { grid-template-columns: 1fr 1fr 1fr; }
+        }
+        @media (min-width: 1100px) {
+          .adm-user-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+      `}</style>
       <div style={styles.header}>
         <button style={styles.burgerBtn} onClick={() => setMenuOpen(true)} aria-label="Открыть меню">
           <div style={styles.burgerLine} />
@@ -894,27 +943,28 @@ function AdminPage() {
           {subsLoading && <p style={styles.muted}>Загрузка...</p>}
           <div style={styles.subsCount}>Показано: {filteredSubs.length}</div>
 
-          <div style={styles.userCardGrid}>
+          <div className="adm-user-grid">
             {filteredSubs.map(s => (
               <button
                 key={s.telegram_id}
-                style={styles.userCard}
+                className="adm-user-card"
                 onClick={() => setSelectedUser(s)}
               >
-                <div style={styles.userCardAvatar}>
+                <div className="adm-user-avatar">
                   {(s.first_name || s.name || '?')[0].toUpperCase()}
                 </div>
-                <div style={styles.userCardInfo}>
-                  <div style={styles.userCardName}>{s.first_name || s.name || 'Без имени'}</div>
-                  <div style={styles.userCardMeta}>
+                <div className="adm-user-info">
+                  <div className="adm-user-name">{s.first_name || s.name || 'Без имени'}</div>
+                  <div className="adm-user-meta">
                     <span style={styles.tariffBadge(s.tariff)}>{s.tariff}₽</span>
                     <span style={{ fontSize: 10, color: s.subscription_status === 'активно' ? AP.accent : AP.muted }}>
-                      {s.subscription_status === 'активно' ? '● актив' : '○ неакт'}
+                      {s.subscription_status === 'активно' ? '● акт' : '○ неакт'}
                     </span>
                   </div>
-                  {s.phone && <div style={styles.userCardPhone}>{s.phone}</div>}
-                  {s.subscription_end && <div style={styles.userCardDate}>до {s.subscription_end}</div>}
+                  {s.phone && <div className="adm-user-phone">{s.phone}</div>}
+                  {s.subscription_end && <div className="adm-user-date">до {s.subscription_end}</div>}
                 </div>
+                <span className="adm-user-arrow">›</span>
               </button>
             ))}
           </div>
