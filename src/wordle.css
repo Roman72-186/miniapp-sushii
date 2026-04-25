@@ -23,8 +23,8 @@
   --wrd-kb-row-gap: 11px;
 
   min-height: 100vh;
-  background: #1a1a1a;
-  color: #eaeaf8;
+  background: #0F0F11;
+  color: #E8E8E8;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
@@ -32,7 +32,7 @@
 }
 
 .wrd-header {
-  background: #1a1a1e;
+  background: rgba(15,15,17,0.92);
   padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
   border-bottom: 1px solid rgba(255,255,255,0.05);
   box-shadow: 0 4px 14px rgba(0,0,0,0.4);
@@ -42,9 +42,9 @@
 }
 
 .wrd-header__back {
-  background: #202024;
+  background: #1F1F23;
   border: 1px solid rgba(255,255,255,0.06);
-  color: #eaeaf8;
+  color: #E8E8E8;
   width: 38px;
   height: 38px;
   border-radius: 12px;
@@ -53,31 +53,31 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  
   flex-shrink: 0;
 }
 
 .wrd-header__back:active {
-  box-shadow: inset 2px 2px 6px #111113, inset -1px -1px 4px #2e2e36;
+  
   transform: scale(0.95);
 }
 
 .wrd-header__title {
   font-size: 18px;
   font-weight: 700;
-  color: #eaeaf8;
+  color: #E8E8E8;
   flex: 1;
 }
 
 .wrd-header__wins {
-  background: #202024;
+  background: #1F1F23;
   border: 1px solid rgba(60,200,161,0.25);
   border-radius: 10px;
   padding: 4px 10px;
   font-size: 13px;
   font-weight: 700;
   color: #3CC8A1;
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  
 }
 
 /* === Основной контент === */
@@ -97,7 +97,7 @@
 /* === Сообщение под заголовком === */
 .wrd-subtitle {
   font-size: 13px;
-  color: #8888aa;
+  color: #71717A;
   text-align: center;
 }
 
@@ -120,17 +120,17 @@
 .wrd-locked__title {
   font-size: 20px;
   font-weight: 700;
-  color: #eaeaf8;
+  color: #E8E8E8;
 }
 
 .wrd-locked__desc {
   font-size: 14px;
-  color: #8888aa;
+  color: #71717A;
   line-height: 1.5;
 }
 
 .wrd-locked__btn {
-  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  background: #3CC8A1;
   border: none;
   border-radius: 14px;
   padding: 12px 28px;
@@ -138,7 +138,7 @@
   font-weight: 800;
   font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(60,200,161,0.38);
+  
   transition: transform 0.12s ease, box-shadow 0.15s ease;
 }
 
@@ -149,12 +149,12 @@
 
 /* === Лимит достигнут === */
 .wrd-limit-banner {
-  background: #1e1e2e;
+  background: #18181B;
   border: 1px solid rgba(60,200,161,0.2);
   border-radius: 16px;
   padding: 16px 20px;
   text-align: center;
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  
   width: 100%;
 }
 
@@ -172,7 +172,7 @@
 
 .wrd-limit-banner__desc {
   font-size: 13px;
-  color: #8888aa;
+  color: #71717A;
 }
 
 /* === Сетка === */
@@ -202,39 +202,39 @@
   font-weight: 800;
   text-transform: uppercase;
   transition: transform 0.1s ease;
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  
 }
 
 .wrd-cell--empty {
-  background: #1e1e2e;
+  background: #18181B;
   border: 2px solid rgba(255,255,255,0.08);
   color: transparent;
 }
 
 .wrd-cell--unchecked {
-  background: #202024;
+  background: #1F1F23;
   border: 2px solid rgba(60,200,161,0.35);
-  color: #eaeaf8;
+  color: #E8E8E8;
 }
 
 .wrd-cell--correct {
   background: #1a4a35;
   border: 2px solid #3CC8A1;
   color: #3CC8A1;
-  box-shadow: 0 0 12px rgba(60,200,161,0.3), 3px 3px 8px #111113;
+  box-shadow: 0 0 10px rgba(60,200,161,0.25);
 }
 
 .wrd-cell--present {
   background: #3a3010;
   border: 2px solid #eab308;
   color: #eab308;
-  box-shadow: 0 0 10px rgba(234,179,8,0.25), 3px 3px 8px #111113;
+  box-shadow: 0 0 8px rgba(234,179,8,0.2);
 }
 
 .wrd-cell--absent {
-  background: #18181e;
+  background: #141416;
   border: 2px solid rgba(255,255,255,0.06);
-  color: #6666aa;
+  color: #52525B;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -449,9 +449,9 @@
 }
 
 .wrd-btn--primary {
-  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  background: #3CC8A1;
   color: #0f1114;
-  box-shadow: 0 4px 14px rgba(60,200,161,0.38);
+  
 }
 
 .wrd-btn--primary:active {
@@ -460,15 +460,15 @@
 }
 
 .wrd-btn--secondary {
-  background: #202024;
-  color: #8888aa;
+  background: #1F1F23;
+  color: #71717A;
   border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  
 }
 
 .wrd-btn--secondary:active {
   transform: scale(0.96);
-  box-shadow: inset 2px 2px 6px #111113, inset -1px -1px 4px #2e2e36;
+  
 }
 
 /* === Тост-уведомление === */
@@ -477,13 +477,13 @@
   top: max(70px, calc(env(safe-area-inset-top) + 58px));
   left: 50%;
   transform: translateX(-50%);
-  background: #1e1e2e;
+  background: #18181B;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 12px;
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 600;
-  color: #eaeaf8;
+  color: #E8E8E8;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   z-index: 1000;
   animation: wrd-toast-in 0.2s ease;
@@ -509,24 +509,24 @@
 
 /* === Flip-анимация ячеек === */
 @keyframes wrd-flip-correct {
-  0%   { transform: rotateX(0deg);  background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36; }
-  49%  { transform: rotateX(90deg); background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
+  0%   { transform: rotateX(0deg);  background: #1F1F23; border-color: rgba(60,200,161,0.35); color: #E8E8E8;  }
+  49%  { transform: rotateX(90deg); background: #1F1F23; border-color: rgba(60,200,161,0.35); color: #E8E8E8; }
   50%  { transform: rotateX(90deg); background: #1a4a35; border-color: #3CC8A1; color: #3CC8A1; }
-  100% { transform: rotateX(0deg);  background: #1a4a35; border-color: #3CC8A1; color: #3CC8A1; box-shadow: 0 0 12px rgba(60,200,161,0.3), 3px 3px 8px #111113; }
+  100% { transform: rotateX(0deg);  background: #1a4a35; border-color: #3CC8A1; color: #3CC8A1;  }
 }
 
 @keyframes wrd-flip-present {
-  0%   { transform: rotateX(0deg);  background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
-  49%  { transform: rotateX(90deg); background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
+  0%   { transform: rotateX(0deg);  background: #1F1F23; border-color: rgba(60,200,161,0.35); color: #E8E8E8; }
+  49%  { transform: rotateX(90deg); background: #1F1F23; border-color: rgba(60,200,161,0.35); color: #E8E8E8; }
   50%  { transform: rotateX(90deg); background: #3a3010; border-color: #eab308; color: #eab308; }
   100% { transform: rotateX(0deg);  background: #3a3010; border-color: #eab308; color: #eab308; }
 }
 
 @keyframes wrd-flip-absent {
-  0%   { transform: rotateX(0deg);  background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
-  49%  { transform: rotateX(90deg); background: #202024; border-color: rgba(60,200,161,0.35); color: #eaeaf8; }
-  50%  { transform: rotateX(90deg); background: #18181e; border-color: rgba(255,255,255,0.06); color: #6666aa; }
-  100% { transform: rotateX(0deg);  background: #18181e; border-color: rgba(255,255,255,0.06); color: #6666aa; }
+  0%   { transform: rotateX(0deg);  background: #1F1F23; border-color: rgba(60,200,161,0.35); color: #E8E8E8; }
+  49%  { transform: rotateX(90deg); background: #1F1F23; border-color: rgba(60,200,161,0.35); color: #E8E8E8; }
+  50%  { transform: rotateX(90deg); background: #141416; border-color: rgba(255,255,255,0.06); color: #52525B; }
+  100% { transform: rotateX(0deg);  background: #141416; border-color: rgba(255,255,255,0.06); color: #52525B; }
 }
 
 .wrd-cell--revealing.wrd-cell--correct { animation: wrd-flip-correct 0.5s ease forwards; }
@@ -535,9 +535,9 @@
 
 /* === Кнопка помощи в хедере === */
 .wrd-header__help {
-  background: #202024;
+  background: #1F1F23;
   border: 1px solid rgba(255,255,255,0.1);
-  color: #8888aa;
+  color: #71717A;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -547,12 +547,12 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  
   flex-shrink: 0;
 }
 
 .wrd-header__help:active {
-  box-shadow: inset 2px 2px 6px #111113, inset -1px -1px 4px #2e2e36;
+  
   transform: scale(0.93);
 }
 
@@ -568,7 +568,7 @@
 }
 
 .wrd-help-modal {
-  background: #1e1e2e;
+  background: #18181B;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px;
   padding: 24px 20px 20px;
@@ -583,7 +583,7 @@
   right: 16px;
   background: none;
   border: none;
-  color: #8888aa;
+  color: #71717A;
   font-size: 22px;
   cursor: pointer;
   line-height: 1;
@@ -592,7 +592,7 @@
 .wrd-help-modal__title {
   font-size: 16px;
   font-weight: 700;
-  color: #eaeaf8;
+  color: #E8E8E8;
   text-align: center;
   margin-bottom: 20px;
 }
@@ -615,7 +615,7 @@
   text-align: center;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  
 }
 
 .wrd-reveal-banner__label {
@@ -639,7 +639,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8888aa;
+  color: #71717A;
   font-size: 15px;
 }
 
@@ -772,27 +772,27 @@
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: #1e1e2e;
+  background: #18181B;
   border: 1px solid rgba(60,200,161,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 26px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5), 3px 3px 8px #111113, -2px -2px 6px #2e2e36;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   transition: transform 0.12s ease, box-shadow 0.15s ease;
   position: relative;
 }
 
 .wrd-widget__btn:active {
   transform: scale(0.92);
-  box-shadow: inset 2px 2px 6px #111113, inset -1px -1px 4px #2e2e36;
+  
 }
 
 .wrd-widget__badge {
   position: absolute;
   top: -6px;
   right: -6px;
-  background: linear-gradient(135deg, #3CC8A1, #28a882);
+  background: #3CC8A1;
   color: #0f1114;
   font-size: 11px;
   font-weight: 800;
@@ -808,14 +808,14 @@
 
 .wrd-widget__badge--zero {
   background: #333344;
-  color: #8888aa;
+  color: #71717A;
   box-shadow: none;
 }
 
 .wrd-widget__label {
   font-size: 10px;
   font-weight: 700;
-  color: #8888aa;
+  color: #71717A;
   text-align: center;
   letter-spacing: 0.2px;
 }

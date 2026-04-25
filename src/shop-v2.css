@@ -1079,3 +1079,130 @@ body.shop-body { background: #0F0F11 !important; }
 }
 
 .shop-page .shop-card__image { transition: none !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ФАЗА 3 — Profile, Payment, Landing (Linear V3 overrides)
+═══════════════════════════════════════════════════════════════ */
+
+/* Профиль — Hero */
+.pf-hero { background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 18px; box-shadow: none; }
+.pf-hero__name { color: var(--v3-text); }
+.pf-hero__phone { color: var(--v3-muted); }
+.pf-hero__sub-until { color: var(--v3-muted); }
+.pf-hero__days-left { color: var(--v3-dim); }
+.pf-hero__no-sub { color: var(--v3-muted); }
+.pf-hero__cta { background: var(--v3-accent); color: #0A0A0A; box-shadow: none; }
+.pf-hero__sec-btn { color: var(--v3-muted); }
+.pf-hero__autorenewal { border-top: 1px solid var(--v3-border); color: var(--v3-muted); }
+
+/* Progress bar */
+.pf-progress-bar { background: var(--v3-raise); }
+.pf-progress-bar__fill { background: var(--v3-accent); }
+.pf-progress-bar__fill--expired { background: var(--v3-dim); }
+
+/* Gift banner */
+.pf-gift-banner { background: var(--v3-raise); border-color: var(--v3-border); color: var(--v3-muted); }
+.pf-gift-banner--available { background: var(--v3-accent-bg); border-color: var(--v3-accent-border); color: var(--v3-accent); box-shadow: none; }
+
+/* Counters */
+.pf-counter { background: var(--v3-inset); border: 1px solid var(--v3-border); border-radius: 12px; }
+.pf-counter__value { color: var(--v3-text); }
+.pf-counter__label { color: var(--v3-muted); }
+
+/* SHC block */
+.pf-shc { background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.pf-shc__title { color: var(--v3-text); font-size: 15px; font-weight: 700; }
+.pf-shc__desc { font-size: 13px; color: var(--v3-muted); line-height: 1.5; }
+.pf-shc__info-link { background: none; border: none; color: var(--v3-muted); font-size: 12px; cursor: pointer; padding: 0; text-align: left; }
+.pf-shc__prog-label { font-size: 12px; color: var(--v3-muted); margin-top: 4px; }
+
+/* Reflink */
+.pf-reflink__url { background: var(--v3-inset); border: 1px solid var(--v3-border); border-radius: 8px; color: var(--v3-muted); font-size: 11px; }
+.pf-reflink__btn { background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 10px; color: var(--v3-muted); font-size: 13px; font-weight: 600; padding: 10px 8px; cursor: pointer; flex: 1; }
+.pf-reflink__btn--primary { background: var(--v3-accent); border-color: transparent; color: #0A0A0A; }
+
+/* Quick action buttons */
+.pf-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pf-quick__btn { background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 12px; color: var(--v3-text); font-size: 14px; font-weight: 600; padding: 12px 10px; cursor: pointer; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s ease-out; }
+.pf-quick__btn:hover { border-color: var(--v3-border-strong); }
+
+/* Accordion */
+.pf-accordion { display: flex; flex-direction: column; gap: 4px; }
+.pf-accordion__item { background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 12px; overflow: hidden; }
+.pf-accordion__hdr { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: transparent; border: none; color: var(--v3-text); font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; }
+.pf-accordion__hdr--static { cursor: default; }
+.pf-accordion__arrow { color: var(--v3-muted); font-size: 14px; }
+.pf-accordion__body { padding: 0 14px 12px; }
+.pf-accordion__empty { font-size: 13px; color: var(--v3-muted); padding: 4px 0; }
+.pf-accordion__more { background: none; border: none; color: var(--v3-accent); font-size: 13px; cursor: pointer; padding: 6px 0; }
+
+/* Orders list */
+.pf-orders { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.pf-order { background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 10px; padding: 10px 12px; }
+.pf-order__top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.pf-order__name { font-size: 13px; color: var(--v3-text); font-weight: 600; }
+.pf-order__date { font-size: 12px; color: var(--v3-muted); white-space: nowrap; }
+.pf-order__meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.pf-order__tag { font-size: 11px; background: var(--v3-inset); border: 1px solid var(--v3-border); border-radius: 6px; padding: 2px 6px; color: var(--v3-muted); }
+.pf-order__tag--gift { font-size: 11px; background: var(--v3-accent-bg); border: 1px solid var(--v3-accent-border); border-radius: 6px; padding: 2px 6px; color: var(--v3-accent); }
+.pf-order__addr { font-size: 11px; color: var(--v3-muted); margin-top: 4px; }
+
+/* Transactions */
+.pf-txn { background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; }
+.pf-txn--row { display: flex; align-items: center; }
+.pf-txn__top { display: flex; justify-content: space-between; gap: 8px; }
+.pf-txn__name { font-size: 13px; color: var(--v3-text); }
+.pf-txn__amount { font-size: 13px; font-weight: 700; color: var(--v3-accent); }
+.pf-txn__meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--v3-muted); margin-top: 4px; }
+
+/* Tariff badge */
+.pf-tariff-badge { background: var(--v3-accent-bg); color: var(--v3-accent); border-color: var(--v3-accent-border); }
+
+/* Profile modals */
+.pf-modal { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 20px 20px 0 0; padding: 12px 18px 32px; z-index: 400; box-shadow: 0 -4px 32px rgba(0,0,0,0.4); }
+.pf-modal__handle { width: 36px; height: 4px; background: var(--v3-raise); border-radius: 2px; margin: 0 auto 16px; }
+.pf-modal__title { font-size: 17px; font-weight: 700; color: var(--v3-text); margin-bottom: 4px; }
+.pf-modal__subtitle { font-size: 13px; color: var(--v3-muted); margin-bottom: 14px; }
+.pf-modal__close { width: 100%; padding: 12px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 12px; color: var(--v3-muted); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+.pf-modal__warn { font-size: 13px; color: var(--v3-muted); padding: 10px 12px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 10px; margin-bottom: 10px; }
+.pf-modal__warn--soft { color: var(--v3-warning); border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.08); }
+.pf-modal__tariff-btn { display: block; width: 100%; text-align: left; padding: 12px 14px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 12px; color: var(--v3-text); cursor: pointer; margin-bottom: 8px; transition: border-color 0.15s; }
+.pf-modal__tariff-btn--best { border-color: var(--v3-accent-border); background: var(--v3-accent-bg); }
+.pf-modal__tariff-row { display: flex; justify-content: space-between; align-items: center; }
+.pf-modal__tariff-name { font-size: 15px; font-weight: 700; color: var(--v3-text); }
+.pf-modal__tariff-star { font-size: 12px; color: var(--v3-accent); font-weight: 700; }
+.pf-modal__tariff-desc { font-size: 12px; color: var(--v3-muted); margin-top: 4px; }
+.pf-modal__months { display: flex; gap: 8px; margin: 14px 0; }
+.pf-modal__month-btn { flex: 1; text-align: center; padding: 12px 8px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 12px; color: var(--v3-text); cursor: pointer; transition: border-color 0.15s; }
+.pf-modal__month-btn:hover { border-color: var(--v3-border-strong); }
+.pf-modal__month-top { font-size: 13px; color: var(--v3-muted); }
+.pf-modal__month-price { font-size: 16px; font-weight: 700; color: var(--v3-text); }
+.pf-modal__month-save { font-size: 11px; color: var(--v3-accent); font-weight: 700; }
+.pf-modal--scroll { max-height: 85vh; overflow-y: auto; }
+
+/* Edit profile modal */
+.edit-profile-modal__content { background: var(--v3-surface); border: 1px solid var(--v3-border); box-shadow: 0 -8px 32px rgba(0,0,0,0.4); }
+.edit-profile-modal__title { color: var(--v3-text); }
+.edit-profile-modal__close { color: var(--v3-muted); }
+.edit-profile-modal__field label { color: var(--v3-muted); }
+.edit-profile-modal__field input { background: var(--v3-inset); border: 1px solid var(--v3-border); color: var(--v3-text); }
+.edit-profile-modal__field input:focus { border-color: var(--v3-accent); }
+.edit-profile-modal__btn--cancel { background: var(--v3-raise); color: var(--v3-muted); border: 1px solid var(--v3-border); }
+.edit-profile-modal__btn--save { background: var(--v3-accent); color: #0A0A0A; }
+
+/* Payment & Login page */
+.shop-payment__card { background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 16px; box-shadow: none; }
+.shop-payment__btn { background: var(--v3-accent); color: #0A0A0A; box-shadow: none; border-radius: 12px; }
+.shop-payment__btn:disabled { opacity: 0.5; }
+.shop-payment__error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--v3-danger); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+
+/* Landing page tariff cards */
+.shop-landing { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 40px 16px; }
+.shop-landing__logo { border-radius: 16px; }
+.shop-landing__title { color: var(--v3-text); font-size: 24px; font-weight: 800; margin: 0; }
+.shop-landing__subtitle { color: var(--v3-muted); font-size: 14px; margin: 0; }
+.shop-landing__cards { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; }
+.shop-landing__card { background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 14px; padding: 14px 16px; cursor: pointer; text-align: left; transition: border-color 0.15s ease-out; width: 100%; }
+.shop-landing__card:hover { border-color: var(--v3-border-strong); }
+.shop-landing__card-price { font-size: 16px; font-weight: 700; color: var(--v3-text); }
+.shop-landing__card-desc { font-size: 13px; color: var(--v3-muted); margin-top: 4px; }
