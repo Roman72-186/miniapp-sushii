@@ -1,7 +1,17 @@
+:root {
+  --app-bg: #0F0F11; --app-surface: #18181B; --app-raise: #1F1F23;
+  --app-inset: #141416; --app-border: rgba(255,255,255,0.07);
+  --app-accent: #3CC8A1; --app-text: #E8E8E8;
+  --app-muted: #71717A; --app-dim: #52525B;
+  --app-danger: #EF4444; --app-warning: #F59E0B;
+}
+
 body {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0F0F11;
+  color: #E8E8E8;
   margin: 0;
-  font-family: 'Arial', sans-serif;
-  background-color: #f5f5f5;
+  -webkit-font-smoothing: antialiased;
 }
 
 .app {
