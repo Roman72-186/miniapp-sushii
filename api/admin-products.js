@@ -80,6 +80,7 @@ const handler = async (req, res) => {
               index: idx,
               name: item.name,
               price: item.price,
+              discount: item.discount != null ? Number(item.discount) : null,
               sku: item.sku || '',
               enabled: item.enabled !== false, // по умолчанию включён
             })),
@@ -91,7 +92,7 @@ const handler = async (req, res) => {
 
     // PUT — обновление товара
     if (req.method === 'PUT') {
-      const { catalogId, itemIndex, price, enabled } = req.body || {};
+      const { catalogId, itemIndex, price, enabled, discount } = req.body || {};
 
       if (!catalogId) return res.status(400).json({ error: 'catalogId обязателен' });
       if (itemIndex === undefined || itemIndex === null) {
@@ -115,6 +116,13 @@ const handler = async (req, res) => {
       }
       if (enabled !== undefined && enabled !== null) {
         data.items[idx].enabled = Boolean(enabled);
+      }
+      if (discount !== undefined) {
+        if (discount === null || discount === '' || isNaN(Number(discount))) {
+          delete data.items[idx].discount;
+        } else {
+          data.items[idx].discount = Number(discount);
+        }
       }
 
       saveCatalog(catalog.file, data);
@@ -149,6 +157,7 @@ const handler = async (req, res) => {
           index: idx,
           name: data.items[idx].name,
           price: data.items[idx].price,
+          discount: data.items[idx].discount != null ? Number(data.items[idx].discount) : null,
           enabled: data.items[idx].enabled !== false,
         },
       });

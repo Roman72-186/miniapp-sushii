@@ -27,6 +27,8 @@ function AdminPage() {
   const [activeCatalog, setActiveCatalog] = useState('');
   const [productsLoading, setProductsLoading] = useState(false);
   const [editingItem, setEditingItem] = useState(null); // {catalogId, index, price}
+  const [selectedProduct, setSelectedProduct] = useState(null); // {catalogId, index, item}
+  const [editingProduct, setEditingProduct] = useState({ price: '', discount: '' });
   const [saving, setSaving] = useState(false);
   const [upsellItems, setUpsellItems] = useState([]); // [{sku, name, price, catalog}]
   const [upsellSaving, setUpsellSaving] = useState(null);
@@ -274,6 +276,14 @@ function AdminPage() {
     }
   }, [subscribers]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!selectedProduct) return;
+    const cat = catalogs.find(c => c.id === selectedProduct.catalogId);
+    if (!cat) return;
+    const updated = cat.items[selectedProduct.index];
+    if (updated) setSelectedProduct(prev => ({ ...prev, item: updated }));
+  }, [catalogs]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Сохранение товара
   const saveItem = async (catalogId, index, updates) => {
     setSaving(true);
@@ -285,7 +295,6 @@ function AdminPage() {
       });
       const data = await res.json();
       if (data.success) {
-        // Обновляем локально
         setCatalogs(prev => prev.map(cat => {
           if (cat.id !== catalogId) return cat;
           return {
@@ -294,6 +303,7 @@ function AdminPage() {
           };
         }));
         setEditingItem(null);
+        return true;
       }
     } catch (err) {
       console.error('saveItem error:', err);
@@ -784,6 +794,49 @@ function AdminPage() {
         @media (min-width: 900px) {
           .adm-user-grid { grid-template-columns: repeat(4, 1fr); }
         }
+
+        /* ─── Product cards ─── */
+        .adm-prod-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
+          margin-top: 10px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .adm-prod-card {
+          background: #202024;
+          border: none;
+          border-radius: 12px;
+          padding: 10px;
+          cursor: pointer;
+          text-align: left;
+          width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+          font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
+          transition: transform 0.12s;
+          box-shadow: 4px 4px 10px #111113, -2px -2px 8px #2c2c30;
+        }
+        .adm-prod-card:active { transform: scale(0.97); }
+        .adm-prod-card.off { opacity: 0.42; }
+        .adm-prod-status { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .adm-prod-dot { font-size: 9px; font-weight: 700; }
+        .adm-prod-dot.on { color: #3CC8A1; }
+        .adm-prod-dot.off { color: #555566; }
+        .adm-prod-sku { font-size: 9px; color: #444455; }
+        .adm-prod-name { font-size: 11px; font-weight: 700; color: #e8e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; margin-bottom: 3px; }
+        .adm-prod-price { font-size: 12px; color: #3CC8A1; font-weight: 700; }
+        .adm-prod-discount { font-size: 10px; color: #888899; margin-left: 4px; }
+        .adm-prod-tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 5px; }
+        .adm-prod-tag { font-size: 9px; background: rgba(60,200,161,0.1); color: #3CC8A1; border-radius: 4px; padding: 1px 5px; white-space: nowrap; }
+        @media (min-width: 600px) {
+          .adm-prod-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+          .adm-prod-name { font-size: 12px; }
+        }
+        @media (min-width: 900px) {
+          .adm-prod-grid { grid-template-columns: repeat(4, 1fr); }
+        }
       `}</style>
       <div style={styles.header}>
         <button style={styles.burgerBtn} onClick={() => setMenuOpen(true)} aria-label="Открыть меню">
@@ -822,85 +875,41 @@ function AdminPage() {
           </div>
 
           {currentCatalog && (
-            <div style={styles.productList}>
-              {currentCatalog.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    ...styles.productRow,
-                    opacity: item.enabled ? 1 : 0.5,
-                  }}
-                >
-                  <div style={styles.productInfo}>
-                    <span style={styles.productName}>{item.name}</span>
-                    {item.sku && <span style={styles.sku}>SKU: {item.sku}</span>}
-                  </div>
-
-                  <div style={styles.productActions}>
-                    {editingItem?.catalogId === currentCatalog.id && editingItem?.index === idx ? (
-                      <div style={styles.editRow}>
-                        <input
-                          type="number"
-                          value={editingItem.price}
-                          onChange={e => setEditingItem({ ...editingItem, price: e.target.value })}
-                          style={styles.priceInput}
-                          min="0"
-                        />
-                        <button
-                          onClick={() => saveItem(currentCatalog.id, idx, { price: Number(editingItem.price) })}
-                          style={styles.btnSave}
-                          disabled={saving}
-                        >
-                          {saving ? '...' : 'OK'}
-                        </button>
-                        <button onClick={() => setEditingItem(null)} style={styles.btnCancel}>X</button>
-                      </div>
-                    ) : (
-                      <span
-                        style={styles.price}
-                        onClick={() => setEditingItem({ catalogId: currentCatalog.id, index: idx, price: item.price })}
-                        title="Нажмите для редактирования"
-                      >
-                        {item.price} &#8381;
+            <div className="adm-prod-grid">
+              {currentCatalog.items.map((item, idx) => {
+                const inUpsell = upsellSkus.includes(String(item.sku));
+                const inPromo = promoGiftSkus.includes(String(item.sku));
+                const inThreshold = thresholdGiftSkus.includes(String(item.sku));
+                return (
+                  <button
+                    key={idx}
+                    className={`adm-prod-card${!item.enabled ? ' off' : ''}`}
+                    onClick={() => {
+                      setSelectedProduct({ catalogId: currentCatalog.id, index: idx, item });
+                      setEditingProduct({ price: String(item.price ?? ''), discount: item.discount != null ? String(item.discount) : '' });
+                    }}
+                  >
+                    <div className="adm-prod-status">
+                      <span className={`adm-prod-dot ${item.enabled ? 'on' : 'off'}`}>
+                        {item.enabled ? '● вкл' : '○ выкл'}
                       </span>
-                    )}
-
-                    <button
-                      style={item.enabled ? styles.toggleOn : styles.toggleOff}
-                      onClick={() => toggleEnabled(currentCatalog.id, idx, item.enabled)}
-                      disabled={saving}
-                    >
-                      {item.enabled ? 'ВКЛ' : 'ВЫКЛ'}
-                    </button>
-                  </div>
-
-                  {item.sku && (
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-                      <button
-                        style={upsellSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
-                        onClick={() => toggleUpsell(item.sku, upsellSkus.includes(String(item.sku)))}
-                        disabled={upsellSaving === String(item.sku)}
-                      >
-                        {upsellSaving === String(item.sku) ? '...' : (upsellSkus.includes(String(item.sku)) ? '★ Допрод' : '☆ Допрод')}
-                      </button>
-                      <button
-                        style={promoGiftSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
-                        onClick={() => toggleGift(item.sku, 'promo', promoGiftSkus.includes(String(item.sku)))}
-                        disabled={giftSaving === `promo-${item.sku}`}
-                      >
-                        {giftSaving === `promo-${item.sku}` ? '...' : (promoGiftSkus.includes(String(item.sku)) ? '🎁P ✓' : '🎁P')}
-                      </button>
-                      <button
-                        style={thresholdGiftSkus.includes(String(item.sku)) ? styles.upsellOn : styles.upsellOff}
-                        onClick={() => toggleGift(item.sku, 'threshold', thresholdGiftSkus.includes(String(item.sku)))}
-                        disabled={giftSaving === `threshold-${item.sku}`}
-                      >
-                        {giftSaving === `threshold-${item.sku}` ? '...' : (thresholdGiftSkus.includes(String(item.sku)) ? '🎁T ✓' : '🎁T')}
-                      </button>
+                      {item.sku && <span className="adm-prod-sku">#{item.sku}</span>}
                     </div>
-                  )}
-                </div>
-              ))}
+                    <div className="adm-prod-name">{item.name}</div>
+                    <div>
+                      <span className="adm-prod-price">{item.price} ₽</span>
+                      {item.discount != null && <span className="adm-prod-discount">−{item.discount}%</span>}
+                    </div>
+                    {(inUpsell || inPromo || inThreshold) && (
+                      <div className="adm-prod-tags">
+                        {inUpsell && <span className="adm-prod-tag">допрод</span>}
+                        {inPromo && <span className="adm-prod-tag">🎁 промо</span>}
+                        {inThreshold && <span className="adm-prod-tag">🎁 авто</span>}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -2076,6 +2085,148 @@ function AdminPage() {
           {tab === id && <span style={{ fontSize: 14, color: AP.accent, fontWeight: 700 }}>✓</span>}
         </button>
       ))}
+    </div>
+  </>
+)}
+
+{/* ─── Шторка товара ─── */}
+{selectedProduct && (
+  <>
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 198, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+      onClick={() => setSelectedProduct(null)}
+    />
+    <div style={{ ...styles.userSheet, zIndex: 199 }}>
+      <div style={styles.menuHandle} />
+
+      <div style={styles.sheetHeader}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: AP.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {selectedProduct.item.name}
+          </div>
+          {selectedProduct.item.sku && (
+            <div style={{ fontSize: 11, color: AP.muted, marginTop: 2 }}>SKU #{selectedProduct.item.sku}</div>
+          )}
+        </div>
+        <button style={styles.sheetClose} onClick={() => setSelectedProduct(null)}>✕</button>
+      </div>
+
+      {/* Вкл / Выкл */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>⚡ Статус</div>
+        <button
+          style={{
+            width: '100%', padding: '14px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 15,
+            background: selectedProduct.item.enabled ? 'rgba(255,77,106,0.12)' : 'rgba(60,200,161,0.12)',
+            color: selectedProduct.item.enabled ? AP.danger : AP.accent,
+            boxShadow: selectedProduct.item.enabled ? NEU.danger : NEU.tealSm,
+          }}
+          disabled={saving}
+          onClick={() => {
+            toggleEnabled(selectedProduct.catalogId, selectedProduct.index, selectedProduct.item.enabled);
+          }}
+        >
+          {saving ? '...' : (selectedProduct.item.enabled ? '○ Выключить товар' : '● Включить товар')}
+        </button>
+      </div>
+
+      {/* Цена */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>💰 Цена</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="number"
+            value={editingProduct.price}
+            onChange={e => setEditingProduct(p => ({ ...p, price: e.target.value }))}
+            style={{ ...styles.priceInput, flex: 1, fontSize: 16, padding: '10px 12px' }}
+            min="0"
+            placeholder="Цена ₽"
+          />
+          <button
+            style={{ ...styles.btnSave, padding: '10px 18px', fontSize: 14 }}
+            disabled={saving}
+            onClick={() => saveItem(selectedProduct.catalogId, selectedProduct.index, { price: Number(editingProduct.price) }).then(ok => ok && showToast('Цена сохранена'))}
+          >
+            {saving ? '...' : 'Сохранить'}
+          </button>
+        </div>
+      </div>
+
+      {/* Скидка */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>🏷 Скидка (%)</div>
+        <div style={{ fontSize: 12, color: AP.muted, marginBottom: 8 }}>
+          Индивидуальная скидка на этот товар. Категорийная скидка (роллы −30%, сеты −20%) применяется если скидка не задана.
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="number"
+            value={editingProduct.discount}
+            onChange={e => setEditingProduct(p => ({ ...p, discount: e.target.value }))}
+            style={{ ...styles.priceInput, flex: 1, fontSize: 16, padding: '10px 12px' }}
+            min="0"
+            max="99"
+            placeholder="напр. 25"
+          />
+          <button
+            style={{ ...styles.btnSave, padding: '10px 18px', fontSize: 14 }}
+            disabled={saving}
+            onClick={() => saveItem(selectedProduct.catalogId, selectedProduct.index, {
+              discount: editingProduct.discount === '' ? null : Number(editingProduct.discount)
+            }).then(ok => ok && showToast('Скидка сохранена'))}
+          >
+            {saving ? '...' : 'Сохранить'}
+          </button>
+        </div>
+        {selectedProduct.item.discount != null && (
+          <button
+            style={{ marginTop: 8, background: 'none', border: 'none', color: AP.muted, fontSize: 12, cursor: 'pointer', padding: '4px 0' }}
+            onClick={() => saveItem(selectedProduct.catalogId, selectedProduct.index, { discount: null }).then(ok => {
+              if (ok) { setEditingProduct(p => ({ ...p, discount: '' })); showToast('Скидка сброшена'); }
+            })}
+          >
+            × Сбросить индивидуальную скидку
+          </button>
+        )}
+      </div>
+
+      {/* Допродажи и подарки */}
+      {selectedProduct.item.sku && (
+        <div style={styles.sheetSection}>
+          <div style={styles.sheetSectionTitle}>⭐ Роль товара</div>
+          <div style={styles.giftBtnsGrid}>
+            {(() => {
+              const sku = String(selectedProduct.item.sku);
+              const inUpsell = upsellSkus.includes(sku);
+              const inPromo = promoGiftSkus.includes(sku);
+              const inThreshold = thresholdGiftSkus.includes(sku);
+              return (<>
+                <button
+                  style={inUpsell ? styles.giftBtnAdd : styles.giftBtnRemove}
+                  disabled={upsellSaving === sku}
+                  onClick={() => toggleUpsell(selectedProduct.item.sku, inUpsell)}
+                >
+                  {upsellSaving === sku ? '...' : (inUpsell ? '★ Допродажа ✓' : '☆ Допродажа')}
+                </button>
+                <button
+                  style={inPromo ? styles.giftBtnAdd : styles.giftBtnRemove}
+                  disabled={giftSaving === `promo-${sku}`}
+                  onClick={() => toggleGift(selectedProduct.item.sku, 'promo', inPromo)}
+                >
+                  {giftSaving === `promo-${sku}` ? '...' : (inPromo ? '🎁 Промо ✓' : '🎁 Промо-подарок')}
+                </button>
+                <button
+                  style={inThreshold ? styles.giftBtnAdd : styles.giftBtnRemove}
+                  disabled={giftSaving === `threshold-${sku}`}
+                  onClick={() => toggleGift(selectedProduct.item.sku, 'threshold', inThreshold)}
+                >
+                  {giftSaving === `threshold-${sku}` ? '...' : (inThreshold ? '🎁 Авто ✓' : '🎁 Авто-подарок')}
+                </button>
+              </>);
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   </>
 )}
