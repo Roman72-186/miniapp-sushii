@@ -257,7 +257,7 @@ function LoginPage() {
           <div style={{ marginTop: 12, fontSize: 20, fontWeight: 700, color: '#fff' }}>
             Суши-Хаус 39
           </div>
-          <div style={{ marginTop: 4, fontSize: 14, color: '#9fb0c3' }}>{subtitle}</div>
+          <div style={{ marginTop: 4, fontSize: 14, color: '#71717A' }}>{subtitle}</div>
         </div>
 
         {/* ШАГ 1: Телефон */}
@@ -285,7 +285,7 @@ function LoginPage() {
                 onChange={e => setPdnConsent(e.target.checked)}
                 style={{ marginTop: 2, accentColor: '#3CC8A1', width: 16, height: 16, flexShrink: 0, cursor: 'pointer' }}
               />
-              <label htmlFor="pdn-consent" style={{ fontSize: 12, color: '#9fb0c3', lineHeight: '1.5', cursor: 'pointer' }}>
+              <label htmlFor="pdn-consent" style={{ fontSize: 12, color: '#71717A', lineHeight: '1.5', cursor: 'pointer' }}>
                 Я согласен(а) с{' '}
                 <a href="https://sushi-house.zenky.app/legal/personal-data-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#3CC8A1' }}>
                   политикой обработки персональных данных
@@ -312,7 +312,7 @@ function LoginPage() {
         {step === 'password' && (
           <form onSubmit={handleLoginPassword}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14 }}>
+              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14 }}>
                 Номер: <span style={{ color: '#fff', fontWeight: 600 }}>+{normalizePhone(phone)}</span>
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
@@ -349,7 +349,7 @@ function LoginPage() {
             </div>
             <button
               type="button"
-              style={{ background: 'none', border: 'none', color: '#9fb0c3', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
+              style={{ background: 'none', border: 'none', color: '#71717A', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
               onClick={() => { setStep('phone'); setError(''); setPassword(''); }}
             >
               ← Изменить номер
@@ -361,7 +361,7 @@ function LoginPage() {
         {step === 'email' && (
           <form onSubmit={handleSendEmail}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14, lineHeight: 1.5 }}>
+              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14, lineHeight: 1.5 }}>
                 Введите email — мы отправим код подтверждения
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
@@ -388,7 +388,7 @@ function LoginPage() {
             </button>
             <button
               type="button"
-              style={{ background: 'none', border: 'none', color: '#9fb0c3', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
+              style={{ background: 'none', border: 'none', color: '#71717A', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
               onClick={() => { setStep('phone'); setError(''); }}
             >
               ← Изменить номер
@@ -400,7 +400,7 @@ function LoginPage() {
         {step === 'otp' && (
           <form onSubmit={handleOtpNext}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14, lineHeight: 1.5 }}>
+              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14, lineHeight: 1.5 }}>
                 Мы отправили 4-значный код на{' '}
                 <span style={{ color: '#fff', fontWeight: 600 }}>{email}</span>
               </div>
@@ -435,7 +435,7 @@ function LoginPage() {
 
             <div style={{ textAlign: 'center', marginTop: 14 }}>
               {resendIn > 0 ? (
-                <span style={{ fontSize: 13, color: '#9fb0c3' }}>
+                <span style={{ fontSize: 13, color: '#71717A' }}>
                   Отправить повторно через {resendIn} сек.
                 </span>
               ) : (
@@ -452,7 +452,7 @@ function LoginPage() {
 
             <button
               type="button"
-              style={{ background: 'none', border: 'none', color: '#9fb0c3', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
+              style={{ background: 'none', border: 'none', color: '#71717A', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
               onClick={() => { setStep('email'); setError(''); setCode(''); }}
             >
               ← Изменить email
@@ -464,7 +464,7 @@ function LoginPage() {
         {step === 'set-password' && (
           <form onSubmit={handleSetPassword}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#9fb0c3', fontSize: 14 }}>
+              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14 }}>
                 Создайте пароль для быстрого входа в следующий раз
               </div>
               {isNewUser && (
@@ -520,7 +520,7 @@ function LoginPage() {
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 24, paddingBottom: 24 }}>
-        <span style={{ fontSize: 13, color: '#9fb0c3' }}>Нужна помощь? </span>
+        <span style={{ fontSize: 13, color: '#71717A' }}>Нужна помощь? </span>
         <a
           href="https://t.me/roman_chatbots"
           target="_blank"
