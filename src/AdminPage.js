@@ -738,49 +738,50 @@ function AdminPage() {
       <style>{`
         .adm-user-grid {
           display: grid;
-          grid-template-columns: 1fr;
-          gap: 8px;
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
           margin-top: 10px;
+          width: 100%;
+          box-sizing: border-box;
         }
         .adm-user-card {
           display: flex;
-          flex-direction: row;
-          align-items: center;
-          gap: 12px;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
           background: #202024;
           border: none;
-          border-radius: 14px;
-          padding: 12px 14px;
+          border-radius: 12px;
+          padding: 10px;
           cursor: pointer;
           text-align: left;
-          box-shadow: 6px 6px 16px #111113, -4px -4px 12px #2c2c30;
+          box-shadow: 4px 4px 10px #111113, -2px -2px 8px #2c2c30;
           width: 100%;
-          min-height: 68px;
+          min-height: 0;
           transition: transform 0.12s;
           box-sizing: border-box;
+          overflow: hidden;
           font-family: "Montserrat", "Segoe UI", Arial, sans-serif;
         }
         .adm-user-card:active { transform: scale(0.97); }
         .adm-user-avatar {
-          width: 44px; height: 44px; border-radius: 50%;
+          width: 32px; height: 32px; border-radius: 50%;
           background: rgba(60,200,161,0.15); color: #3CC8A1;
           display: flex; align-items: center; justify-content: center;
-          font-size: 18px; font-weight: 700; flex-shrink: 0;
+          font-size: 14px; font-weight: 700; flex-shrink: 0;
+          margin-bottom: 2px;
         }
-        .adm-user-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-        .adm-user-name { font-size: 14px; font-weight: 700; color: #e8e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .adm-user-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-        .adm-user-phone, .adm-user-date { font-size: 11px; color: #888899; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .adm-user-arrow { font-size: 16px; color: #555566; flex-shrink: 0; }
-        @media (min-width: 480px) {
-          .adm-user-grid { grid-template-columns: 1fr 1fr; }
-          .adm-user-card { flex-direction: column; align-items: flex-start; min-height: 110px; }
-          .adm-user-arrow { display: none; }
+        .adm-user-info { width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .adm-user-name { font-size: 12px; font-weight: 700; color: #e8e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+        .adm-user-meta { display: flex; gap: 4px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
+        .adm-user-phone { font-size: 10px; color: #888899; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+        .adm-user-date { font-size: 10px; color: #888899; white-space: nowrap; }
+        .adm-user-arrow { display: none; }
+        @media (min-width: 600px) {
+          .adm-user-grid { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+          .adm-user-name { font-size: 13px; }
         }
-        @media (min-width: 768px) {
-          .adm-user-grid { grid-template-columns: 1fr 1fr 1fr; }
-        }
-        @media (min-width: 1100px) {
+        @media (min-width: 900px) {
           .adm-user-grid { grid-template-columns: repeat(4, 1fr); }
         }
       `}</style>
@@ -956,15 +957,14 @@ function AdminPage() {
                 <div className="adm-user-info">
                   <div className="adm-user-name">{s.first_name || s.name || 'Без имени'}</div>
                   <div className="adm-user-meta">
-                    <span style={styles.tariffBadge(s.tariff)}>{s.tariff}₽</span>
-                    <span style={{ fontSize: 10, color: s.subscription_status === 'активно' ? AP.accent : AP.muted }}>
-                      {s.subscription_status === 'активно' ? '● акт' : '○ неакт'}
+                    <span style={{ ...styles.tariffBadge(s.tariff), fontSize: 9, padding: '1px 5px' }}>{s.tariff}₽</span>
+                    <span style={{ fontSize: 9, color: s.subscription_status === 'активно' ? AP.accent : AP.muted }}>
+                      {s.subscription_status === 'активно' ? '●' : '○'}
                     </span>
                   </div>
                   {s.phone && <div className="adm-user-phone">{s.phone}</div>}
                   {s.subscription_end && <div className="adm-user-date">до {s.subscription_end}</div>}
                 </div>
-                <span className="adm-user-arrow">›</span>
               </button>
             ))}
           </div>
