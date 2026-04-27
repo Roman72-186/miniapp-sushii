@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useUser } from './UserContext';
 import { useCart } from './hooks/useFrontpad';
 import BrandLoader from './components/BrandLoader';
+import SkeletonGrid from './components/SkeletonGrid';
 import { getProductImage } from './config/imageMap';
 import { getProductDescription } from './config/descriptionMap';
 import ShopProductCard from './components/ShopProductCard';
@@ -672,7 +673,7 @@ function DiscountShopPage() {
           {cart.count > 0 && (
             <button className="shop-header__cart" onClick={() => setShowCart(true)}>
               <span className="shop-header__cart-icon">🛒</span>
-              <span className="shop-header__cart-badge">{cart.count}</span>
+              <span className="shop-header__cart-badge" key={cart.count}>{cart.count}</span>
             </button>
           )}
         </div>
@@ -789,7 +790,7 @@ function DiscountShopPage() {
       </nav>}
 
       {loading ? (
-        <BrandLoader text="Загружаем меню" />
+        <SkeletonGrid count={6} />
       ) : error ? (
         <div className="shop-error">
           <span className="shop-error__text">{error}</span>
@@ -881,7 +882,7 @@ function DiscountShopPage() {
       <button className="shop-cart-fab" onClick={() => setShowCart(true)}>
         <span className="shop-cart-fab__left">
           <span>🛒</span>
-          <span className="shop-cart-fab__badge">{cart.count}</span>
+          <span className="shop-cart-fab__badge" key={cart.count}>{cart.count}</span>
           <span>Оформить</span>
         </span>
         <span className="shop-cart-fab__total">{cart.total}₽</span>

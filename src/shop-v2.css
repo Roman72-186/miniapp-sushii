@@ -176,6 +176,7 @@ body.shop-body { background: #0F0F11 !important; }
   min-width: 20px;
   height: 20px;
   border-radius: 10px;
+  animation: v3-badge-bump 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
   font-size: 11px;
   font-weight: 800;
   display: flex;
@@ -1206,3 +1207,169 @@ body.shop-body { background: #0F0F11 !important; }
 .shop-landing__card:hover { border-color: var(--v3-border-strong); }
 .shop-landing__card-price { font-size: 16px; font-weight: 700; color: var(--v3-text); }
 .shop-landing__card-desc { font-size: 13px; color: var(--v3-muted); margin-top: 4px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   АНИМАЦИИ — Linear V3 micro-interactions (2026-04-27)
+   Принципы: transform/opacity only, ease-out, 150–280ms,
+   prefers-reduced-motion guard внизу блока.
+═══════════════════════════════════════════════════════════════ */
+
+/* --- Keyframes --- */
+
+@keyframes v3-slide-up {
+  from { transform: translateX(-50%) translateY(32px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
+@keyframes v3-fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes v3-counter-in {
+  from { opacity: 0; transform: scale(0.82); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes v3-badge-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); }
+  65%  { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+
+@keyframes v3-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+/* --- Slide-up для модалок профиля --- */
+.pf-modal {
+  animation: v3-slide-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Edit-profile modal */
+.edit-profile-modal__content {
+  animation: v3-slide-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --- Landing: карточки тарифов — lift on hover --- */
+.shop-landing__card {
+  transition: border-color 0.15s ease-out, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.shop-landing__card:hover {
+  transform: translateY(-3px);
+  border-color: var(--v3-border-strong);
+}
+.shop-landing__card:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.08s;
+}
+
+/* --- Quick-кнопки профиля: press feedback --- */
+.pf-quick__btn:hover { border-color: var(--v3-border-strong); }
+.pf-quick__btn:active { transform: scale(0.95); opacity: 0.8; transition-duration: 0.08s !important; }
+
+/* --- Кнопки в pf-modal: press feedback --- */
+.pf-modal__tariff-btn:hover { border-color: var(--v3-border-strong); }
+.pf-modal__tariff-btn:active { transform: scale(0.98); transition-duration: 0.08s !important; }
+.pf-modal__month-btn:active  { transform: scale(0.97); transition-duration: 0.08s !important; }
+
+/* --- Счётчик товара: появляется с поп-анимацией --- */
+.shop-card__counter {
+  animation: v3-counter-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --- FAB badge: bump при изменении числа --- */
+.shop-cart-fab__badge {
+  animation: v3-badge-bump 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* --- Skeleton card (шиммер-лоадер для сетки товаров) --- */
+.shop-skeleton-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 12px;
+}
+.shop-skeleton-card {
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--v3-surface);
+  border: 1px solid var(--v3-border);
+}
+.shop-skeleton-card__image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(
+    90deg,
+    var(--v3-surface) 25%,
+    var(--v3-raise)   50%,
+    var(--v3-surface) 75%
+  );
+  background-size: 400px 100%;
+  animation: v3-shimmer 1.4s ease-in-out infinite;
+}
+.shop-skeleton-card__body {
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.shop-skeleton-card__line {
+  border-radius: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--v3-surface) 25%,
+    var(--v3-raise)   50%,
+    var(--v3-surface) 75%
+  );
+  background-size: 400px 100%;
+  animation: v3-shimmer 1.4s ease-in-out infinite;
+}
+.shop-skeleton-card__line--title  { height: 12px; width: 80%; }
+.shop-skeleton-card__line--price  { height: 14px; width: 50%; margin-top: 4px; }
+.shop-skeleton-card__line--btn    { height: 30px; width: 100%; border-radius: 8px; margin-top: 6px; }
+
+/* задержки между карточками */
+.shop-skeleton-card:nth-child(2) .shop-skeleton-card__image,
+.shop-skeleton-card:nth-child(2) .shop-skeleton-card__line {
+  animation-delay: 0.15s;
+}
+.shop-skeleton-card:nth-child(3) .shop-skeleton-card__image,
+.shop-skeleton-card:nth-child(3) .shop-skeleton-card__line {
+  animation-delay: 0.05s;
+}
+.shop-skeleton-card:nth-child(4) .shop-skeleton-card__image,
+.shop-skeleton-card:nth-child(4) .shop-skeleton-card__line {
+  animation-delay: 0.2s;
+}
+
+/* --- Profile page sections: fade-in-up при появлении --- */
+.pf-accordion__item {
+  animation: v3-fade-in-up 0.22s ease-out both;
+}
+.pf-accordion__item:nth-child(2) { animation-delay: 0.06s; }
+.pf-accordion__item:nth-child(3) { animation-delay: 0.12s; }
+.pf-accordion__item:nth-child(4) { animation-delay: 0.18s; }
+.pf-accordion__item:nth-child(5) { animation-delay: 0.24s; }
+
+/* --- Prefers-reduced-motion guard --- */
+@media (prefers-reduced-motion: reduce) {
+  .pf-modal,
+  .edit-profile-modal__content,
+  .shop-skeleton-card__image,
+  .shop-skeleton-card__line,
+  .shop-cart-fab__badge,
+  .shop-card__counter,
+  .pf-accordion__item {
+    animation: none !important;
+  }
+  .shop-landing__card,
+  .pf-quick__btn,
+  .pf-modal__tariff-btn,
+  .pf-modal__month-btn {
+    transition: border-color 0.15s ease-out !important;
+    transform: none !important;
+  }
+}

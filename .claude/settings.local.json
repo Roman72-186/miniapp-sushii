@@ -68,7 +68,11 @@
       "Bash(\"/c/Program Files/PuTTY/plink\" -ssh -pw 'kMy1QZ-zkfgJr_' root@64.188.63.249 \"echo connected\")",
       "Bash([ -s \"$OUT\" ])",
       "Bash([ -f \"$OUTFILE\" ])",
-      "Bash(plink *)"
+      "Bash(plink *)",
+      "PowerShell($env:PYTHONIOENCODING = 'utf-8'; cd \"C:\\\\Users\\\\User\\\\.claude\\\\skills\\\\ui-ux-pro-max\"; python scripts/search.py \"sushi restaurant food delivery subscription dark app\" --design-system -p \"Sushi House\" -f markdown 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING = 'utf-8'; cd \"C:\\\\Users\\\\User\\\\.claude\\\\skills\\\\ui-ux-pro-max\"; python scripts/search.py \"animation micro-interaction loading transition scroll reveal\" --domain ux -n 12 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING = 'utf-8'; cd \"C:\\\\Users\\\\User\\\\.claude\\\\skills\\\\ui-ux-pro-max\"; python scripts/search.py \"dark food delivery subscription mobile\" --domain style -n 6 2>&1)",
+      "Bash(grep -v \"//\")"
     ]
   }
 }
