@@ -65,7 +65,11 @@ Standalone веб-приложение для суши-ресторана. React
 --v3-text:    #E8E8E8   /* основной текст */
 --v3-muted:   #71717A   /* приглушённый текст */
 ```
-Принципы дизайна: flat (без теней — kill switch `box-shadow: none !important`), Manrope (Google Fonts в `index.html`), анимации 150ms ease-out. `shop-v2.css` разбит на фазы: Phase 1 — base/shop/cart, Phase 2 — header/tabs/search/forms, Phase 3 — `pf-*` профиль/логин/лендинг. `wordle.css` переведён на те же токены отдельно. Клавиатура Wordle использует **iOS dark** (`#1c1c1e`/`#6b6b6d`/`#0a84ff`) — не меняется при редизайне.
+Принципы дизайна: flat (без теней — kill switch `box-shadow: none !important`), Manrope (Google Fonts в `index.html`), анимации 150ms ease-out. `shop-v2.css` разбит на фазы: Phase 1 — base/shop/cart, Phase 2 — header/tabs/search/forms, Phase 3 — `pf-*` профиль/логин/лендинг, АНИМАЦИИ — 7 keyframes (v3-slide-up, v3-fade-in-up, v3-counter-in, v3-badge-bump, v3-shimmer + применения для модалок, счётчика товаров, FAB/header badge, skeleton, аккордеона) + `@media (prefers-reduced-motion: reduce)` guards. `wordle.css` переведён на те же токены отдельно. Клавиатура Wordle использует **iOS dark** (`#1c1c1e`/`#6b6b6d`/`#0a84ff`) — не меняется при редизайне.
+
+**SkeletonGrid** (`src/components/SkeletonGrid.js`) — шиммер-карточки для загрузки меню в `DiscountShopPage`. Использовать вместо `BrandLoader` когда известна структура сетки. `BrandLoader` остался только для gift-категорий (full-screen view). FAB-badge и header-badge в `DiscountShopPage` используют `key={cart.count}` для триггера bump-анимации при изменении числа товаров.
+
+**Незакрытый TODO**: аккордеон expand/collapse в `ProfilePage` — анимация высоты не реализована (нужна JS-контролируемая `max-height`). Не добавлять CSS-only решение — не работает с динамическим контентом.
 
 **Backend** (`server.js` + `api/`): Express on port 3001. API handlers as individual files in `api/`. Shared utilities in `api/_lib/`.
 

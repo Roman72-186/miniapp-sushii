@@ -63,6 +63,10 @@ app.get('/api/gift-items', require('./api/gift-items'));
 app.post('/api/admin/promo-gift-toggle', require('./api/admin/promo-gift-toggle'));
 app.post('/api/admin/threshold-gift-toggle', require('./api/admin/threshold-gift-toggle'));
 
+// Stores config + admin
+app.get('/api/stores-config', require('./api/stores-config'));
+app.all('/api/admin/stores', require('./api/admin-stores'));
+
 // Game API
 app.post('/api/game-guess', require('./api/game-guess'));
 app.get('/api/game-stats', require('./api/game-stats'));

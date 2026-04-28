@@ -78,6 +78,11 @@ function AdminPage() {
   const [pricingLoading, setPricingLoading] = useState(false);
   const [pricingSaving, setPricingSaving] = useState(false);
 
+  // Stores state
+  const [storesState, setStoresState] = useState(null);
+  const [storesLoading, setStoresLoading] = useState(false);
+  const [storesSaving, setStoresSaving] = useState(null);
+
   // Add user state
   const [addName, setAddName] = useState('');
   const [addPhone, setAddPhone] = useState('');
@@ -107,6 +112,31 @@ function AdminPage() {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
   }), [token]);
+
+  const loadStores = useCallback(async () => {
+    setStoresLoading(true);
+    try {
+      const res = await fetch('/api/admin/stores', { headers: headers() });
+      const data = await res.json();
+      if (data.success) setStoresState(data);
+    } catch (_) {}
+    setStoresLoading(false);
+  }, [headers]);
+
+  const toggleStore = async (pointId, current) => {
+    setStoresSaving(String(pointId));
+    try {
+      const res = await fetch('/api/admin/stores', {
+        method: 'PUT',
+        headers: headers(),
+        body: JSON.stringify({ pointId: String(pointId), enabled: !current }),
+      });
+      const data = await res.json();
+      if (data.success) { await loadStores(); showToast(data.enabled ? 'Точка включена' : 'Точка выключена'); }
+      else showToast(data.error || 'Ошибка', 'error');
+    } catch (_) { showToast('Ошибка сети', 'error'); }
+    setStoresSaving(null);
+  };
 
   // Проверка токена при загрузке
   useEffect(() => {
@@ -267,6 +297,7 @@ function AdminPage() {
     if (loggedIn && tab === 'stats') loadStats();
     if (loggedIn && tab === 'orders') loadGiftOrders();
     if (loggedIn && tab === 'referrals') loadReferralData();
+    if (loggedIn && tab === 'stores') loadStores();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -2048,6 +2079,72 @@ function AdminPage() {
         </div>
       )}
 
+{/* ─── Stores Tab ─── */}
+      {tab === 'stores' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+            <span style={{ color: AP.text, fontWeight: 700, fontSize: 14 }}>📍 Точки самовывоза</span>
+            <button style={styles.btnSmall} onClick={loadStores} disabled={storesLoading}>
+              {storesLoading ? '...' : '↺ Обновить'}
+            </button>
+          </div>
+
+          <p style={{ ...styles.muted, marginBottom: 16, fontSize: 12 }}>
+            Выключенные точки не отображаются в форме заказа. Изменения вступают в силу сразу.
+          </p>
+
+          {!storesState && !storesLoading && (
+            <p style={styles.muted}>Нажмите «Обновить» для загрузки</p>
+          )}
+          {storesLoading && <p style={styles.muted}>Загрузка...</p>}
+
+          {storesState && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { id: '1', address: 'ул. Ю.Гагарина, д. 16Б' },
+                { id: '2', address: 'ул. Согласия, д. 46' },
+                { id: '3', address: 'ул. Автомобильная, д. 12Б' },
+                { id: '4', address: 'Гурьевск' },
+              ].map(({ id, address }) => {
+                const enabled = storesState.points[id] !== false;
+                const isSaving = storesSaving === id;
+                return (
+                  <div
+                    key={id}
+                    style={{
+                      ...styles.subCard,
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '14px 16px', gap: 12,
+                      opacity: enabled ? 1 : 0.55,
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: AP.text }}>{address}</div>
+                      <div style={{ fontSize: 12, color: enabled ? AP.accent : AP.danger, marginTop: 2 }}>
+                        {enabled ? '● Работает' : '○ Выключена'}
+                      </div>
+                    </div>
+                    <button
+                      disabled={isSaving}
+                      onClick={() => toggleStore(id, enabled)}
+                      style={{
+                        padding: '9px 18px', borderRadius: 10, border: 'none', cursor: isSaving ? 'default' : 'pointer',
+                        fontWeight: 700, fontSize: 13,
+                        background: enabled ? 'rgba(255,77,106,0.12)' : 'rgba(60,200,161,0.12)',
+                        color: enabled ? AP.danger : AP.accent,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isSaving ? '...' : (enabled ? 'Выключить' : 'Включить')}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
 {/* ─── Бургер меню ─── */}
 {menuOpen && (
   <>
@@ -2071,6 +2168,7 @@ function AdminPage() {
         { id: 'referrals',    emoji: '🔗', label: 'Рефералы',              sub: 'Топ и история SHC' },
         { id: 'add',          emoji: '👤', label: 'Добавить пользователя', sub: 'Ручное добавление' },
         { id: 'add-product',  emoji: '➕', label: 'Добавить товар',        sub: 'Новая позиция в каталоге' },
+        { id: 'stores',       emoji: '📍', label: 'Точки самовывоза',      sub: 'Включить / выключить точки' },
       ].map(({ id, emoji, label, sub }) => (
         <button
           key={id}
