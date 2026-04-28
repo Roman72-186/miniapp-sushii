@@ -65,6 +65,7 @@ function AdminPage() {
   // UI state
   const [expandedActions, setExpandedActions] = useState(new Set());
   const [menuOpen, setMenuOpen] = useState(false);
+  const [catalogMenuOpen, setCatalogMenuOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [toasts, setToasts] = useState([]);
 
@@ -772,6 +773,7 @@ function AdminPage() {
     referrals:     '🔗 Рефералы',
     add:           '👤 Добавить пользователя',
     'add-product': '➕ Добавить товар',
+    stores:        '📍 Точки самовывоза',
   };
 
   return (
@@ -887,17 +889,20 @@ function AdminPage() {
       {tab === 'products' && (
         <div>
           {/* Catalog selector */}
-          <div style={styles.catalogTabs}>
-            {catalogs.map(cat => (
-              <button
-                key={cat.id}
-                style={activeCatalog === cat.id ? styles.catBtnActive : styles.catBtn}
-                onClick={() => setActiveCatalog(cat.id)}
-              >
-                {cat.name} ({cat.itemCount})
-              </button>
-            ))}
-          </div>
+          {catalogs.length > 0 && (
+            <button
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', padding: '10px 14px', marginBottom: 10,
+                background: AP.surface, border: `1px solid ${AP.border}`,
+                borderRadius: 12, cursor: 'pointer', color: AP.text, fontWeight: 700, fontSize: 14,
+              }}
+              onClick={() => setCatalogMenuOpen(true)}
+            >
+              <span>{catalogs.find(c => c.id === activeCatalog)?.name || 'Выберите каталог'}</span>
+              <span style={{ fontSize: 12, color: AP.muted }}>▾ сменить</span>
+            </button>
+          )}
 
           {productsLoading && <p style={styles.muted}>Загрузка...</p>}
 
@@ -2143,6 +2148,35 @@ function AdminPage() {
             </div>
           )}
         </div>
+      )}
+
+{/* ─── Шторка выбора каталога ─── */}
+      {catalogMenuOpen && (
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 198, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setCatalogMenuOpen(false)}
+          />
+          <div style={styles.menuSheet}>
+            <div style={styles.menuHandle} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: AP.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8, paddingLeft: 4 }}>
+              Каталог
+            </div>
+            {catalogs.map(({ id, name, itemCount }) => (
+              <button
+                key={id}
+                style={activeCatalog === id ? styles.menuItemActive : styles.menuItem}
+                onClick={() => { setActiveCatalog(id); setCatalogMenuOpen(false); }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: activeCatalog === id ? AP.accent : AP.text }}>{name}</span>
+                  <span style={{ fontSize: 12, color: AP.muted, marginTop: 1 }}>{itemCount} товаров</span>
+                </div>
+                {activeCatalog === id && <span style={{ fontSize: 14, color: AP.accent, fontWeight: 700 }}>✓</span>}
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
 {/* ─── Бургер меню ─── */}
