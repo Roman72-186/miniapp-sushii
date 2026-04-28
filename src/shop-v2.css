@@ -1118,11 +1118,11 @@ body.shop-body { background: #0F0F11 !important; }
 }
 
 .shop-page .shop-card__image {
-  transform: scale(1.0);
+  transform: scale(1.12);
   transition: transform 0.3s ease-out !important;
 }
 .shop-page .shop-card:hover .shop-card__image {
-  transform: scale(1.08);
+  transform: scale(1.22);
 }
 @media (prefers-reduced-motion: reduce) {
   .shop-page .shop-card__image { transition: none !important; }
