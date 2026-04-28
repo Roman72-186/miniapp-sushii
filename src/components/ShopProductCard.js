@@ -1,5 +1,3 @@
-// src/components/ShopProductCard.js — Карточка товара для магазина (тёмная тема)
-
 import React from 'react';
 
 function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity, onImageClick }) {
@@ -16,27 +14,7 @@ function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity, onImageCl
           alt={product.cleanName || product.name}
           loading="lazy"
         />
-      </div>
-      <div className="shop-card__body">
-        <h3 className="shop-card__name">{product.cleanName || product.name}</h3>
-        {product.description && (
-          <p className="shop-card__desc">{product.description}</p>
-        )}
-        {product.weight && (
-          <p className="shop-card__weight">{product.weight}</p>
-        )}
-        <div className="shop-card__bottom">
-          <div className="shop-card__prices">
-            {product.oldPrice ? (
-              <>
-                <span className="shop-card__old-price">{product.oldPrice}₽</span>
-                <span className="shop-card__savings">Выгода {product.savings}₽</span>
-                <span className="shop-card__price">{product.price}₽</span>
-              </>
-            ) : (
-              <span className="shop-card__price">{product.price}₽</span>
-            )}
-          </div>
+        <div className="shop-card__action-overlay" onClick={e => e.stopPropagation()}>
           {quantity > 0 ? (
             <div className="shop-card__counter">
               <button
@@ -57,6 +35,26 @@ function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity, onImageCl
             <button className="shop-card__add-btn" onClick={() => onAdd(product)}>
               Добавить
             </button>
+          )}
+        </div>
+      </div>
+      <div className="shop-card__body">
+        <h3 className="shop-card__name">{product.cleanName || product.name}</h3>
+        {product.description && (
+          <p className="shop-card__desc">{product.description}</p>
+        )}
+        {product.weight && (
+          <p className="shop-card__weight">{product.weight}</p>
+        )}
+        <div className="shop-card__prices">
+          {product.oldPrice ? (
+            <>
+              <span className="shop-card__old-price">{product.oldPrice}₽</span>
+              <span className="shop-card__savings">Выгода {product.savings}₽</span>
+              <span className="shop-card__price">{product.price}₽</span>
+            </>
+          ) : (
+            <span className="shop-card__price">{product.price}₽</span>
           )}
         </div>
       </div>

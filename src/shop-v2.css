@@ -487,6 +487,9 @@ body.shop-body { background: #0F0F11 !important; }
   background: var(--v3-inset);
   box-shadow: none;
   border-radius: 14px 14px 0 0;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
 }
 
 .shop-page .shop-card__name {
@@ -567,6 +570,41 @@ body.shop-body { background: #0F0F11 !important; }
   color: var(--v3-text);
   font-weight: 700;
   padding: 0 10px;
+}
+
+/* === Overlay action button === */
+.shop-page .shop-card__action-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 8px 8px;
+  background: linear-gradient(to top, rgba(15,15,17,0.90) 0%, transparent 100%);
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-out !important;
+  pointer-events: none;
+}
+.shop-page .shop-card:hover .shop-card__action-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: none) {
+  .shop-page .shop-card__action-overlay {
+    opacity: 1;
+    pointer-events: auto;
+    background: linear-gradient(to top, rgba(15,15,17,0.75) 0%, transparent 100%);
+  }
+}
+
+/* prices row standalone (кнопка теперь в overlay) */
+.shop-page .shop-card__prices {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
 }
 
 /* === Cart FAB === */
@@ -1079,7 +1117,16 @@ body.shop-body { background: #0F0F11 !important; }
   transition-timing-function: ease-out !important;
 }
 
-.shop-page .shop-card__image { transition: none !important; }
+.shop-page .shop-card__image {
+  transform: scale(1.0);
+  transition: transform 0.3s ease-out !important;
+}
+.shop-page .shop-card:hover .shop-card__image {
+  transform: scale(1.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop-page .shop-card__image { transition: none !important; }
+}
 
 /* ═══════════════════════════════════════════════════════════════
    ФАЗА 3 — Profile, Payment, Landing (Linear V3 overrides)
