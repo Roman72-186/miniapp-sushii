@@ -33,3 +33,15 @@
 ## Деплой
 
 VPS 64.188.63.249 — `Up`, контейнер перезапущен.
+
+## Тесты работоспособности
+
+| Тест | Результат |
+|------|-----------|
+| `GET /api/stores-config` | ✅ корректный JSON с состоянием точек |
+| `GET /api/admin/stores` без токена | ✅ 401 «Требуется авторизация» |
+| `/` и `/discount-shop` | ✅ HTTP 200 |
+| CSS bundle: `shop-card__action-overlay`, `scale(1.08)`, `aspect-ratio:1/1` | ✅ |
+| JS bundle: overlay-класс и `stopPropagation` | ✅ |
+
+Замечание: точка №2 в `stores-config` выключена (`"2":false`) — тестовое состояние с прошлой сессии.
