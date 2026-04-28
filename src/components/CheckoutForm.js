@@ -54,6 +54,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [enabledPoints, setEnabledPoints] = useState(null);
   const [nearestStore, setNearestStore] = useState(null);
   const [nearestLoading, setNearestLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -72,7 +73,10 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
   const timeSlots = useMemo(() => getTimeSlots(), []);
   const [scheduledTime, setScheduledTime] = useState(timeSlots[0]?.value || '');
 
-  const selectedPickup = PICKUP_POINTS.find(p => p.id === pickupPoint);
+  const activePoints = PICKUP_POINTS.filter(
+    p => !enabledPoints || enabledPoints[p.id] !== false
+  );
+  const selectedPickup = activePoints.find(p => p.id === pickupPoint) || PICKUP_POINTS.find(p => p.id === pickupPoint);
   const hasGiftItems = useMemo(
     () => items.some(item => item?.product?.gift),
     [items]
@@ -88,6 +92,20 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
       setDeliveryType('pickup');
     }
   }, [deliveryType, hasOnlyGiftItems]);
+
+  useEffect(() => {
+    if (activePoints.length > 0 && !activePoints.find(p => p.id === pickupPoint)) {
+      setPickupPoint(activePoints[0].id);
+    }
+  }, [activePoints]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Загрузка активных точек самовывоза
+  useEffect(() => {
+    fetch('/api/stores-config')
+      .then(r => r.json())
+      .then(d => setEnabledPoints(d.points || {}))
+      .catch(() => {});
+  }, []);
 
   // Подсказки улицы: debounce-запрос к /api/address-suggest
   const suggestTimerRef = useRef(null);
@@ -339,7 +357,11 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
             <h3 className="shop-form-section__title">Пункт самовывоза</h3>
             <div className="shop-form-section__block">
               <div className="shop-radio-group">
-                {PICKUP_POINTS.map(point => (
+                {activePoints.length === 0 ? (
+                  <div className="shop-radio-hint" style={{ padding: '8px 0' }}>
+                    Самовывоз временно недоступен
+                  </div>
+                ) : activePoints.map(point => (
                   <label key={point.id} className="shop-radio-label">
                     <input
                       type="radio"
