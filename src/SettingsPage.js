@@ -26,7 +26,7 @@ function SettingsPage() {
   };
 
   const handleCancel = () => {
-    if (!profile?.contact_id) return;
+    if (!telegramId) return;
     setCancelLoading(true);
     fetch('/api/cancel-subscription', {
       method: 'POST',
@@ -141,7 +141,7 @@ function SettingsPage() {
                   {profile?.статусСписания !== 'активно' ? (
                     <p className="pf-settings__info">Автосписание уже было отменено ранее.</p>
                   ) : cancelStep === 'done' ? (
-                    <p className="pf-settings__info pf-settings__info--success">✅ Автосписание отменено. Подписка деактивирована.</p>
+                    <p className="pf-settings__info pf-settings__info--success">✅ Автосписание отменено. Подписка останется активной до конца оплаченного срока.</p>
                   ) : cancelStep === 'confirm' ? (
                     <div className="pf-settings__cancel-confirm">
                       <p className="pf-settings__text">😞 <b>{firstName}</b>, если отпишетесь — потеряете доступ в VIP-канал и все скидки.</p>
