@@ -80,21 +80,25 @@ function noCacheHeaders(res, filePath) {
   }
 }
 
+function staticHeaders(res, filePath) {
+  noCacheHeaders(res, filePath);
+  if (/\.(jpg|jpeg|png|webp|gif|svg|ico)$/i.test(filePath)) {
+    res.setHeader('Cache-Control', 'public, max-age=604800');
+  }
+}
+
 // Serve product overrides from persistent volume (admin edits), then React build
-app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: noCacheHeaders }));
+app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: staticHeaders }));
 app.use('/data/product-images', express.static(
   path.join(__dirname, 'data', 'product-images'),
-  { setHeaders: (res, fp) => {
-    if (/\.(jpg|jpeg|png|webp)$/i.test(fp))
-      res.setHeader('Cache-Control', 'public, max-age=604800');
-  }}
+  { setHeaders: staticHeaders }
 ));
 app.use(express.static(path.join(__dirname, 'data', 'products'), { setHeaders: noCacheHeaders }));
 
 // Admin pages — serve BEFORE React build
 app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
 
-app.use(express.static(path.join(__dirname, 'build'), { setHeaders: noCacheHeaders }));
+app.use(express.static(path.join(__dirname, 'build'), { setHeaders: staticHeaders }));
 
 // SPA fallback — all non-API routes serve index.html (no-cache для Telegram WebView)
 app.get('/{*splat}', (req, res) => {

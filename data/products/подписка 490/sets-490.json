@@ -1,0 +1,68 @@
+{
+  "category": "Сеты (подписка 490)",
+  "currency": "RUB",
+  "unit": "шт",
+  "items": [
+    {
+      "name": "сет Брюс Ли",
+      "price": 0,
+      "sku": "1168",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_bruce_lee.jpg"
+    },
+    {
+      "name": "сет Дамский угодник",
+      "price": 0,
+      "sku": "1169",
+      "description": "Филадельфия сливочная, Сырные маки, Чикен лав, Краб дуэт гриль",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_damskiy_ugodnik.jpg"
+    },
+    {
+      "name": "сет Домино",
+      "price": 0,
+      "sku": "1170",
+      "description": "Филадельфия сливочная, Манхеттен, Кани гриль, Запеченный мистер Грин",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_domino.jpg"
+    },
+    {
+      "name": "сет Жаркая осень",
+      "price": 0,
+      "sku": "1171",
+      "description": "Фила кани гриль, Сяке кани гриль, Сяке кунсей гриль",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_zharkaya_osen.jpg"
+    },
+    {
+      "name": "сет Игра престолов",
+      "price": 0,
+      "sku": "1172",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_igra_prestolov.jpg"
+    },
+    {
+      "name": "сет Сливочный",
+      "price": 0,
+      "sku": "1173",
+      "description": "Красная Москва лайт, Манхеттен блэк, Чезария, Филадельфия лайт с огурцом",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_slivochniy.jpg"
+    },
+    {
+      "name": "сет Эклипс",
+      "price": 0,
+      "sku": "1174",
+      "description": "Филадельфия дуэт, Калифорния дуэт, Запеченный ролл с беконом, Чикен гриль",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_eklips.jpg"
+    },
+    {
+      "name": "Тёплый лосось микс",
+      "price": 0,
+      "sku": "1175",
+      "description": "Яки сяке, Сяке хот, Сяке ясай",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_tepliy_losos.jpg"
+    },
+    {
+      "name": "Трипл сет",
+      "price": 0,
+      "sku": "1176",
+      "description": "Краб дуэт гриль, Сяке кани гриль, Запеченный Мидуэй",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_tripl.jpg"
+    }
+  ]
+}

@@ -88,6 +88,7 @@ const handler = async (req, res) => {
             sku: product.sku || product.id || sku,
             name: product.name,
             price: product.price,
+            image: product.image || null,
             catalog: catalog.id,
           });
           found = true;
