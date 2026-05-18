@@ -85,6 +85,15 @@ function isGiftLocked(category, userTarif) {
 
 const GIFT_TYPE_LABEL = { 'gift-rolls': 'Ролл', 'gift-sets': 'Сет' };
 
+function getEffectiveDiscount(itemDiscount, categoryDiscount) {
+  const manualDiscount = Number(itemDiscount);
+  if (Number.isFinite(manualDiscount) && manualDiscount > 0) {
+    return Math.min(manualDiscount / 100, 1);
+  }
+
+  return categoryDiscount || 0;
+}
+
 function useDiscountMenu() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +131,8 @@ function useDiscountMenu() {
               }
 
               const oldPrice = item.price;
-              const discountPrice = Math.round(oldPrice * (1 - category.discount));
+              const effectiveDiscount = getEffectiveDiscount(item.discount, category.discount);
+              const discountPrice = Math.round(oldPrice * (1 - effectiveDiscount));
 
               return {
                 id: item.sku || `${category.id}-${idx}`,
@@ -131,8 +141,9 @@ function useDiscountMenu() {
                 oldPrice,
                 price: discountPrice,
                 savings: oldPrice - discountPrice,
+                discount: Math.round(effectiveDiscount * 100),
                 category: category.id,
-                image: getProductImage(item.name),
+                image: item.image || getProductImage(item.name),
                 description: item.description || null,
               };
             });
