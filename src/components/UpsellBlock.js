@@ -28,9 +28,8 @@ function UpsellBlock({ onAddItem, cartSkus }) {
           <div key={p.sku} className="upsell-block__item">
             <img
               className="upsell-block__item-img"
-              src={p.image || getProductImage(p.name) || '/logo.jpg'}
+              src={getProductImage(p.name) || '/logo.jpg'}
               alt={p.name}
-              loading="lazy"
               onError={(e) => { e.target.src = '/logo.jpg'; }}
             />
             <p className="upsell-block__item-name">{p.name}</p>
@@ -42,7 +41,7 @@ function UpsellBlock({ onAddItem, cartSkus }) {
                 sku: p.sku,
                 name: p.name,
                 price: p.price,
-                image: p.image || getProductImage(p.name)
+                image: getProductImage(p.name)
               })}
             >
               + Добавить

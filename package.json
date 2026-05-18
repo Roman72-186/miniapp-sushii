@@ -28,8 +28,6 @@
     "build": "react-scripts build",
     "backup:db": "node scripts/backup-db.js",
     "catalog": "python scripts/build-catalog-master.py",
-    "images:apply-urls": "node scripts/apply-product-image-urls.js",
-    "images:migrate-s3": "node scripts/migrate-product-images-to-s3.js",
     "secrets:check": "node scripts/protect-secrets.js --check",
     "secrets:lock": "node scripts/protect-secrets.js --lock",
     "secrets:list": "node scripts/protect-secrets.js --list",

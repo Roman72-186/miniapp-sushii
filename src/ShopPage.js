@@ -39,7 +39,7 @@ function useLocalMenu() {
             cleanName: item.name,
             price: item.price,
             category: cat.id,
-            image: item.image || getProductImage(item.name),
+            image: getProductImage(item.name),
           }));
         })
       );
