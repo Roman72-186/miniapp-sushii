@@ -93,7 +93,7 @@ export function useCartGifts({ items, promoCode, addItem, removeItem }) {
         price: 0,
         gift: true,
         sku: product.sku,
-        image: getProductImage(product.name),
+        image: product.image || getProductImage(product.name),
       }, 1, { giftSource });
     }
 

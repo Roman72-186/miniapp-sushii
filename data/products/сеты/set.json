@@ -1,0 +1,157 @@
+{
+  "category": "Сеты",
+  "currency": "RUB",
+  "unit": "шт",
+  "items": [
+    {
+      "name": "сет Богемия",
+      "price": 4850,
+      "sku": "328",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_bogemia.jpg"
+    },
+    {
+      "name": "сет Дамский угодник",
+      "price": 1930,
+      "sku": "49",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_damskiy_ugodnik.jpg"
+    },
+    {
+      "name": "сет Дары поднебесной",
+      "price": 2830,
+      "sku": "405"
+    },
+    {
+      "name": "сет Джонни Д",
+      "price": 2840,
+      "sku": "330",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_dzhonni_d.jpg"
+    },
+    {
+      "name": "сет Джуниор",
+      "price": 1640,
+      "sku": "382"
+    },
+    {
+      "name": "сет Домино",
+      "price": 2030,
+      "sku": "50",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_domino.jpg"
+    },
+    {
+      "name": "сет Душевное спокойствие",
+      "price": 2730,
+      "sku": "400"
+    },
+    {
+      "name": "сет Жаркая осень",
+      "price": 1920,
+      "sku": "51",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_zharkaya_osen.jpg"
+    },
+    {
+      "name": "сет Квартет удовольствия",
+      "price": 3030,
+      "sku": "401",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_kvartet.jpg"
+    },
+    {
+      "name": "сет Коби Брайант",
+      "price": 2900,
+      "sku": "102",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_roll/%D0%A1%D0%B5%D1%82%20%D0%9A%D0%BE%D0%B1%D0%B8%20%D0%91%D1%80%D0%B0%D0%B9%D0%B0%D0%BD%D1%82.jpg"
+    },
+    {
+      "name": "сет Любимый",
+      "price": 2630,
+      "sku": "103",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_lyubimiy.jpg"
+    },
+    {
+      "name": "сет Мамина радость",
+      "price": 2630,
+      "sku": "331",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_mamina_radost.jpg"
+    },
+    {
+      "name": "сет На дружную компанию",
+      "price": 3560,
+      "sku": "325"
+    },
+    {
+      "name": "сет Ниваторы Шива",
+      "price": 1470,
+      "sku": "403"
+    },
+    {
+      "name": "сет Олимпия",
+      "price": 2130,
+      "sku": "56",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_olimpiya.jpg"
+    },
+    {
+      "name": "сет Премиум лайт",
+      "price": 2430,
+      "sku": "57",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_premium_layt.jpg"
+    },
+    {
+      "name": "сет Сердца Трёх",
+      "price": 3040,
+      "sku": "60",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_serdca_treh.jpg"
+    },
+    {
+      "name": "сет Сливочный",
+      "price": 1980,
+      "sku": "61",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_slivochniy.jpg"
+    },
+    {
+      "name": "сет Тёплое Удовольствие",
+      "price": 2630,
+      "sku": "62",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_teploe.jpg"
+    },
+    {
+      "name": "сет Токийский дрифт",
+      "price": 2630,
+      "sku": "412",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_tokiyskiy_drift.jpg"
+    },
+    {
+      "name": "сет Филадельфия люкс",
+      "price": 4830,
+      "sku": "65",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_roll/%D0%A4%D0%B8%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%84%D0%B8%D1%8F%20%D0%9B%D1%8E%D0%BA%D1%81.jpg"
+    },
+    {
+      "name": "сет Хоккайдо",
+      "price": 1930,
+      "sku": "406",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_hokkaydo.jpg"
+    },
+    {
+      "name": "сет Эксклюзив",
+      "price": 1870,
+      "sku": "334"
+    },
+    {
+      "name": "Тёплый лосось микс",
+      "price": 1820,
+      "sku": "404",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_tepliy_losos.jpg"
+    },
+    {
+      "name": "Трипл сет",
+      "price": 1770,
+      "sku": "64",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/img/sets/set_tripl.jpg"
+    },
+    {
+      "name": "сет Тихий вечер",
+      "price": 988,
+      "sku": "1616",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_set/%D0%A1%D0%B5%D1%82%20%C2%AB%D0%A2%D0%B8%D1%85%D0%B8%D0%B9%20%D0%B2%D0%B5%D1%87%D0%B5%D1%80%C2%BB.jpg"
+    }
+  ]
+}

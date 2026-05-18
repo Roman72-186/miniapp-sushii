@@ -52,6 +52,7 @@ function findProductsBySku(skus) {
           sku: product.sku || product.id || sku,
           name: product.name,
           price: product.price,
+          image: product.image || null,
           catalog: catalog.id,
         });
         found = true;

@@ -1,0 +1,37 @@
+{
+  "category": "Гунканы",
+  "currency": "RUB",
+  "unit": "шт",
+  "items": [
+    {
+      "name": "Гункан с жареным лососем",
+      "price": 325,
+      "sku": "8",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_roll/%D0%93%D1%83%D0%BD%D0%BA%D0%B0%D0%BD%20%D1%81%20%D0%B6%D0%B0%D1%80%D0%B5%D0%BD%D1%8B%D0%BC%20%D0%BB%D0%BE%D1%81%D0%BE%D1%81%D0%B5%D0%BC.jpg"
+    },
+    {
+      "name": "Гункан с икрой масаго",
+      "price": 295,
+      "sku": "10",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_roll/%D0%93%D1%83%D0%BD%D0%BA%D0%B0%D0%BD%20%D1%81%20%D0%B8%D0%BA%D1%80%D0%BE%D0%B9%20%D0%BC%D0%B0%D1%81%D0%B0%D0%B3%D0%BE.jpg"
+    },
+    {
+      "name": "Гункан с чукой",
+      "price": 245,
+      "sku": "11",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_roll/%D0%93%D1%83%D0%BD%D0%BA%D0%B0%D0%BD%20%D1%81%20%D1%87%D1%83%D0%BA%D0%BE%D0%B9.jpg"
+    },
+    {
+      "name": "Гункан спайси кани",
+      "price": 275,
+      "sku": "12",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_roll/%D0%93%D1%83%D0%BD%D0%BA%D0%B0%D0%BD%20%D1%81%D0%BF%D0%B0%D0%B9%D1%81%D0%B8%20%D0%BA%D0%B0%D0%BD%D0%B8.jpg"
+    },
+    {
+      "name": "Гункан унаги авокадо",
+      "price": 335,
+      "sku": "15",
+      "image": "https://s3.twcstorage.ru/9bb2e4a4-459d-4e77-a730-a7738fdc2afc/products/new_roll/%D0%93%D1%83%D0%BD%D0%BA%D0%B0%D0%BD%20%D1%83%D0%BD%D0%B0%D0%B3%D0%B8%20%D0%B0%D0%B2%D0%BE%D0%BA%D0%B0%D0%B4%D0%BE.jpg"
+    }
+  ]
+}

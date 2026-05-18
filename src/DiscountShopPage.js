@@ -132,7 +132,7 @@ function useDiscountMenu() {
                 price: discountPrice,
                 savings: oldPrice - discountPrice,
                 category: category.id,
-                image: getProductImage(item.name),
+                image: item.image || getProductImage(item.name),
                 description: item.description || null,
               };
             });
@@ -186,6 +186,7 @@ function SubCard({ product, onSelect, onImageClick, disabled }) {
           src={imgError ? '/logo.jpg' : product.image}
           alt={product.name}
           className="shop-card__image"
+          loading="lazy"
           onError={() => setImgError(true)}
         />
       </div>
