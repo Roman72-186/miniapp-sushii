@@ -81,7 +81,9 @@ const GIFT_CATEGORIES = [
 function isGiftLocked(category, userTarif) {
   if (!userTarif) return true;
   if (userTarif === '9990') return false;
-  return userTarif !== category.minTarif;
+
+  const tariffRank = { '290': 1, '490': 2, '1190': 3 };
+  return (tariffRank[String(userTarif)] || 0) < (tariffRank[String(category.minTarif)] || 0);
 }
 
 const GIFT_TYPE_LABEL = { 'gift-rolls': 'Ролл', 'gift-sets': 'Сет' };
@@ -555,10 +557,8 @@ function DiscountShopPage() {
       return;
     }
     
-    // Проверяем, есть ли telegramId
     if (!telegramId) {
-      console.log('No telegramId, showing popup');
-      setLockedPopup('Для выбора подарка необходимо авторизоваться через Telegram или указать telegram_id в параметрах.');
+      setLockedPopup('Для выбора подарка нужно войти в аккаунт.');
       setGiftView(null);
       return;
     }
@@ -741,7 +741,7 @@ function DiscountShopPage() {
             let subText = '';
 
             if (!hasActiveSubscription) {
-              subText = 'посмотреть';
+              subText = '';
             } else if (anyLoading) {
               badge = <span className="shop-gift-btn__lock">...</span>;
             } else if (locked) {

@@ -76,7 +76,8 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
   return (
     <>
       <div className="shop-locked-overlay" onClick={loading ? undefined : onClose} />
-      <div className="pf-modal" role="dialog" aria-modal="true" aria-label="Оформление подписки">
+      <div className="pf-modal pf-modal--subscription" role="dialog" aria-modal="true" aria-label="Оформление подписки">
+        <div className="pf-modal__handle" />
         <div className="pf-modal__title">Оформите подписку</div>
         <div className="pf-modal__subtitle">
           Меню можно смотреть бесплатно. Для заказа нужна активная подписка.
@@ -84,24 +85,26 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
 
         {step === 'tariffs' ? (
           <>
-            {PUBLIC_TARIFF_IDS.map(tariffId => {
-              const tariff = TARIFF_DATA[tariffId];
-              const price = getTariffMonthPrice(pricing, tariffId, 1);
-              return (
-                <button
-                  key={tariffId}
-                  type="button"
-                  className={`pf-modal__tariff-btn${tariffId === selectedTariff ? ' pf-modal__tariff-btn--best' : ''}`}
-                  onClick={() => setSelectedTariff(tariffId)}
-                >
-                  <div className="pf-modal__tariff-row">
-                    <span className="pf-modal__tariff-name">{price} ₽ / месяц</span>
-                    {tariff.badge && <span className="pf-modal__tariff-star">{tariff.badge}</span>}
-                  </div>
-                  <div className="pf-modal__tariff-desc">{tariff.title}. {tariff.desc}</div>
-                </button>
-              );
-            })}
+            <div className="pf-modal__tariff-grid">
+              {PUBLIC_TARIFF_IDS.map(tariffId => {
+                const tariff = TARIFF_DATA[tariffId];
+                const price = getTariffMonthPrice(pricing, tariffId, 1);
+                return (
+                  <button
+                    key={tariffId}
+                    type="button"
+                    className={`pf-modal__tariff-btn${tariffId === selectedTariff ? ' pf-modal__tariff-btn--best' : ''}`}
+                    onClick={() => setSelectedTariff(tariffId)}
+                  >
+                    <div className="pf-modal__tariff-row">
+                      <span className="pf-modal__tariff-name">{price} ₽ / месяц</span>
+                      {tariff.badge && <span className="pf-modal__tariff-star">{tariff.badge}</span>}
+                    </div>
+                    <div className="pf-modal__tariff-desc">{tariff.title}. {tariff.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
 
             <button
               type="button"
@@ -113,12 +116,13 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
             <button type="button" className="partner-code-page__btn partner-code-page__btn--skip" onClick={onClose}>
               Пока только смотрю
             </button>
-            <button type="button" className="partner-code-page__btn partner-code-page__btn--skip" onClick={handleLogin}>
-              Уже есть подписка? Войти
+            <button type="button" className="pf-modal__login-btn" onClick={handleLogin}>
+              <span>Уже есть активная подписка?</span>
+              <strong>Войти в аккаунт</strong>
             </button>
           </>
         ) : (
-          <form onSubmit={handleSubmit}>
+          <form className="pf-modal__contact-form" onSubmit={handleSubmit}>
             <div className="shop-form-field">
               <label className="shop-form-field__label">Имя</label>
               <input
@@ -143,13 +147,12 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
               />
             </div>
 
-            <label style={{ display: 'flex', gap: 10, color: '#71717A', fontSize: 12, lineHeight: 1.45, margin: '8px 0 14px' }}>
+            <label className="pf-modal__consent">
               <input
                 type="checkbox"
                 checked={pdnConsent}
                 onChange={event => setPdnConsent(event.target.checked)}
                 disabled={loading}
-                style={{ marginTop: 2, accentColor: '#3CC8A1' }}
               />
               <span>
                 Я согласен(а) с обработкой персональных данных и политикой конфиденциальности.
