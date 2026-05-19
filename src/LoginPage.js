@@ -1,18 +1,9 @@
 // src/LoginPage.js — Вход в веб-версию: телефон + пароль, сброс через Email OTP
 
 import React, { useState, useEffect, useRef } from 'react';
+import { normalizePhone } from './utils/phone';
+import { getSafeReturnUrl, saveWebAuth } from './utils/webAuth';
 import './shop.css';
-
-const WEB_TOKEN_KEY = 'web_token';
-const WEB_USER_ID_KEY = 'web_user_id';
-
-function normalizePhone(raw) {
-  const nums = String(raw || '').replace(/\D/g, '');
-  if (nums.length === 11 && nums.startsWith('8')) return '7' + nums.slice(1);
-  if (nums.length === 11 && nums.startsWith('7')) return nums;
-  if (nums.length === 10) return '7' + nums;
-  return nums;
-}
 
 function LoginPage() {
   useEffect(() => {
@@ -35,6 +26,10 @@ function LoginPage() {
   const [isNewUser, setIsNewUser] = useState(false);
 
   const [pdnConsent, setPdnConsent] = useState(false);
+  const returnUrl = getSafeReturnUrl();
+  const finishLogin = () => {
+    window.location.href = returnUrl;
+  };
 
   // OTP resend countdown
   const [resendIn, setResendIn] = useState(0);
@@ -83,9 +78,8 @@ function LoginPage() {
         setIsNewUser(true);
         setStep('email');
       } else {
-        localStorage.setItem(WEB_TOKEN_KEY, data.token);
-        localStorage.setItem(WEB_USER_ID_KEY, data.userId);
-        window.location.href = '/';
+        saveWebAuth(data);
+        finishLogin();
       }
     } catch {
       setError('Ошибка соединения. Проверьте подключение к интернету.');
@@ -184,9 +178,8 @@ function LoginPage() {
       });
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Неверный пароль'); return; }
-      localStorage.setItem(WEB_TOKEN_KEY, data.token);
-      localStorage.setItem(WEB_USER_ID_KEY, data.userId);
-      window.location.href = '/';
+      saveWebAuth(data);
+      finishLogin();
     } catch {
       setError('Ошибка соединения.');
     } finally {
@@ -224,9 +217,8 @@ function LoginPage() {
       });
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Ошибка сохранения пароля'); return; }
-      localStorage.setItem(WEB_TOKEN_KEY, data.token);
-      localStorage.setItem(WEB_USER_ID_KEY, data.userId);
-      window.location.href = '/';
+      saveWebAuth(data);
+      finishLogin();
     } catch {
       setError('Ошибка соединения.');
     } finally {

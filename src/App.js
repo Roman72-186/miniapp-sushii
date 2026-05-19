@@ -19,6 +19,7 @@ import GiftSetsPage from "./GiftSetsPage"; // подарочные сеты (о�
 import LoginPage from "./LoginPage"; // веб-вход по телефону
 import BenefitsPage from "./BenefitsPage"; // страница выгоды подписки
 import PartnerCodePage from "./PartnerCodePage"; // ввод кода партнёра после оплаты
+import CompleteRegistrationPage from "./CompleteRegistrationPage";
 import NotFoundPage from "./NotFoundPage"; // страница 404
 import WordlePage from "./WordlePage"; // игра «Пятибуквенное слово»
 import WebRegistrationPrompt from "./components/WebRegistrationPrompt";
@@ -60,6 +61,8 @@ function App() {
     pathname === "/benefits";
   const isPartnerCodePage =
     pathname === "/partner-code";
+  const isCompleteRegistrationPage =
+    pathname === "/complete-registration";
   const isLandingPage =
     pathname === "/";
   const isGamePage =
@@ -70,6 +73,7 @@ function App() {
   else if (isLoginPage) page = <LoginPage />;
   else if (isBenefitsPage) page = <BenefitsPage />;
   else if (isPartnerCodePage) page = <PartnerCodePage />;
+  else if (isCompleteRegistrationPage) page = <CompleteRegistrationPage />;
   else if (isGiftRollsPage) page = <GiftRollsPage />;
   else if (isGiftSetsPage) page = <GiftSetsPage />;
   else if (isAdminPage) page = <AdminPage />;

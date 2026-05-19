@@ -2,28 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
+import { PUBLIC_TARIFF_IDS, TARIFF_DATA } from './config/tariffs';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 import LoginPage from './LoginPage';
 import AppFooter from './components/AppFooter';
-
-const TARIFFS = [
-  {
-    price: '290',
-    label: '290 ₽ / месяц',
-    desc: 'Скидки на меню',
-  },
-  {
-    price: '490',
-    label: '690 ₽ / месяц',
-    desc: 'Скидки + подарочные роллы',
-  },
-  {
-    price: '1190',
-    label: '1390 ₽ / месяц',
-    desc: 'Скидки + роллы + сеты + VIP-доступ',
-  },
-];
 
 function LandingPage() {
   useEffect(() => {
@@ -141,14 +124,14 @@ function LandingPage() {
         <p className="shop-landing__subtitle">Подписка со скидками и подарками</p>
 
         <div className="shop-landing__cards">
-          {TARIFFS.map(t => (
+          {PUBLIC_TARIFF_IDS.map(tariffId => (
             <button
-              key={t.price}
+              key={tariffId}
               className="shop-landing__card"
-              onClick={() => handleTariffClick(t.price)}
+              onClick={() => handleTariffClick(tariffId)}
             >
-              <div className="shop-landing__card-price">{t.label}</div>
-              <div className="shop-landing__card-desc">{t.desc}</div>
+              <div className="shop-landing__card-price">{TARIFF_DATA[tariffId].label}</div>
+              <div className="shop-landing__card-desc">{TARIFF_DATA[tariffId].title}</div>
             </button>
           ))}
         </div>

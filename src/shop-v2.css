@@ -134,8 +134,22 @@ body.shop-body { background: #0F0F11 !important; }
   justify-content: center;
 }
 
+.shop-page .shop-header__login {
+  min-width: 70px;
+  height: 38px;
+  padding: 0 14px;
+  background: var(--v3-raise);
+  border: 1px solid var(--v3-border);
+  border-radius: var(--v3-r-md);
+  color: var(--v3-text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .shop-page .shop-header__profile:hover,
-.shop-page .shop-header__back:hover {
+.shop-page .shop-header__back:hover,
+.shop-page .shop-header__login:hover {
   border-color: var(--v3-border-strong);
   background: #28282E;
   box-shadow: none;

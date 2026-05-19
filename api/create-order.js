@@ -5,6 +5,7 @@ const { readUserCache } = require('./_lib/user-cache');
 const { getUser, updateBalance, insertOrder } = require('./_lib/db');
 const { geocode } = require('./_lib/geocoder');
 const { findNearestStore } = require('./_lib/nearest-store');
+const { deriveFromDbUser } = require('./_lib/subscription-state');
 
 function parseJsonBody(req) {
   try {
@@ -81,6 +82,18 @@ module.exports = async (req, res) => {
 
     if (!client || !client.name) {
       return res.status(400).json({ success: false, error: 'Укажите имя' });
+    }
+
+    if ((body.order_type || 'discount') === 'discount') {
+      if (!telegram_id) {
+        return res.status(401).json({ success: false, error: 'Для оформления заказа нужна активная подписка' });
+      }
+
+      const orderUser = await getUser(telegram_id);
+      const subscription = deriveFromDbUser(orderUser);
+      if (subscription.subscriptionStatus !== 'активно') {
+        return res.status(403).json({ success: false, error: 'Для оформления заказа нужна активная подписка' });
+      }
     }
 
     const isPickup = delivery_type === 'pickup';

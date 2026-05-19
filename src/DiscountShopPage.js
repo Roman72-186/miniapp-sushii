@@ -12,6 +12,7 @@ import CheckoutForm from './components/CheckoutForm';
 import { useCartGifts } from './hooks/useCartGifts';
 import AppFooter from './components/AppFooter';
 import GamesModal from './components/GamesModal';
+import SubscriptionRequiredModal from './components/SubscriptionRequiredModal';
 import './shop.css';
 import './shop-v2.css';
 
@@ -241,6 +242,8 @@ function DiscountShopPage() {
   const { telegramId, loading: userLoading, tarif: userTarif, profile } = useUser();
   const { products, loading, error, refetch } = useDiscountMenu();
   const cart = useCart();
+  const subscriptionStatus = profile?.статусСписания || profile?.subscriptionStatus;
+  const hasActiveSubscription = subscriptionStatus === 'активно';
 
   const [promoCode, setPromoCode] = useState('');
   const { messages: promoMessages, isPromoValid } = useCartGifts({
@@ -276,6 +279,7 @@ function DiscountShopPage() {
   const [giftStatus, setGiftStatus] = useState(null);
   const [giftStatusLoading, setGiftStatusLoading] = useState(true);
   const [adminGrants, setAdminGrants] = useState({ roll: false, set: false });
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
 
   const pendingGiftItem = cart.items.find(item => item.product.gift) || null;
   const pendingGiftCategory = pendingGiftItem?.product?.category || null;
@@ -357,6 +361,7 @@ function DiscountShopPage() {
       setGiftView(null);
       return;
     }
+    if (!hasActiveSubscription) return;
 
     // Если это переход из URL параметра (т.е. initialView), 
     // то проверяем доступность и показываем соответствующие сообщения
@@ -394,38 +399,7 @@ function DiscountShopPage() {
         return;
       }
     }
-  }, [adminGrants.roll, adminGrants.set, giftStatus, giftStatusLoading, giftView, hasGiftInCart, initialView, userLoading, userTarif]);
-
-  useEffect(() => {
-    if (userLoading) return;
-
-    // Защита от редиректа до загрузки профиля
-    if (!profile) {
-      console.warn('[DiscountShop] Профиль не загружен, ждём...');
-      return;
-    }
-    
-    // 🔍 DEBUG: Логируем данные для диагностики
-    console.log('[DiscountShop] Проверка подписки:', {
-      userLoading,
-      telegramId,
-      profile,
-      'profile?.статусСписания': profile?.статусСписания,
-      'profile?.subscriptionStatus': profile?.subscriptionStatus,
-      'profile?.датаНачала': profile?.датаНачала,
-      'profile?.датаОКОНЧАНИЯ': profile?.датаОКОНЧАНИЯ,
-    });
-
-    // ФИКС: Используем правильное поле статуса
-    if (profile?.статусСписания === 'активно') {
-      console.log('[DiscountShop] Подписка активна, показываем магазин');
-      return;
-    }
-
-    console.warn('[DiscountShop] Подписка неактивна, редирект на лендинг');
-    const tid = telegramId ? `?telegram_id=${telegramId}` : '';
-    window.location.href = `/${tid}`;
-  }, [profile?.статусСписания, telegramId, userLoading, profile]);
+  }, [adminGrants.roll, adminGrants.set, giftStatus, giftStatusLoading, giftView, hasActiveSubscription, hasGiftInCart, initialView, userLoading, userTarif]);
 
   useEffect(() => {
     const nav = tabsNavRef.current;
@@ -477,25 +451,37 @@ function DiscountShopPage() {
 
   const tarifLoading = userLoading;
 
-  // 🔍 DEBUG: Логируем проверку статуса подписки
-  console.log('[DiscountShop] Проверка статуса подписки:', {
-    userLoading,
-    tarifLoading,
-    profile,
-    'profile?.статусСписания': profile?.статусСписания,
-    'profile?.subscriptionStatus': profile?.subscriptionStatus,
-  });
+  const requireSubscription = () => {
+    if (userLoading && telegramId) {
+      setLockedPopup('Проверяем статус подписки. Попробуйте ещё раз через пару секунд.');
+      return;
+    }
+    setSubscriptionModalOpen(true);
+  };
 
-  // ФИКС: Используем правильное поле статуса и добавляем защиту от null
-  if (userLoading || !profile || profile?.статусСписания !== 'активно') {
-    return (
-      <div className="shop-page">
-        <BrandLoader text="Проверяем подписку" />
-      </div>
-    );
-  }
+  const handleProductAdd = (product) => {
+    if (!hasActiveSubscription) {
+      requireSubscription();
+      return;
+    }
+    cart.addItem(product);
+  };
+
+  const handleProductQuantity = (productId, quantity) => {
+    if (!hasActiveSubscription) {
+      requireSubscription();
+      return;
+    }
+    cart.updateQuantity(productId, quantity);
+  };
 
   const handleGiftClick = categoryId => {
+    if (!hasActiveSubscription) {
+      setGiftView(categoryId);
+      window.scrollTo(0, 0);
+      return;
+    }
+
     if (tarifLoading || giftStatusLoading) return;
     if (hasGiftInCart) {
       return;
@@ -534,6 +520,11 @@ function DiscountShopPage() {
   };
 
   const handleCheckout = () => {
+    if (!hasActiveSubscription) {
+      setShowCart(false);
+      requireSubscription();
+      return;
+    }
     setShowCart(false);
     setShowCheckout(true);
   };
@@ -556,6 +547,11 @@ function DiscountShopPage() {
     // Проверяем, есть ли уже подарок в корзине
     if (hasGiftInCart) {
       setGiftView(null);
+      return;
+    }
+
+    if (!hasActiveSubscription) {
+      requireSubscription();
       return;
     }
     
@@ -621,6 +617,7 @@ function DiscountShopPage() {
     const giftProducts = products.filter(item => item.category === giftView);
 
     return (
+      <>
       <div className="shop-page">
         <header className="shop-header">
           <button 
@@ -658,6 +655,11 @@ function DiscountShopPage() {
           <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
         )}
       </div>
+      <SubscriptionRequiredModal
+        isOpen={subscriptionModalOpen}
+        onClose={() => setSubscriptionModalOpen(false)}
+      />
+      </>
     );
   }
 
@@ -671,15 +673,26 @@ function DiscountShopPage() {
         </div>
 
         <div className="shop-header__actions">
-          <button
-            className="shop-header__profile"
-            onClick={() => {
-              const tid = telegramId ? `?telegram_id=${telegramId}` : '';
-              window.location.href = `/profile${tid}`;
-            }}
-          >
-            👤
-          </button>
+          {telegramId ? (
+            <button
+              className="shop-header__profile"
+              onClick={() => {
+                const tid = telegramId ? `?telegram_id=${telegramId}` : '';
+                window.location.href = `/profile${tid}`;
+              }}
+            >
+              👤
+            </button>
+          ) : (
+            <button
+              className="shop-header__login"
+              onClick={() => {
+                window.location.href = '/login?return_to=/discount-shop';
+              }}
+            >
+              Войти
+            </button>
+          )}
 
           {cart.count > 0 && (
             <button className="shop-header__cart" onClick={() => setShowCart(true)}>
@@ -706,18 +719,18 @@ function DiscountShopPage() {
         <p className="shop-gift-section__title">🎁 Подарки по подписке</p>
         <div className="shop-gift-row">
           {GIFT_CATEGORIES.map(category => {
-            const anyLoading = tarifLoading || giftStatusLoading;
+            const anyLoading = hasActiveSubscription && (tarifLoading || giftStatusLoading);
             const hasAdminGrant =
               (category.id === 'gift-rolls' && adminGrants.roll) ||
               (category.id === 'gift-sets' && adminGrants.set);
 
-            const locked = anyLoading ? true : (!hasAdminGrant && isGiftLocked(category, userTarif));
-            if (!locked && !hasAdminGrant && giftStatus && giftStatus.status === 'expired') return null;
+            const locked = hasActiveSubscription && (anyLoading ? true : (!hasAdminGrant && isGiftLocked(category, userTarif)));
+            if (hasActiveSubscription && !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'expired') return null;
 
             const isClaimed =
-              !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'claimed';
+              hasActiveSubscription && !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'claimed';
             const isWaiting =
-              !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'waiting';
+              hasActiveSubscription && !locked && !hasAdminGrant && giftStatus && giftStatus.status === 'waiting';
             const isSelectedGift = hasGiftInCart && pendingGiftCategory === category.id;
             const isDisabled = locked || isClaimed || isWaiting || hasGiftInCart;
             const isAvailable = !isDisabled;
@@ -727,7 +740,9 @@ function DiscountShopPage() {
             let badge = null;
             let subText = '';
 
-            if (anyLoading) {
+            if (!hasActiveSubscription) {
+              subText = 'посмотреть';
+            } else if (anyLoading) {
               badge = <span className="shop-gift-btn__lock">...</span>;
             } else if (locked) {
               badge = <span className="shop-gift-btn__lock">🔒</span>;
@@ -820,8 +835,8 @@ function DiscountShopPage() {
                     key={product.id}
                     product={product}
                     quantity={getQuantity(product.id)}
-                    onAdd={cart.addItem}
-                    onUpdateQuantity={cart.updateQuantity}
+                    onAdd={handleProductAdd}
+                    onUpdateQuantity={handleProductQuantity}
                     onImageClick={item => setModalProduct({ ...item, description: item.description || getProductDescription(item.name) })}
                   />
                 ))}
@@ -851,8 +866,8 @@ function DiscountShopPage() {
                       key={product.id}
                       product={product}
                       quantity={getQuantity(product.id)}
-                      onAdd={cart.addItem}
-                      onUpdateQuantity={cart.updateQuantity}
+                      onAdd={handleProductAdd}
+                      onUpdateQuantity={handleProductQuantity}
                       onImageClick={item => setModalProduct({ ...item, description: item.description || getProductDescription(item.name) })}
                     />
                   ))}
@@ -909,7 +924,7 @@ function DiscountShopPage() {
         onClear={cart.clearNonGiftItems}
         onClose={() => setShowCart(false)}
         onCheckout={handleCheckout}
-        onAddItem={cart.addItem}
+        onAddItem={handleProductAdd}
         promoCode={promoCode}
         onPromoCodeChange={setPromoCode}
         promoMessages={promoMessages}
@@ -927,6 +942,11 @@ function DiscountShopPage() {
         promoCode={promoCode}
       />
     )}
+
+    <SubscriptionRequiredModal
+      isOpen={subscriptionModalOpen}
+      onClose={() => setSubscriptionModalOpen(false)}
+    />
     </>
   );
 }

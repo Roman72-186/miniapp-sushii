@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { normalizePhone } from '../utils/phone';
+import { WEB_TOKEN_KEY } from '../utils/webAuth';
 
-const WEB_TOKEN_KEY = 'web_token';
 const ADMIN_TOKEN_KEY = 'admin_token';
 
 function splitFullName(fullName) {
