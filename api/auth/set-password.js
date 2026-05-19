@@ -72,7 +72,7 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Не удалось создать пользователя' });
     }
 
-    if (result.email && !user.email) {
+    if (result.email && result.email !== user.email) {
       try {
         user = await setUserEmail(user.telegram_id, result.email);
       } catch (e) {

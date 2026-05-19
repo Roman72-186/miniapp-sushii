@@ -1,11 +1,10 @@
 // src/UserContext.js — Контекст пользователя
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { WEB_TOKEN_KEY, clearWebAuth, saveWebAuth } from './utils/webAuth';
 
 const UserContext = createContext(null);
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
-const WEB_TOKEN_KEY = 'web_token';
-const WEB_USER_ID_KEY = 'web_user_id';
 const PENDING_REFERRAL_KEY = 'pending_invited_by';
 
 // Декодирует JWT без верификации (верификация на сервере)
@@ -35,8 +34,7 @@ export function UserProvider({ children }) {
     if (!payload) return null;
     // Проверяем срок действия токена
     if (payload.exp && payload.exp * 1000 < Date.now()) {
-      localStorage.removeItem(WEB_TOKEN_KEY);
-      localStorage.removeItem(WEB_USER_ID_KEY);
+      clearWebAuth();
       return null;
     }
     return { id: payload.userId, name: payload.name || null };
@@ -107,8 +105,7 @@ export function UserProvider({ children }) {
     if (!resp.ok || !data.success) {
       throw new Error(data.error || 'Ошибка входа');
     }
-    localStorage.setItem(WEB_TOKEN_KEY, data.token);
-    localStorage.setItem(WEB_USER_ID_KEY, data.userId);
+    saveWebAuth(data);
     // Перезагружаем страницу чтобы UserContext пересчитал telegramId из нового токена
     window.location.href = '/';
     return data;
@@ -116,8 +113,7 @@ export function UserProvider({ children }) {
 
   // Выход из веб-версии
   const logout = useCallback(() => {
-    localStorage.removeItem(WEB_TOKEN_KEY);
-    localStorage.removeItem(WEB_USER_ID_KEY);
+    clearWebAuth();
     window.location.href = '/';
   }, []);
 

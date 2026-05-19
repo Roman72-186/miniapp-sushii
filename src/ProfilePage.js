@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
+import { TARIFF_DATA } from './config/tariffs';
+import { usePricing } from './hooks/usePricing';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 import EditProfileModal from './components/EditProfileModal';
@@ -35,11 +37,7 @@ function ProfilePage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [orderHistory, setOrderHistory] = useState(null);
   const [expandedSections, setExpandedSections] = useState(new Set());
-  const [priceTable, setPriceTable] = useState({
-    '290':  { 1: 290,  3: 750,  5: 1200 },
-    '490':  { 1: 690,  3: 1690, 5: 2990 },
-    '1190': { 1: 1390, 3: 3850, 5: 6600 },
-  });
+  const priceTable = usePricing();
   const [shcData, setShcData] = useState(null);
   const [bonuses, setBonuses] = useState(null);
   const [showAllBonuses, setShowAllBonuses] = useState(false);
@@ -47,10 +45,10 @@ function ProfilePage() {
 
   // === Constants ===
   const TARIFF_INFO = {
-    '290':  { label: '290 ₽/мес',  desc: 'Скидка 30% на все роллы и запечённые, 20% на сеты.' },
-    '490':  { label: '690 ₽/мес',  desc: 'Все скидки + 2 ролла в подарок каждые 15 дней.' },
-    '1190': { label: '1390 ₽/мес', desc: 'Все скидки + роллы + 1 сет каждые 30 дней + кофе. Лучший вариант.' },
-    '9990': { label: '9990 ₽',     desc: 'Амбассадор — разовый платёж.' },
+    '290':  { label: TARIFF_DATA['290'].label.replace(' / месяц', '/мес'),  desc: TARIFF_DATA['290'].desc },
+    '490':  { label: TARIFF_DATA['490'].label.replace(' / месяц', '/мес'),  desc: TARIFF_DATA['490'].desc },
+    '1190': { label: TARIFF_DATA['1190'].label.replace(' / месяц', '/мес'), desc: TARIFF_DATA['1190'].desc },
+    '9990': { label: TARIFF_DATA['9990'].label, desc: TARIFF_DATA['9990'].desc },
   };
 
   const toggleSection = (key) => {
@@ -62,21 +60,6 @@ function ProfilePage() {
   };
 
   // === Effects ===
-  useEffect(() => {
-    fetch('/api/admin/pricing')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.pricing) {
-          const table = {};
-          for (const [key, val] of Object.entries(data.pricing)) {
-            table[key] = val.months || { 1: val.price };
-          }
-          setPriceTable(table);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   useEffect(() => {
     if (!telegramId && !contactId) {
       if (!userLoading) setReferrals({ referrals_count: 0, ambassadors_count: 0, referrals: [] });

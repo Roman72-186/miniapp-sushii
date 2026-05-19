@@ -2,68 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
+import { TARIFF_DATA } from './config/tariffs';
+import { usePricing } from './hooks/usePricing';
 import './shop.css';
 
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
-
-// Дефолтные цены (перезаписываются из API)
-const DEFAULT_PRICE_TABLE = {
-  '290':  { 1: 290,  3: 750,  5: 1200 },
-  '490':  { 1: 690,  3: 1690, 5: 2990 },
-  '1190': { 1: 1390, 3: 3850, 5: 6600 },
-  '9990': { 1: 3990 },
-};
-
-const TARIFF_DATA = {
-  '290': {
-    price: 290,
-    label: '290 ₽ / месяц',
-    title: 'Скидки на меню',
-    features: [
-      'Скидка -30% на все роллы',
-      'Скидка -20% на сеты',
-    ],
-  },
-  '490': {
-    price: 690,
-    label: '690 ₽ / месяц',
-    title: 'Скидки + подарочные роллы',
-    features: [
-      'Скидка -30% на все роллы',
-      'Скидка -20% на сеты',
-      'Бесплатный ролл каждые 15 дней',
-      'Ролл до 620₽ — любой на выбор',
-    ],
-  },
-  '1190': {
-    price: 1390,
-    label: '1390 ₽ / месяц',
-    title: 'Скидки + роллы + сеты + VIP',
-    features: [
-      'Скидка -30% на все роллы',
-      'Скидка -20% на сеты',
-      'Бесплатный сет каждые 30 дней',
-      'Сет до 2000₽ — любой на выбор',
-      'Доступ в VIP-клуб',
-      'Бесплатный кофе к каждому заказу',
-    ],
-  },
-  '9990': {
-    price: 3990,
-    oldPrice: 9990,
-    label: '3 990 ₽',
-    title: 'Амбассадор',
-    oneTime: true,
-    features: [
-      'Все привилегии тарифа 1190 навсегда',
-      'Статус «Амбассадор» в личном кабинете',
-      'Персональная реферальная ссылка',
-      'Вознаграждение за каждого приглашённого друга',
-      'Накопление баланса SHC за рефералов',
-      'Приоритетная поддержка',
-    ],
-  },
-};
 
 function PaymentPage() {
   useEffect(() => {
@@ -78,7 +21,7 @@ function PaymentPage() {
     const m = Number(new URLSearchParams(window.location.search).get('months'));
     return [1, 3, 5].includes(m) ? m : 1;
   });
-  const [priceTable, setPriceTable] = useState(DEFAULT_PRICE_TABLE);
+  const priceTable = usePricing();
   const [phoneInput, setPhoneInput] = useState('');
   // Проверяем что телефон российский (7XXXXXXXXXX)
   const isValidRuPhone = (() => {
@@ -89,21 +32,6 @@ function PaymentPage() {
     return false;
   })();
   const hasPhone = isValidRuPhone;
-
-  useEffect(() => {
-    fetch('/api/admin/pricing')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.pricing) {
-          const table = {};
-          for (const [key, val] of Object.entries(data.pricing)) {
-            table[key] = val.months || { 1: val.price };
-          }
-          setPriceTable(table);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   // Определяем тариф из URL: /pay/290, /pay/490, /pay/1190
   const path = window.location.pathname;

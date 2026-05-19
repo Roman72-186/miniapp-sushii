@@ -8,6 +8,18 @@ const { getUser, upsertUser } = require('./_lib/db');
 const VALID_TARIFS = ['290', '490', '1190', '9990'];
 const VALID_MONTHS = [1, 3, 5];
 
+function normalizePhone(raw) {
+  const nums = String(raw || '').replace(/\D/g, '');
+  if (nums.length === 11 && nums.startsWith('8')) return '7' + nums.slice(1);
+  if (nums.length === 11 && nums.startsWith('7')) return nums;
+  if (nums.length === 10) return '7' + nums;
+  return nums;
+}
+
+function buildGuestUserId(phone) {
+  return `web_${phone}_${crypto.randomUUID().slice(0, 8)}`;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,9 +28,8 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, tarif, months, phone: reqPhone } = req.body || {};
+  const { telegram_id, tarif, months, phone: reqPhone, name: reqName } = req.body || {};
 
-  if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
   if (!tarif || !VALID_TARIFS.includes(String(tarif))) {
     return res.status(400).json({ error: 'Некорректный тариф' });
   }
@@ -38,11 +49,47 @@ module.exports = async (req, res) => {
   const tarifStr = String(tarif);
   const PRICE_TABLE = getPriceTable();
   const totalAmount = PRICE_TABLE[tarifStr]?.[monthsNum];
+  if (!totalAmount) {
+    return res.status(400).json({ error: 'Не найдена цена для тарифа' });
+  }
   const amount = totalAmount.toFixed(2);
 
+  let paymentUserId = telegram_id ? String(telegram_id) : null;
+  let dbUser = paymentUserId ? await getUser(paymentUserId) : null;
+  let userPhone = null;
+
+  if (!paymentUserId) {
+    const guestPhone = normalizePhone(reqPhone);
+    const guestName = String(reqName || '').trim();
+
+    if (!guestName) {
+      return res.status(400).json({ error: 'Укажите имя' });
+    }
+    if (!/^7\d{10}$/.test(guestPhone)) {
+      return res.status(400).json({ error: 'Некорректный номер телефона. Формат: +7XXXXXXXXXX' });
+    }
+
+    const { getUserByPhone } = require('./_lib/db');
+    dbUser = await getUserByPhone(guestPhone);
+    if (dbUser) {
+      paymentUserId = String(dbUser.telegram_id);
+      if (guestName && guestName !== dbUser.name) {
+        await upsertUser({ telegram_id: paymentUserId, name: guestName, phone: guestPhone });
+        dbUser = await getUser(paymentUserId);
+      }
+    } else {
+      paymentUserId = buildGuestUserId(guestPhone);
+      await upsertUser({ telegram_id: paymentUserId, name: guestName, phone: guestPhone });
+      dbUser = await getUser(paymentUserId);
+    }
+    userPhone = guestPhone;
+  }
+
   const returnUrl = isOneTime
-    ? `https://sushi-house-39.ru/discount-shop?telegram_id=${encodeURIComponent(telegram_id)}&payment=success`
-    : `https://sushi-house-39.ru/partner-code?telegram_id=${encodeURIComponent(telegram_id)}`;
+    ? `https://sushi-house-39.ru/discount-shop?telegram_id=${encodeURIComponent(paymentUserId)}&payment=success`
+    : (telegram_id
+      ? `https://sushi-house-39.ru/partner-code?telegram_id=${encodeURIComponent(paymentUserId)}`
+      : `https://sushi-house-39.ru/complete-registration?telegram_id=${encodeURIComponent(paymentUserId)}&payment=success`);
 
   const monthsLabel = monthsNum === 1 ? '1 мес' : `${monthsNum} мес`;
   const description = isOneTime
@@ -50,19 +97,13 @@ module.exports = async (req, res) => {
     : `Подписка Суши-Хаус 39 (${tarifStr}\u20BD \u00D7 ${monthsLabel})`;
 
   // Телефон пользователя для чека (54-ФЗ)
-  const dbUser = await getUser(telegram_id);
   const rawPhone = reqPhone || dbUser?.phone || null;
-  let userPhone = null;
-  if (rawPhone) {
-    let digits = rawPhone.replace(/[^\d]/g, '');
-    if (digits.length === 11 && digits.startsWith('8')) digits = '7' + digits.slice(1);
-    if (digits.length === 10) digits = '7' + digits;
-    if (digits.length === 11 && digits.startsWith('7')) userPhone = digits;
-  }
+  if (!userPhone) userPhone = normalizePhone(rawPhone);
+  if (!/^7\d{10}$/.test(userPhone)) userPhone = null;
 
   // Сохраняем нормализованный телефон в БД (7XXXXXXXXXX)
   if (userPhone && (!dbUser?.phone || dbUser.phone !== userPhone)) {
-    await upsertUser({ telegram_id: String(telegram_id), phone: userPhone });
+    await upsertUser({ telegram_id: String(paymentUserId), phone: userPhone });
   }
 
   const body = {
@@ -92,7 +133,7 @@ module.exports = async (req, res) => {
       ],
     },
     metadata: {
-      telegram_id: String(telegram_id),
+      telegram_id: String(paymentUserId),
       tarif: tarifStr,
       months: String(monthsNum),
     },

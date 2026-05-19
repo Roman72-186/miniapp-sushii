@@ -1,6 +1,7 @@
 // src/BenefitsPage.js — Страница выгоды подписки (для входящего трафика из уведомлений)
 
 import React, { useEffect } from 'react';
+import { PUBLIC_TARIFF_IDS, TARIFF_DATA } from './config/tariffs';
 import './shop.css';
 
 const ROLL_EXAMPLES = [
@@ -17,30 +18,11 @@ const SET_EXAMPLES = [
   { name: 'Сет Джуниор', price: 1680 },
 ];
 
-const TARIFFS = [
-  {
-    price: '290',
-    label: '290 ₽ / мес',
-    title: 'Скидки',
-    perks: ['−30% на все роллы', '−20% на все сеты'],
-    accent: '#9fb0c3',
-  },
-  {
-    price: '490',
-    label: '690 ₽ / мес',
-    title: 'Скидки + Роллы',
-    perks: ['−30% на все роллы', '−20% на все сеты', 'Бесплатный ролл каждые 15 дней', 'Ролл до 620₽ — любой на выбор'],
-    accent: '#3CC8A1',
-    featured: true,
-  },
-  {
-    price: '1190',
-    label: '1390 ₽ / мес',
-    title: 'Скидки + Сеты',
-    perks: ['−30% на все роллы', '−20% на все сеты', 'Бесплатный сет каждые 30 дней', 'Сет до 2000₽ — любой на выбор', 'Бесплатный кофе к заказу'],
-    accent: '#f5923a',
-  },
-];
+const TARIFF_CARD_META = {
+  '290': { accent: '#9fb0c3' },
+  '490': { accent: '#3CC8A1', featured: true },
+  '1190': { accent: '#f5923a' },
+};
 
 function BenefitsPage() {
   useEffect(() => {
@@ -133,24 +115,28 @@ function BenefitsPage() {
         <div className="benefits-section">
           <div className="benefits-section__title">Выбери тариф</div>
           <div className="benefits-tariffs">
-            {TARIFFS.map(t => (
-              <div key={t.price} className={`benefits-tariff${t.featured ? ' benefits-tariff--featured' : ''}`}>
-                <div className="benefits-tariff__price" style={{ color: t.accent }}>{t.label}</div>
-                <div className="benefits-tariff__title">{t.title}</div>
+            {PUBLIC_TARIFF_IDS.map(tariffId => {
+              const tariff = TARIFF_DATA[tariffId];
+              const meta = TARIFF_CARD_META[tariffId] || {};
+              return (
+              <div key={tariffId} className={`benefits-tariff${meta.featured ? ' benefits-tariff--featured' : ''}`}>
+                <div className="benefits-tariff__price" style={{ color: meta.accent }}>{tariff.label.replace(' / месяц', ' / мес')}</div>
+                <div className="benefits-tariff__title">{tariff.title}</div>
                 <ul className="benefits-tariff__perks">
-                  {t.perks.map((p, i) => (
+                  {tariff.features.map((p, i) => (
                     <li key={i}>{p}</li>
                   ))}
                 </ul>
                 <button
                   className="benefits-tariff__btn"
-                  style={{ background: t.accent }}
-                  onClick={() => handleTariff(t.price)}
+                  style={{ background: meta.accent }}
+                  onClick={() => handleTariff(tariffId)}
                 >
                   Оформить
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
