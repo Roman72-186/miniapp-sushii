@@ -694,7 +694,7 @@ function DiscountShopPage() {
             </button>
           )}
 
-          {cart.count > 0 && (
+          {hasActiveSubscription && cart.count > 0 && (
             <button className="shop-header__cart" onClick={() => setShowCart(true)}>
               <span className="shop-header__cart-icon">🛒</span>
               <span className="shop-header__cart-badge" key={cart.count}>{cart.count}</span>
@@ -904,7 +904,7 @@ function DiscountShopPage() {
     </div>
 
     {/* Всё с position:fixed вынесено за shop-page (иначе transform анимации ломает fixed) */}
-    {cart.count > 0 && !showCart && !showCheckout && (
+    {hasActiveSubscription && cart.count > 0 && !showCart && !showCheckout && (
       <button className="shop-cart-fab" onClick={() => setShowCart(true)}>
         <span className="shop-cart-fab__left">
           <span>🛒</span>
@@ -915,7 +915,7 @@ function DiscountShopPage() {
       </button>
     )}
 
-    {showCart && (
+    {hasActiveSubscription && showCart && (
       <CartPanel
         items={cart.items}
         total={cart.total}
@@ -932,7 +932,7 @@ function DiscountShopPage() {
       />
     )}
 
-    {showCheckout && (
+    {hasActiveSubscription && showCheckout && (
       <CheckoutForm
         items={cart.items}
         total={cart.total}
