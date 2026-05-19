@@ -11,7 +11,6 @@ import ShopPage from "./ShopPage"; // страница магазина
 import DiscountShopPage from "./DiscountShopPage"; // магазин по подписке со скидками
 import ProfilePage from "./ProfilePage"; // личный кабинет
 import SettingsPage from "./SettingsPage"; // настройки и опции
-import LandingPage from "./LandingPage"; // посадочная страница с тарифами
 import PaymentPage from "./PaymentPage"; // страница оплаты подписки
 import AdminPage from "./AdminPage"; // админка
 import GiftRollsPage from "./GiftRollsPage"; // подарочные роллы (отдельная страница для бота)
@@ -82,7 +81,7 @@ function App() {
   else if (isDiscountShopPage) page = <DiscountShopPage />;
   else if (isShopPage) page = <ShopPage />;
   else if (isPaymentPage) page = <PaymentPage />;
-  else if (isLandingPage) page = <LandingPage />;
+  else if (isLandingPage) page = <DiscountShopPage />;
   else if (isSetsReceivedPage) page = <SetsReceivedPage />;
   else if (isSetsPage) page = <SetsPage />;
   else if (isRollsPage) page = <RollsPage />;
