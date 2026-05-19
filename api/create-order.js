@@ -184,9 +184,14 @@ module.exports = async (req, res) => {
           et: client.et || '',
         };
 
-    // Списание SHC баллов (минимум 900 для активации)
+    const orderTotal = products.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.quantity) || 1), 0);
+
+    // Списание SHC баллов
     const shcToUse = Number(shc_used) || 0;
-    if (shcToUse > 0 && telegram_id) {
+    if (shcToUse > 0) {
+      if (!telegram_id) {
+        return res.status(400).json({ success: false, error: 'Для списания SHC нужно войти в аккаунт' });
+      }
       const dbUser = await getUser(telegram_id);
       const userBalance = dbUser?.balance_shc || 0;
       if (userBalance < 3000) {
@@ -195,8 +200,16 @@ module.exports = async (req, res) => {
       if (shcToUse > userBalance) {
         return res.status(400).json({ success: false, error: 'Недостаточно SHC баллов' });
       }
-      await updateBalance(telegram_id, -shcToUse);
+      if (shcToUse > orderTotal) {
+        return res.status(400).json({ success: false, error: 'SHC скидка не может быть больше суммы заказа' });
+      }
     }
+
+    const frontpadDiscount = shcToUse > 0
+      ? (shcToUse >= orderTotal
+        ? { discountPercent: 100 }
+        : { discountAmount: Math.round(shcToUse) })
+      : {};
 
     const orderComment = [
       isPickup ? sanitizePickupComment(comment) : (comment || ''),
@@ -214,10 +227,10 @@ module.exports = async (req, res) => {
       })),
       client: orderClient,
       payment: payment || 'cash',
-      sale: isPickup ? 'pickup' : 'delivery',
       affiliate: orderAffiliate,
       datetime: datetime || '',
       comment: orderComment,
+      ...frontpadDiscount,
     });
 
     if (!orderResult.success) {
@@ -225,6 +238,10 @@ module.exports = async (req, res) => {
         success: false,
         error: orderResult.error?.message || 'Ошибка создания заказа в Frontpad',
       });
+    }
+
+    if (shcToUse > 0 && telegram_id) {
+      await updateBalance(telegram_id, -shcToUse);
     }
 
     // Сохраняем заказ в БД
@@ -240,7 +257,6 @@ module.exports = async (req, res) => {
           price: p.price || 0,
           giftSource: p.gift_source || undefined,
         }));
-        const total = products.reduce((sum, p) => sum + (p.price || 0) * (p.quantity || 1), 0);
         const rawPromo = String(body.promo_code || '').trim();
         const promoCode = /^[A-Za-z0-9]{1,20}$/.test(rawPromo) ? rawPromo : null;
         const hasPromoGift = products.some(p => p.gift_source === 'promo');
@@ -253,7 +269,7 @@ module.exports = async (req, res) => {
           deliveryType: isPickupOrder ? 'pickup' : 'delivery',
           address: orderAddress,
           productsJson: JSON.stringify(productsList),
-          totalPrice: Math.round(total),
+          totalPrice: Math.round(orderTotal - shcToUse),
           clientName: client.name || null,
           promoCode,
           hasPromoGift,

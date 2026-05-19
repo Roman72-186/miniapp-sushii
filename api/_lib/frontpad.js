@@ -171,7 +171,8 @@ async function createOrder(orderData) {
     comment,
     datetime, // Время предзаказа (опционально)
     affiliate, // ID точки (stock_id)
-    sale,     // 'delivery' | 'pickup'
+    discountPercent, // процентная скидка Frontpad, 1-100
+    discountAmount,  // скидка суммой Frontpad
   } = orderData;
 
   // Нормализация: +7/8 → 7, только цифры
@@ -190,9 +191,10 @@ async function createOrder(orderData) {
     descr: comment || '',
   };
 
-  // Тип заказа: доставка / самовывоз
-  if (sale) {
-    params.sale = sale;
+  if (discountPercent) {
+    params.sale = discountPercent;
+  } else if (discountAmount) {
+    params.sale_amount = discountAmount;
   }
 
   // Точка/филиал
