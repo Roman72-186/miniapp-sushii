@@ -135,23 +135,23 @@ body.shop-body { background: #0F0F11 !important; }
 }
 
 .shop-page .shop-header__login {
-  min-width: 70px;
+  min-width: 82px;
   height: 38px;
-  padding: 0 14px;
-  background: var(--v3-raise);
-  border: 1px solid var(--v3-border);
+  padding: 0 16px;
+  background: var(--v3-accent-bg);
+  border: 1px solid var(--v3-accent-border);
   border-radius: var(--v3-r-md);
-  color: var(--v3-text);
+  color: var(--v3-accent);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
 }
 
 .shop-page .shop-header__profile:hover,
 .shop-page .shop-header__back:hover,
 .shop-page .shop-header__login:hover {
-  border-color: var(--v3-border-strong);
-  background: #28282E;
+  border-color: rgba(60,200,161,0.5);
+  background: rgba(60,200,161,0.14);
   box-shadow: none;
 }
 
@@ -1222,18 +1222,27 @@ body.shop-body { background: #0F0F11 !important; }
 
 /* Profile modals */
 .pf-modal { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--v3-surface); border: 1px solid var(--v3-border); border-radius: 20px 20px 0 0; padding: 12px 18px 32px; z-index: 400; box-shadow: 0 -4px 32px rgba(0,0,0,0.4); }
+.pf-modal--subscription { width: calc(100% - 24px); max-width: 500px; bottom: 10px; max-height: min(88vh, 680px); overflow-y: auto; border-radius: 22px; padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); }
 .pf-modal__handle { width: 36px; height: 4px; background: var(--v3-raise); border-radius: 2px; margin: 0 auto 16px; }
 .pf-modal__title { font-size: 17px; font-weight: 700; color: var(--v3-text); margin-bottom: 4px; }
 .pf-modal__subtitle { font-size: 13px; color: var(--v3-muted); margin-bottom: 14px; }
 .pf-modal__close { width: 100%; padding: 12px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 12px; color: var(--v3-muted); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px; }
 .pf-modal__warn { font-size: 13px; color: var(--v3-muted); padding: 10px 12px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 10px; margin-bottom: 10px; }
 .pf-modal__warn--soft { color: var(--v3-warning); border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.08); }
+.pf-modal__tariff-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
 .pf-modal__tariff-btn { display: block; width: 100%; text-align: left; padding: 12px 14px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 12px; color: var(--v3-text); cursor: pointer; margin-bottom: 8px; transition: border-color 0.15s; }
+.pf-modal__tariff-grid .pf-modal__tariff-btn { margin-bottom: 0; min-height: 112px; }
+.pf-modal__tariff-grid .pf-modal__tariff-btn:nth-child(3) { grid-column: 1 / -1; min-height: auto; }
 .pf-modal__tariff-btn--best { border-color: var(--v3-accent-border); background: var(--v3-accent-bg); }
 .pf-modal__tariff-row { display: flex; justify-content: space-between; align-items: center; }
 .pf-modal__tariff-name { font-size: 15px; font-weight: 700; color: var(--v3-text); }
 .pf-modal__tariff-star { font-size: 12px; color: var(--v3-accent); font-weight: 700; }
 .pf-modal__tariff-desc { font-size: 12px; color: var(--v3-muted); margin-top: 4px; }
+.pf-modal__login-btn { width: 100%; margin-top: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--v3-inset); border: 1px solid var(--v3-accent-border); border-radius: 12px; color: var(--v3-muted); font-size: 12px; cursor: pointer; }
+.pf-modal__login-btn strong { color: var(--v3-accent); font-size: 14px; white-space: nowrap; }
+.pf-modal__contact-form { display: grid; gap: 10px; }
+.pf-modal__consent { display: flex; gap: 10px; color: var(--v3-muted); font-size: 12px; line-height: 1.45; margin: 0 0 4px; }
+.pf-modal__consent input { margin-top: 2px; accent-color: var(--v3-accent); }
 .pf-modal__months { display: flex; gap: 8px; margin: 14px 0; }
 .pf-modal__month-btn { flex: 1; text-align: center; padding: 12px 8px; background: var(--v3-raise); border: 1px solid var(--v3-border); border-radius: 12px; color: var(--v3-text); cursor: pointer; transition: border-color 0.15s; }
 .pf-modal__month-btn:hover { border-color: var(--v3-border-strong); }
