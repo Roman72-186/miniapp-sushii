@@ -100,7 +100,7 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
                       <span className="pf-modal__tariff-name">{price} ₽ / месяц</span>
                       {tariff.badge && <span className="pf-modal__tariff-star">{tariff.badge}</span>}
                     </div>
-                    <div className="pf-modal__tariff-desc">{tariff.title}. {tariff.desc}</div>
+                    <div className="pf-modal__tariff-desc">{tariff.modalText || `${tariff.title}. ${tariff.desc}`}</div>
                   </button>
                 );
               })}
