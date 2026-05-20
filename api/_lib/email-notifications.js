@@ -60,8 +60,15 @@ function giftAvailableHtml({ firstName, giftType, windowStart, windowEnd }) {
   `;
 }
 
-function renewalReminderHtml({ firstName, tariff, endDate }) {
+function formatRubles(amount) {
+  const value = Number(amount);
+  if (!Number.isFinite(value)) return null;
+  return new Intl.NumberFormat('ru-RU').format(value);
+}
+
+function renewalReminderHtml({ firstName, tariff, endDate, amount }) {
   const hello = firstName ? `Привет, ${escapeHtml(firstName)}!` : 'Привет!';
+  const amountText = formatRubles(amount);
   return `
     <div style="font-family:sans-serif;max-width:440px;margin:0 auto;padding:32px;background:#1a1a1a;border-radius:16px;color:#fff;">
       <div style="text-align:center;margin-bottom:24px;">
@@ -73,6 +80,7 @@ function renewalReminderHtml({ firstName, tariff, endDate }) {
       </p>
       <p style="color:#9fb0c3;margin:0 0 16px;">
         ${escapeHtml(endDate)} произойдёт автоматическое продление вашего тарифа <strong style="color:#eaeaf8;">${escapeHtml(String(tariff))} ₽</strong>.
+        ${amountText ? `К списанию: <strong style="color:#eaeaf8;">${escapeHtml(amountText)} ₽</strong>.` : ''}
       </p>
       <p style="color:#9fb0c3;margin:0 0 24px;">
         Пожалуйста, убедитесь, что на привязанной карте достаточно средств.
@@ -115,12 +123,12 @@ async function sendGiftAvailableEmail(email, firstName, giftType, windowObj) {
   });
 }
 
-async function sendRenewalReminderEmail(email, firstName, tariff, endDate) {
+async function sendRenewalReminderEmail(email, firstName, tariff, endDate, amount) {
   if (!email) return false;
   return sendEmail({
     to: email,
     subject: 'Завтра спишется оплата подписки Суши-Хаус 39',
-    html: renewalReminderHtml({ firstName, tariff, endDate }),
+    html: renewalReminderHtml({ firstName, tariff, endDate, amount }),
   });
 }
 
