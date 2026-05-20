@@ -359,9 +359,9 @@ function LandingPage() {
             {savings.map((row, index) => (
               <div className="landing-saving-row" key={row.label} style={{ '--row-index': index }}>
                 <span className="landing-saving-row__label">{row.label}</span>
-                <span className="landing-saving-row__regular">{row.regular}</span>
-                <span className="landing-saving-row__subscriber">{row.subscriber}</span>
-                <strong>{row.profit}</strong>
+                <span className="landing-saving-row__regular" data-label="Обычно">{row.regular}</span>
+                <span className="landing-saving-row__subscriber" data-label="С подпиской">{row.subscriber}</span>
+                <strong data-label="Выгода">{row.profit}</strong>
               </div>
             ))}
             <div className="landing-savings__legend">
