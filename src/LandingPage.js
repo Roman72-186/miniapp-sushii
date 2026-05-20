@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import AppFooter from './components/AppFooter';
+import { useUser } from './UserContext';
 
 const SITE_URL = 'https://sushi-house-39.ru';
 const HERO_IMAGE = '/new_set/%D0%A1%D0%B5%D1%82%20%C2%AB%D0%A2%D0%B8%D1%85%D0%B8%D0%B9%20%D0%B2%D0%B5%D1%87%D0%B5%D1%80%C2%BB.jpg';
@@ -11,6 +12,27 @@ const seo = {
   canonical: SITE_URL,
   image: `${SITE_URL}${HERO_IMAGE}`,
 };
+
+const defaultHeroLead = (
+  <>
+    Если роллы и сеты уже есть в вашем обычном месяце, подписка возвращает
+    часть бюджета: скидки, подарки, SHC-баллы и отдельное меню подписчика.
+  </>
+);
+
+const activeHeroLead = (
+  <>
+    Ваша подписка активна. Открывайте меню подписки, собирайте корзину уже
+    со скидками и забирайте доступные подарки в личном кабинете.
+  </>
+);
+
+const expiredHeroLead = (
+  <>
+    Ваша подписка закончилась. Продлите тариф, чтобы снова открыть цены
+    подписчика, подарочные периоды и заказы через меню подписки.
+  </>
+);
 
 const valuePoints = [
   {
@@ -181,6 +203,25 @@ function setJsonLd() {
 }
 
 function LandingPage() {
+  const { loading: userLoading, profile, tarif } = useUser();
+  const subscriptionStatus = profile?.статусСписания || null;
+  const hasActiveSubscription = subscriptionStatus === 'активно';
+  const hadSubscription = Boolean(profile && !hasActiveSubscription && (tarif || subscriptionStatus));
+  const heroLead = hasActiveSubscription ? activeHeroLead : hadSubscription ? expiredHeroLead : defaultHeroLead;
+  const navCta = profile
+    ? { href: '/profile', label: 'Кабинет' }
+    : { href: '/login', label: userLoading ? 'Проверяем' : 'Войти' };
+  const primaryCta = hasActiveSubscription
+    ? { href: '/discount-shop', label: 'Перейти в меню подписки' }
+    : hadSubscription
+      ? { href: '#tariffs', label: 'Продлить подписку' }
+      : { href: '#tariffs', label: 'Посчитать выгоду' };
+  const secondaryCta = hasActiveSubscription
+    ? { href: '/profile', label: 'Личный кабинет' }
+    : hadSubscription
+      ? { href: '/profile', label: 'Проверить профиль' }
+      : { href: '/discount-shop', label: 'Меню подписки' };
+
   useEffect(() => {
     document.body.classList.add('shop-body');
     document.title = seo.title;
@@ -233,7 +274,7 @@ function LandingPage() {
   }, []);
 
   const openTariff = (tariffId) => {
-    window.location.href = `/pay/${tariffId}`;
+    window.location.href = hasActiveSubscription ? '/discount-shop' : `/pay/${tariffId}`;
   };
 
   return (
@@ -248,7 +289,7 @@ function LandingPage() {
           <a href="#tariffs">Тарифы</a>
           <a href="#faq">Вопросы</a>
         </nav>
-        <a className="landing-nav__login" href="/login">Войти</a>
+        <a className="landing-nav__login" href={navCta.href}>{navCta.label}</a>
       </header>
 
       <section className="landing-hero" aria-labelledby="landing-title">
@@ -258,12 +299,24 @@ function LandingPage() {
           <p className="landing-kicker landing-reveal">Суши и роллы по подписке в Калининграде</p>
           <h1 id="landing-title" className="landing-reveal" style={{ '--reveal-delay': '70ms' }}>Суши-Хаус 39</h1>
           <p className="landing-hero__lead landing-reveal" style={{ '--reveal-delay': '140ms' }}>
-            Если роллы и сеты уже есть в вашем обычном месяце, подписка возвращает
-            часть бюджета: скидки, подарки, SHC-баллы и отдельное меню подписчика.
+            {heroLead}
           </p>
+          {hasActiveSubscription && (
+            <div className="landing-subscriber-note landing-reveal" style={{ '--reveal-delay': '175ms' }}>
+              <strong>Подписка активна</strong>
+              {tarif && <span>Тариф: {tarif}</span>}
+              {profile?.датаОКОНЧАНИЯ && <span>До: {profile.датаОКОНЧАНИЯ}</span>}
+            </div>
+          )}
+          {hadSubscription && (
+            <div className="landing-subscriber-note landing-subscriber-note--expired landing-reveal" style={{ '--reveal-delay': '175ms' }}>
+              <strong>Подписка не активна</strong>
+              {profile?.датаОКОНЧАНИЯ && <span>Закончилась: {profile.датаОКОНЧАНИЯ}</span>}
+            </div>
+          )}
           <div className="landing-hero__actions landing-reveal" style={{ '--reveal-delay': '210ms' }}>
-            <a className="landing-btn landing-btn--primary" href="#tariffs">Посчитать выгоду</a>
-            <a className="landing-btn landing-btn--ghost" href="/discount-shop">Меню подписки</a>
+            <a className="landing-btn landing-btn--primary" href={primaryCta.href}>{primaryCta.label}</a>
+            <a className="landing-btn landing-btn--ghost" href={secondaryCta.href}>{secondaryCta.label}</a>
           </div>
         </div>
         <div className="landing-hero__metrics landing-reveal" style={{ '--reveal-delay': '280ms' }} aria-label="Ключевые преимущества подписки">
@@ -340,7 +393,7 @@ function LandingPage() {
                   ))}
                 </ul>
                 <button type="button" onClick={() => openTariff(tariff.id)}>
-                  Подключить тариф
+                  {hasActiveSubscription ? 'Открыть меню подписки' : hadSubscription ? 'Продлить тариф' : 'Подключить тариф'}
                 </button>
               </article>
             ))}
@@ -361,8 +414,14 @@ function LandingPage() {
             ))}
           </ol>
           <div className="landing-final-cta landing-reveal">
-            <h2>Соберите корзину в меню подписки и сразу увидьте цены со скидкой</h2>
-            <a className="landing-btn landing-btn--primary" href="/discount-shop">Перейти в меню подписки</a>
+            <h2>
+              {hasActiveSubscription
+                ? 'Ваша подписка уже работает: переходите в меню и используйте цены подписчика'
+                : 'Соберите корзину в меню подписки и сразу увидьте цены со скидкой'}
+            </h2>
+            <a className="landing-btn landing-btn--primary" href={hasActiveSubscription ? '/discount-shop' : '#tariffs'}>
+              {hasActiveSubscription ? 'Перейти в меню подписки' : 'Выбрать тариф'}
+            </a>
           </div>
         </div>
       </section>
