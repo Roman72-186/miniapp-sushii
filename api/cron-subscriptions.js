@@ -15,18 +15,18 @@ const {
   hasEmailNotification,
   recordEmailNotification,
 } = require('./_lib/db');
+const { getPriceTable } = require('./admin-pricing');
 const { sendRenewalReminderEmail } = require('./_lib/email-notifications');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
 
-// Цены рекуррентного списания (1 месяц)
-const RECURRING_PRICES = {
-  '290': 290,
-  '490': 690,
-  '1190': 1390,
-};
+function getRecurringAmount(tariff) {
+  const price = getPriceTable()?.[String(tariff)]?.[1];
+  const amount = Number(price);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
 
 function formatDate(date) {
   const d = String(date.getDate()).padStart(2, '0');
@@ -60,9 +60,9 @@ async function sendMessage(telegramId, text, replyMarkup) {
 async function tryRecurringPayment(user) {
   if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) return { success: false, reason: 'no_credentials' };
   if (!user.payment_method_id) return { success: false, reason: 'no_payment_method' };
-  if (!user.tariff || !RECURRING_PRICES[user.tariff]) return { success: false, reason: 'invalid_tariff' };
+  const amount = getRecurringAmount(user.tariff);
+  if (!user.tariff || !amount) return { success: false, reason: 'invalid_tariff' };
 
-  const amount = RECURRING_PRICES[user.tariff];
   const auth = Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64');
 
   try {
@@ -159,6 +159,11 @@ async function runSubscriptionCron() {
       // Email-напоминание: только если автосписание включено + есть email
       if (user.email && user.payment_method_id) {
         try {
+          const amount = getRecurringAmount(user.tariff);
+          if (!amount) {
+            console.warn(`cron: renewal email skipped for ${user.telegram_id}: invalid tariff price`);
+            continue;
+          }
           const ctx = String(user.subscription_end || '');
           const already = await hasEmailNotification(user.telegram_id, 'renewal_reminder', ctx);
           if (!already) {
@@ -166,7 +171,8 @@ async function runSubscriptionCron() {
               user.email,
               user.first_name || user.name,
               user.tariff,
-              user.subscription_end
+              user.subscription_end,
+              amount
             );
             if (ok) {
               await recordEmailNotification(user.telegram_id, 'renewal_reminder', ctx);

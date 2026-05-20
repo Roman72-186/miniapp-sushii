@@ -116,13 +116,13 @@ app.listen(PORT, () => {
     console.warn('[config] Внимание: используйте надежный JWT_SECRET в production');
   }
 
-  // Cron: проверка подписок каждый день в 10:00 UTC (13:00 МСК)
+  // Cron: проверка подписок каждый день в 10:00:00 МСК (07:00 UTC)
   const { runSubscriptionCron } = require('./api/cron-subscriptions');
 
   function scheduleDailyCron() {
     const now = new Date();
     const next = new Date(now);
-    next.setUTCHours(10, 0, 0, 0);
+    next.setUTCHours(7, 0, 0, 0);
     if (next <= now) next.setDate(next.getDate() + 1);
 
     const delay = next.getTime() - now.getTime();
