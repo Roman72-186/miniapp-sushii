@@ -1,70 +1,66 @@
-# Getting Started with Create React App
+# miniapp-sushii
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Standalone веб-приложение для суши-ресторана: React SPA + Express API + SQLite в dev / PostgreSQL (Supabase) в production.
 
-## Available Scripts
+## Запуск
 
-In the project directory, you can run:
+```bash
+npm start
+npm run build
+node server.js
+```
 
-### `npm start`
+Дополнительно:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+npm run catalog
+npm run backup:db
+npm test
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Структура проекта
 
-### `npm test`
+Рабочий код:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- `src/` — фронтенд React SPA.
+- `api/` — API-обработчики и общие backend-утилиты.
+- `server.js` — Express entrypoint.
+- `public/` — каталоги товаров, изображения и статическая статика.
+- `config/` — конфигурация магазинов и служебные конфиги.
+- `scripts/` — утилиты миграции, импорта и диагностики.
+- `nginx/`, `Dockerfile`, `docker-compose.yml` — деплой.
 
-### `npm run build`
+Данные и overrides:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- `data/products/` — admin overrides для товаров.
+- `data/catalog-master.csv` — итоговая сводка каталога.
+- `data/*.json`, `data/*.csv` — аналитические и legacy-выгрузки.
+- `data/sushii.db` — локальная SQLite база, теперь игнорируется git.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Документация и память проекта:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- `AGENTS.md`, `CLAUDE.md`, `logi.md` — локальные инструкции и рабочий контекст.
+- `docs/` — человекочитаемая документация и референсы.
+- `obsidian-vault/` — долговременная проектная память.
 
-### `npm run eject`
+Локальные каталоги среды:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- `.agents/`, `.codex/` — локальные артефакты агентов, игнорируются git.
+- `.claude/` — локальная конфигурация и навыки; часть файлов отслеживается в репозитории.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Важные замечания
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- Это больше не Telegram Mini App. Основная авторизация — JWT через телефон, OTP и пароль.
+- `shop-v2.css` — основной override-слой дизайна магазина. Косметические правки магазина вносить туда.
+- `Товары.csv` должен оставаться в корне: его читает `scripts/build-catalog-master.py`.
+- `opencode.jsonc` должен оставаться в корне: на него завязан `config/protected-secrets.json`.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Проверка после изменений
 
-## Learn More
+Основная быстрая проверка:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm.cmd run build
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Сборка может проходить с warnings по `no-unused-vars`; это текущий технический долг, а не блокер запуска.
