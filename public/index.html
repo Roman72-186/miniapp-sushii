@@ -4,41 +4,108 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/logo.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <meta name="theme-color" content="#1a1a1a" />
-    <meta name="description" content="Суши-Хаус 39 — скидки, подписки, заказы" />
-    <script>window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); });</script>
+    <meta name="theme-color" content="#0F0F11" />
+    <meta
+      name="description"
+      content="Подписка Суши-Хаус 39 в Калининграде помогает экономить на каждом заказе: до 30% на роллы, до 20% на сеты, подарочные периоды, SHC-баллы и меню подписки онлайн."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://sushi-house-39.ru/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content="Суши-Хаус 39 - подписка на суши и роллы в Калининграде" />
+    <meta
+      property="og:description"
+      content="Если роллы и сеты уже есть в вашем месяце, подписка возвращает часть бюджета: скидки, подарки и SHC-баллы для заказов в меню подписки."
+    />
+    <meta property="og:url" content="https://sushi-house-39.ru/" />
+    <meta
+      property="og:image"
+      content="https://sushi-house-39.ru/new_set/%D0%A1%D0%B5%D1%82%20%C2%AB%D0%A2%D0%B8%D1%85%D0%B8%D0%B9%20%D0%B2%D0%B5%D1%87%D0%B5%D1%80%C2%BB.jpg"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Суши-Хаус 39 - подписка на суши и роллы в Калининграде" />
+    <meta
+      name="twitter:description"
+      content="Скидки до 30%, подарочные периоды, SHC-баллы и отдельное меню подписчика для заказов Суши-Хаус 39."
+    />
+    <meta
+      name="twitter:image"
+      content="https://sushi-house-39.ru/new_set/%D0%A1%D0%B5%D1%82%20%C2%AB%D0%A2%D0%B8%D1%85%D0%B8%D0%B9%20%D0%B2%D0%B5%D1%87%D0%B5%D1%80%C2%BB.jpg"
+    />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>Суши Хаус Калининград</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Суши-Хаус 39 - подписка на суши и роллы в Калининграде</title>
+    <script>
+      window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); });
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://sushi-house-39.ru/#organization",
+            "name": "Суши-Хаус 39",
+            "url": "https://sushi-house-39.ru/",
+            "logo": "https://sushi-house-39.ru/logo512.png",
+            "areaServed": "Калининград"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://sushi-house-39.ru/#website",
+            "url": "https://sushi-house-39.ru/",
+            "name": "Суши-Хаус 39",
+            "inLanguage": "ru-RU",
+            "publisher": { "@id": "https://sushi-house-39.ru/#organization" }
+          },
+          {
+            "@type": "Service",
+            "@id": "https://sushi-house-39.ru/#subscription",
+            "name": "Подписка Суши-Хаус 39",
+            "serviceType": "Подписка на суши и роллы",
+            "provider": { "@id": "https://sushi-house-39.ru/#organization" },
+            "areaServed": "Калининград",
+            "description": "Подписка помогает экономить на каждом заказе в меню подписки: до 30% на роллы, до 20% на сеты, подарочные периоды и SHC-баллы.",
+            "offers": [
+              {
+                "@type": "Offer",
+                "name": "Скидки на меню",
+                "price": "290",
+                "priceCurrency": "RUB",
+                "url": "https://sushi-house-39.ru/pay/290",
+                "availability": "https://schema.org/InStock"
+              },
+              {
+                "@type": "Offer",
+                "name": "Скидки + роллы",
+                "price": "690",
+                "priceCurrency": "RUB",
+                "url": "https://sushi-house-39.ru/pay/490",
+                "availability": "https://schema.org/InStock"
+              },
+              {
+                "@type": "Offer",
+                "name": "VIP с подарками",
+                "price": "1390",
+                "priceCurrency": "RUB",
+                "url": "https://sushi-house-39.ru/pay/1190",
+                "availability": "https://schema.org/InStock"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>Для работы приложения включите JavaScript.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>
