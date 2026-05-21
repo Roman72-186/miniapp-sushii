@@ -82,7 +82,7 @@ const tariffs = [
 ];
 
 const steps = [
-  'Выберите тариф под свой ритм заказов и оплатите подписку онлайн.',
+  'Выберите тариф и срок подписки: 1, 3 или 5 месяцев, затем оплатите онлайн.',
   'Открывайте меню подписки, где цены уже пересчитаны со скидкой.',
   'Заказывайте дешевле, забирайте подарки в доступные периоды и копите SHC.',
 ];
@@ -396,7 +396,7 @@ function LandingPage() {
       <section className="landing-section landing-section--flow landing-reveal" aria-labelledby="flow-title">
         <div className="landing-section__inner">
           <p className="landing-section__eyebrow">Как это работает</p>
-          <h2 id="flow-title">Подписка включается один раз, выгода работает на каждом заказе</h2>
+          <h2 id="flow-title">Подписка оформляется на 1, 3 или 5 месяцев, а выгода работает на каждом заказе</h2>
           <ol className="landing-flow">
             {steps.map((step, index) => (
               <li className="landing-reveal" key={step} style={{ '--reveal-delay': `${index * 90}ms` }}>
