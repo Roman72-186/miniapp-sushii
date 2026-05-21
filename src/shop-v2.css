@@ -1723,49 +1723,6 @@ html:has(.landing-page) {
   transform: translateY(-2px);
 }
 
-.landing-hero__metrics {
-  position: absolute;
-  left: 50%;
-  bottom: 22px;
-  width: min(1120px, calc(100% - 32px));
-  transform: translateX(-50%);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.landing-metric {
-  padding: 16px 18px;
-  background: rgba(15, 15, 17, 0.72);
-  transition: background 0.18s ease-out;
-}
-
-.landing-metric:hover {
-  background: rgba(24, 24, 27, 0.92);
-}
-
-.landing-metric strong {
-  display: block;
-  color: var(--v3-accent);
-  font-size: 26px;
-  line-height: 1;
-  font-weight: 900;
-}
-
-.landing-metric span {
-  display: block;
-  margin-top: 8px;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 13px;
-  font-weight: 800;
-}
-
 .landing-section {
   border-top: 1px solid var(--v3-border);
   background: var(--v3-bg);
@@ -2400,24 +2357,6 @@ html:has(.landing-page) {
     line-height: 1.48;
   }
 
-  .landing-hero__metrics {
-    grid-template-columns: repeat(3, 1fr);
-    bottom: 14px;
-  }
-
-  .landing-metric {
-    padding: 12px 10px;
-  }
-
-  .landing-metric strong {
-    font-size: 20px;
-  }
-
-  .landing-metric span {
-    font-size: 11px;
-    line-height: 1.25;
-  }
-
   .landing-section__inner {
     padding: 58px 0;
   }
@@ -2471,8 +2410,7 @@ html:has(.landing-page) {
   }
 
   .landing-hero__content,
-  .landing-section__inner,
-  .landing-hero__metrics {
+  .landing-section__inner {
     width: calc(100% - 24px);
   }
 
@@ -2512,28 +2450,6 @@ html:has(.landing-page) {
     width: 100%;
     align-items: flex-start;
     gap: 8px;
-  }
-
-  .landing-hero__metrics {
-    position: static;
-    transform: none;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin: 0 auto;
-  }
-
-  .landing-metric {
-    min-width: 0;
-    padding: 12px 8px;
-  }
-
-  .landing-metric strong {
-    font-size: clamp(18px, 6vw, 22px);
-  }
-
-  .landing-metric span {
-    margin-top: 7px;
-    font-size: 10px;
-    line-height: 1.22;
   }
 
   .landing-hero__actions {
@@ -2710,14 +2626,6 @@ html:has(.landing-page) {
 
   .landing-hero__content {
     padding-top: 90px;
-  }
-
-  .landing-metric {
-    padding: 10px 6px;
-  }
-
-  .landing-metric span {
-    font-size: 9px;
   }
 
   .landing-saving-row__regular,

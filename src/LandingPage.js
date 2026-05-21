@@ -333,14 +333,6 @@ function LandingPage() {
             <a className="landing-btn landing-btn--ghost" href={secondaryCta.href}>{secondaryCta.label}</a>
           </div>
         </div>
-        <div className="landing-hero__metrics landing-reveal" style={{ '--reveal-delay': '280ms' }} aria-label="Ключевые преимущества подписки">
-          {valuePoints.slice(0, 3).map((point, index) => (
-            <div className="landing-metric" key={point.stat} style={{ '--metric-index': index }}>
-              <strong>{point.stat}</strong>
-              <span>{point.title}</span>
-            </div>
-          ))}
-        </div>
       </section>
 
       <section className="landing-section landing-section--intro landing-reveal" id="benefits">
