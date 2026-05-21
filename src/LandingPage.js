@@ -20,13 +20,6 @@ const defaultHeroLead = (
   </>
 );
 
-const activeHeroLead = (
-  <>
-    Ваша подписка активна. Открывайте меню подписки, собирайте корзину уже
-    со скидками и забирайте доступные подарки в личном кабинете.
-  </>
-);
-
 const expiredHeroLead = (
   <>
     Ваша подписка закончилась. Продлите тариф, чтобы снова открыть цены
@@ -207,18 +200,14 @@ function LandingPage() {
   const subscriptionStatus = profile?.статусСписания || null;
   const hasActiveSubscription = subscriptionStatus === 'активно';
   const hadSubscription = Boolean(profile && !hasActiveSubscription && (tarif || subscriptionStatus));
-  const heroLead = hasActiveSubscription ? activeHeroLead : hadSubscription ? expiredHeroLead : defaultHeroLead;
+  const heroLead = hadSubscription ? expiredHeroLead : defaultHeroLead;
   const navCta = profile
     ? { href: '/profile', label: 'Кабинет' }
     : { href: '/login', label: userLoading ? 'Проверяем' : 'Войти' };
-  const primaryCta = hasActiveSubscription
-    ? { href: '/discount-shop', label: 'Перейти в меню подписки' }
-    : hadSubscription
+  const primaryCta = hadSubscription
       ? { href: '#tariffs', label: 'Продлить подписку' }
       : { href: '#tariffs', label: 'Посчитать выгоду' };
-  const secondaryCta = hasActiveSubscription
-    ? { href: '/profile', label: 'Личный кабинет' }
-    : hadSubscription
+  const secondaryCta = hadSubscription
       ? { href: '/profile', label: 'Проверить профиль' }
       : { href: '/discount-shop', label: 'Меню подписки' };
 
@@ -273,9 +262,19 @@ function LandingPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!userLoading && hasActiveSubscription) {
+      window.location.replace('/discount-shop');
+    }
+  }, [userLoading, hasActiveSubscription]);
+
   const openTariff = (tariffId) => {
-    window.location.href = hasActiveSubscription ? '/discount-shop' : `/pay/${tariffId}`;
+    window.location.href = `/pay/${tariffId}`;
   };
+
+  if (!userLoading && hasActiveSubscription) {
+    return null;
+  }
 
   return (
     <main className="landing-page">
@@ -301,13 +300,6 @@ function LandingPage() {
           <p className="landing-hero__lead landing-reveal" style={{ '--reveal-delay': '140ms' }}>
             {heroLead}
           </p>
-          {hasActiveSubscription && (
-            <div className="landing-subscriber-note landing-reveal" style={{ '--reveal-delay': '175ms' }}>
-              <strong>Подписка активна</strong>
-              {tarif && <span>Тариф: {tarif}</span>}
-              {profile?.датаОКОНЧАНИЯ && <span>До: {profile.датаОКОНЧАНИЯ}</span>}
-            </div>
-          )}
           {hadSubscription && (
             <div className="landing-subscriber-note landing-subscriber-note--expired landing-reveal" style={{ '--reveal-delay': '175ms' }}>
               <strong>Подписка не активна</strong>
@@ -393,7 +385,7 @@ function LandingPage() {
                   ))}
                 </ul>
                 <button type="button" onClick={() => openTariff(tariff.id)}>
-                  {hasActiveSubscription ? 'Открыть меню подписки' : hadSubscription ? 'Продлить тариф' : 'Подключить тариф'}
+                  {hadSubscription ? 'Продлить тариф' : 'Подключить тариф'}
                 </button>
               </article>
             ))}
@@ -414,14 +406,8 @@ function LandingPage() {
             ))}
           </ol>
           <div className="landing-final-cta landing-reveal">
-            <h2>
-              {hasActiveSubscription
-                ? 'Ваша подписка уже работает: переходите в меню и используйте цены подписчика'
-                : 'Соберите корзину в меню подписки и сразу увидьте цены со скидкой'}
-            </h2>
-            <a className="landing-btn landing-btn--primary" href={hasActiveSubscription ? '/discount-shop' : '#tariffs'}>
-              {hasActiveSubscription ? 'Перейти в меню подписки' : 'Выбрать тариф'}
-            </a>
+            <h2>Соберите корзину в меню подписки и сразу увидьте цены со скидкой</h2>
+            <a className="landing-btn landing-btn--primary" href="#tariffs">Выбрать тариф</a>
           </div>
         </div>
       </section>
