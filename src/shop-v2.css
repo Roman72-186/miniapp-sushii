@@ -1455,6 +1455,13 @@ body.shop-body { background: #0F0F11 !important; }
   text-rendering: geometricPrecision;
 }
 
+.landing-page,
+.landing-page *,
+.landing-page *::before,
+.landing-page *::after {
+  box-sizing: border-box;
+}
+
 html:has(.landing-page) {
   scroll-behavior: smooth;
 }
