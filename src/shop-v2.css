@@ -1873,6 +1873,203 @@ html:has(.landing-page) {
   transition: border-color 0.18s ease-out, background 0.18s ease-out;
 }
 
+.landing-savings__visual {
+  display: grid;
+  gap: 12px;
+}
+
+.landing-savings-chart {
+  position: relative;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid rgba(60, 200, 161, 0.24);
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(60, 200, 161, 0.16), transparent 34%),
+    linear-gradient(135deg, rgba(60, 200, 161, 0.08), rgba(255, 255, 255, 0.02) 48%, rgba(15, 15, 17, 0.72)),
+    var(--v3-surface);
+}
+
+.landing-savings-chart::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.75), transparent 86%);
+}
+
+.landing-savings-chart figcaption {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.landing-savings-chart figcaption span {
+  color: var(--v3-accent);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.landing-savings-chart figcaption strong {
+  color: var(--v3-text);
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1;
+  font-weight: 900;
+}
+
+.landing-savings-chart figcaption small {
+  color: var(--v3-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.landing-savings-chart__canvas {
+  position: relative;
+  z-index: 1;
+  margin-top: 8px;
+}
+
+.landing-savings-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.landing-savings-chart__grid line {
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 1;
+}
+
+.landing-savings-chart__area {
+  fill: url(#landingSavingArea);
+  opacity: 0;
+  animation: landing-chart-area 0.82s cubic-bezier(0.22, 1, 0.36, 1) 0.32s forwards;
+}
+
+.landing-savings-chart__line {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  animation: landing-chart-draw 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.landing-savings-chart__line--regular {
+  stroke: rgba(255, 255, 255, 0.34);
+}
+
+.landing-savings-chart__line--subscriber {
+  stroke: var(--v3-accent);
+  filter: url(#landingSavingGlow);
+  animation-delay: 0.12s;
+}
+
+.landing-savings-chart__point {
+  opacity: 0;
+  animation: landing-chart-point 0.34s ease-out calc(0.72s + var(--point-delay, 0ms)) forwards;
+}
+
+.landing-savings-chart__point line {
+  stroke: rgba(60, 200, 161, 0.34);
+  stroke-width: 2;
+  stroke-dasharray: 4 6;
+}
+
+.landing-savings-chart__dot {
+  stroke: #101013;
+  stroke-width: 2;
+}
+
+.landing-savings-chart__dot--regular {
+  fill: #8A8A92;
+}
+
+.landing-savings-chart__dot--subscriber {
+  fill: var(--v3-accent);
+}
+
+.landing-savings-chart text {
+  fill: var(--v3-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.landing-savings-chart__callout {
+  position: absolute;
+  right: 6px;
+  top: 26%;
+  min-width: 118px;
+  padding: 10px 12px;
+  border: 1px solid rgba(60, 200, 161, 0.34);
+  border-radius: 8px;
+  background: rgba(10, 16, 15, 0.86);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.landing-savings-chart__callout span {
+  display: block;
+  color: var(--v3-muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.landing-savings-chart__callout strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--v3-accent);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.landing-savings-chart__legend {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-top: 8px;
+  color: var(--v3-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.landing-savings-chart__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.landing-savings-chart__mark {
+  width: 20px;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.landing-savings-chart__mark--regular {
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.landing-savings-chart__mark--subscriber {
+  background: var(--v3-accent);
+}
+
 .landing-saving-row {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) 0.7fr 0.7fr 0.6fr;
@@ -1922,6 +2119,34 @@ html:has(.landing-page) {
 
 .landing-savings__legend::before {
   content: "";
+}
+
+@keyframes landing-chart-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes landing-chart-area {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-chart-point {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .landing-tariffs {
@@ -2380,6 +2605,25 @@ html:has(.landing-page) {
     gap: 22px;
   }
 
+  .landing-savings-chart {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .landing-savings-chart figcaption strong {
+    font-size: clamp(26px, 9vw, 34px);
+  }
+
+  .landing-savings-chart__callout {
+    position: static;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .landing-savings-chart__callout strong {
+    font-size: 20px;
+  }
+
   .landing-savings > div:first-child p {
     font-size: 15px;
     line-height: 1.58;
@@ -2495,14 +2739,23 @@ html:has(.landing-page) {
   .landing-flow li,
   .landing-faq article,
   .landing-btn,
-  .landing-tariff button {
+  .landing-tariff button,
+  .landing-savings-chart__area,
+  .landing-savings-chart__line,
+  .landing-savings-chart__point {
     animation: none !important;
     transition: none !important;
     transform: none !important;
     filter: none !important;
   }
 
-  .landing-reveal {
+  .landing-reveal,
+  .landing-savings-chart__area,
+  .landing-savings-chart__point {
     opacity: 1 !important;
+  }
+
+  .landing-savings-chart__line {
+    stroke-dashoffset: 0 !important;
   }
 }

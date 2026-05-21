@@ -56,6 +56,20 @@ const savings = [
   { label: '4 заказа роллов за месяц', regular: '6 000 ₽', subscriber: '4 200 ₽', profit: '1 800 ₽' },
 ];
 
+const savingsCurve = [
+  { label: '1 заказ', regular: '1 500 ₽', subscriber: '1 050 ₽', profit: '+450 ₽', x: 34, regularY: 142, subscriberY: 152 },
+  { label: '2 заказа', regular: '3 000 ₽', subscriber: '2 100 ₽', profit: '+900 ₽', x: 132, regularY: 108, subscriberY: 128 },
+  { label: '3 заказа', regular: '4 500 ₽', subscriber: '3 150 ₽', profit: '+1 350 ₽', x: 230, regularY: 74, subscriberY: 104 },
+  { label: '4 заказа', regular: '6 000 ₽', subscriber: '4 200 ₽', profit: '+1 800 ₽', x: 328, regularY: 40, subscriberY: 80 },
+];
+
+const regularLine = savingsCurve.map((point) => `${point.x},${point.regularY}`).join(' ');
+const subscriberLine = savingsCurve.map((point) => `${point.x},${point.subscriberY}`).join(' ');
+const savingsArea = [
+  ...savingsCurve.map((point) => `${point.x},${point.regularY}`),
+  ...[...savingsCurve].reverse().map((point) => `${point.x},${point.subscriberY}`),
+].join(' ');
+
 const tariffs = [
   {
     id: '290',
@@ -206,7 +220,7 @@ function LandingPage() {
     : { href: '/login', label: userLoading ? 'Проверяем' : 'Войти' };
   const primaryCta = hadSubscription
       ? { href: '#tariffs', label: 'Продлить подписку' }
-      : { href: '#tariffs', label: 'Посчитать выгоду' };
+      : { href: '#economy', label: 'Посчитать выгоду' };
   const secondaryCta = hadSubscription
       ? { href: '/profile', label: 'Проверить профиль' }
       : { href: '/discount-shop', label: 'Меню подписки' };
@@ -255,9 +269,16 @@ function LandingPage() {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
 
+    const hashScrollTimer = window.setTimeout(() => {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return;
+      document.getElementById(hash)?.scrollIntoView({ block: 'start' });
+    }, 80);
+
     return () => {
       document.body.classList.remove('shop-body');
       window.removeEventListener('scroll', onScroll);
+      window.clearTimeout(hashScrollTimer);
       if (observer) observer.disconnect();
     };
   }, []);
@@ -285,6 +306,7 @@ function LandingPage() {
         </a>
         <nav className="landing-nav__links" aria-label="Основные разделы">
           <a href="#benefits">Выгоды</a>
+          <a href="#economy">Экономия</a>
           <a href="#tariffs">Тарифы</a>
           <a href="#faq">Вопросы</a>
         </nav>
@@ -337,7 +359,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-section landing-section--savings landing-reveal" aria-labelledby="savings-title">
+      <section className="landing-section landing-section--savings landing-reveal" id="economy" aria-labelledby="savings-title">
         <div className="landing-section__inner landing-savings">
           <div className="landing-reveal">
             <p className="landing-section__eyebrow">Экономика подписки</p>
@@ -347,19 +369,70 @@ function LandingPage() {
               Поэтому выгода растет вместе с вашим обычным ритмом заказов.
             </p>
           </div>
-          <div className="landing-savings__table landing-reveal" style={{ '--reveal-delay': '120ms' }} aria-label="Примеры экономии">
-            {savings.map((row, index) => (
-              <div className="landing-saving-row" key={row.label} style={{ '--row-index': index }}>
-                <span className="landing-saving-row__label">{row.label}</span>
-                <span className="landing-saving-row__regular" data-label="Обычно">{row.regular}</span>
-                <span className="landing-saving-row__subscriber" data-label="С подпиской">{row.subscriber}</span>
-                <strong data-label="Выгода">{row.profit}</strong>
+          <div className="landing-savings__visual landing-reveal" style={{ '--reveal-delay': '120ms' }}>
+            <figure className="landing-savings-chart" aria-labelledby="savings-chart-title">
+              <figcaption>
+                <span>Накопленная разница</span>
+                <strong id="savings-chart-title">+1 800 ₽ за 4 заказа</strong>
+                <small>Пример на роллах со скидкой -30%, без подарков и SHC</small>
+              </figcaption>
+              <div className="landing-savings-chart__canvas">
+                <svg viewBox="0 0 360 206" role="img" aria-label="График сравнения обычной цены и цены с подпиской">
+                  <defs>
+                    <linearGradient id="landingSavingArea" x1="0" x2="1" y1="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(60, 200, 161, 0.42)" />
+                      <stop offset="100%" stopColor="rgba(60, 200, 161, 0.05)" />
+                    </linearGradient>
+                    <filter id="landingSavingGlow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <g className="landing-savings-chart__grid" aria-hidden="true">
+                    <line x1="18" y1="40" x2="342" y2="40" />
+                    <line x1="18" y1="80" x2="342" y2="80" />
+                    <line x1="18" y1="120" x2="342" y2="120" />
+                    <line x1="18" y1="160" x2="342" y2="160" />
+                  </g>
+                  <polygon className="landing-savings-chart__area" points={savingsArea} />
+                  <polyline className="landing-savings-chart__line landing-savings-chart__line--regular" points={regularLine} />
+                  <polyline className="landing-savings-chart__line landing-savings-chart__line--subscriber" points={subscriberLine} />
+                  {savingsCurve.map((point, index) => (
+                    <g className="landing-savings-chart__point" key={point.label} style={{ '--point-delay': `${index * 90}ms` }}>
+                      <line x1={point.x} y1={point.regularY} x2={point.x} y2={point.subscriberY} />
+                      <circle cx={point.x} cy={point.regularY} r="4" className="landing-savings-chart__dot landing-savings-chart__dot--regular" />
+                      <circle cx={point.x} cy={point.subscriberY} r="4" className="landing-savings-chart__dot landing-savings-chart__dot--subscriber" />
+                      <text x={point.x} y="194" textAnchor="middle">{point.label}</text>
+                    </g>
+                  ))}
+                </svg>
+                <div className="landing-savings-chart__callout">
+                  <span>экономия</span>
+                  <strong>1 800 ₽</strong>
+                </div>
               </div>
-            ))}
-            <div className="landing-savings__legend">
-              <span>обычная цена</span>
-              <span>с подпиской</span>
-              <span>выгода</span>
+              <div className="landing-savings-chart__legend">
+                <span><i className="landing-savings-chart__mark landing-savings-chart__mark--regular" />Обычная цена</span>
+                <span><i className="landing-savings-chart__mark landing-savings-chart__mark--subscriber" />С подпиской</span>
+              </div>
+            </figure>
+            <div className="landing-savings__table" aria-label="Примеры экономии">
+              {savings.map((row, index) => (
+                <div className="landing-saving-row" key={row.label} style={{ '--row-index': index }}>
+                  <span className="landing-saving-row__label">{row.label}</span>
+                  <span className="landing-saving-row__regular" data-label="Обычно">{row.regular}</span>
+                  <span className="landing-saving-row__subscriber" data-label="С подпиской">{row.subscriber}</span>
+                  <strong data-label="Выгода">{row.profit}</strong>
+                </div>
+              ))}
+              <div className="landing-savings__legend">
+                <span>обычная цена</span>
+                <span>с подпиской</span>
+                <span>выгода</span>
+              </div>
             </div>
           </div>
         </div>
