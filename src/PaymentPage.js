@@ -22,6 +22,7 @@ function PaymentPage() {
     return [1, 3, 5].includes(m) ? m : 1;
   });
   const priceTable = usePricing();
+  const [nameInput, setNameInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
   // Проверяем что телефон российский (7XXXXXXXXXX)
   const isValidRuPhone = (() => {
@@ -54,6 +55,12 @@ function PaymentPage() {
   };
 
   const handlePay = async () => {
+    const name = nameInput.trim();
+    if (!telegramId && !name) {
+      setError('Укажите имя для оформления подписки');
+      return;
+    }
+
     // Проверяем телефон
     const phone = userPhone || phoneInput.replace(/[^\d]/g, '');
     if (!phone || phone.length < 10) {
@@ -72,6 +79,7 @@ function PaymentPage() {
           telegram_id: telegramId,
           tarif: tarifKey,
           phone,
+          ...(!telegramId ? { name } : {}),
           ...(tariff.oneTime ? {} : { months }),
         }),
       });
@@ -206,6 +214,20 @@ function PaymentPage() {
           );
         })()}
 
+        {!userLoading && !telegramId && (
+          <div className="shop-payment__phone">
+            <label className="shop-payment__phone-label">Имя</label>
+            <input
+              type="text"
+              className="shop-payment__phone-input"
+              placeholder="Как к вам обращаться?"
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              autoComplete="name"
+            />
+          </div>
+        )}
+
         {!userLoading && !hasPhone && (
           <div className="shop-payment__phone">
             <label className="shop-payment__phone-label">Номер телефона (для чека)</label>
@@ -215,6 +237,7 @@ function PaymentPage() {
               placeholder="+7 (___) ___-__-__"
               value={phoneInput}
               onChange={e => setPhoneInput(e.target.value)}
+              autoComplete="tel"
             />
           </div>
         )}
@@ -223,15 +246,9 @@ function PaymentPage() {
           <div className="shop-payment__error">{error}</div>
         )}
 
-        {!telegramId && !userLoading && (
-          <div className="shop-payment__error">
-            Откройте эту страницу через Telegram, чтобы оплатить подписку
-          </div>
-        )}
-
         <button
           className="shop-payment__btn"
-          disabled={submitting || !telegramId}
+          disabled={submitting || userLoading}
           onClick={handlePay}
         >
           {submitting ? 'Переход к оплате...' : `Оплатить ${tariff.oneTime ? tariff.price : priceTable[tarifKey][months]} ₽`}
