@@ -54,13 +54,11 @@ const orderGiftPerks = [
   {
     amount: '2 000 ₽',
     badge: 'по промокоду',
-    title: 'Подарок к заказу от 2 000 ₽',
     text: 'Введите промокод 102030 в корзине и добавьте ролл в подарок, когда сумма заказа превышает 2 000 ₽.',
   },
   {
     amount: '2 500 ₽',
     badge: 'автоматически',
-    title: 'Ролл в подарок от 2 500 ₽',
     text: 'Когда чек становится выше 2 500 ₽, подарок подтягивается в корзину автоматически - без промокода и лишних действий.',
   },
 ];
@@ -379,7 +377,6 @@ function LandingPage() {
                 <article className="landing-order-gift" key={gift.amount}>
                   <span>{gift.badge}</span>
                   <strong>{gift.amount}</strong>
-                  <h4>{gift.title}</h4>
                   <p>{gift.text}</p>
                 </article>
               ))}
