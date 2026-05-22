@@ -206,7 +206,7 @@ async function createOrder(orderData) {
   products.forEach((product, index) => {
     params[`product[${index}]`] = product.id;
     params[`product_kol[${index}]`] = product.quantity || 1;
-    if (product.price) {
+    if (product.price !== undefined && product.price !== null && product.price !== '') {
       params[`product_price[${index}]`] = product.price;
     }
     if (product.modifiers) {
