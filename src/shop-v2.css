@@ -1574,7 +1574,8 @@ html:has(.landing-page) {
 
 .landing-hero {
   position: relative;
-  min-height: 84svh;
+  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: flex-end;
   isolation: isolate;
@@ -2435,7 +2436,8 @@ html:has(.landing-page) {
   }
 
   .landing-hero {
-    min-height: 86svh;
+    min-height: 100vh;
+    min-height: 100svh;
   }
 
   .landing-hero__content {
@@ -2516,9 +2518,10 @@ html:has(.landing-page) {
   }
 
   .landing-hero {
-    min-height: auto;
-    display: block;
-    padding-bottom: 16px;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    padding-bottom: 0;
   }
 
   .landing-hero__shade {
@@ -2532,7 +2535,7 @@ html:has(.landing-page) {
   }
 
   .landing-hero__content {
-    padding: 96px 0 28px;
+    padding: 96px 0 56px;
   }
 
   .landing-hero h1 {
