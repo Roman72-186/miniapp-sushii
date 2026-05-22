@@ -1903,14 +1903,6 @@ html:has(.landing-page) {
   letter-spacing: -0.04em;
 }
 
-.landing-order-gift h4 {
-  margin: 16px 0 0;
-  color: var(--v3-text);
-  font-size: 18px;
-  line-height: 1.2;
-  font-weight: 900;
-}
-
 .landing-savings {
   display: grid;
   grid-template-columns: minmax(0, 0.86fr) minmax(360px, 1fr);
