@@ -22,6 +22,7 @@ import CompleteRegistrationPage from "./CompleteRegistrationPage";
 import LandingPage from "./LandingPage";
 import NotFoundPage from "./NotFoundPage"; // страница 404
 import WordlePage from "./WordlePage"; // игра «Пятибуквенное слово»
+import TestCatalogPage from "./TestCatalogPage"; // тестовая страница обычного меню
 import WebRegistrationPrompt from "./components/WebRegistrationPrompt";
 
 function App() {
@@ -67,9 +68,12 @@ function App() {
     pathname === "/" || pathname === "/subscription";
   const isGamePage =
     pathname === "/game";
+  const isTestCatalogPage =
+    pathname === "/test";
 
   let page;
-  if (isGamePage) page = <WordlePage />;
+  if (isTestCatalogPage) page = <TestCatalogPage />;
+  else if (isGamePage) page = <WordlePage />;
   else if (isLoginPage) page = <LoginPage />;
   else if (isBenefitsPage) page = <BenefitsPage />;
   else if (isPartnerCodePage) page = <PartnerCodePage />;
@@ -90,7 +94,7 @@ function App() {
   else page = <NotFoundPage />;
 
   // Не показываем промпт на страницах логина и админки
-  const showWebRegPrompt = !isLoginPage && !isAdminPage;
+  const showWebRegPrompt = !isLoginPage && !isAdminPage && !isTestCatalogPage;
 
   return (
     <>
