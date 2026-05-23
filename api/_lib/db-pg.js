@@ -8,6 +8,7 @@
 
 const { Pool } = require('pg');
 const path = require('path');
+const { summarizeGiftUsage } = require('./order-gift-stats');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -34,6 +35,7 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code TEXT');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_promo_gift BOOLEAN DEFAULT FALSE');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_threshold_gift BOOLEAN DEFAULT FALSE');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS gift_sources_json TEXT');
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS email_notifications_log (
@@ -617,10 +619,10 @@ async function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Orders ──────────────────────────────────────────────────
 
-async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift }) {
+async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift, giftSourcesJson }) {
   await query(`
-    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, gift_sources_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
   `, [
     String(telegramId),
     frontpadOrderId || null,
@@ -629,6 +631,7 @@ async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, o
     deliveryType || 'pickup',
     address || null,
     productsJson || null,
+    giftSourcesJson || null,
     totalPrice || 0,
     clientName || null,
     promoCode || null,
@@ -654,6 +657,16 @@ async function getOrdersStats(sinceIso) {
     promoGifts: Number(row.promo_gifts) || 0,
     thresholdGifts: Number(row.threshold_gifts) || 0,
   };
+}
+
+async function getGiftUsageStats(sinceIso) {
+  const res = await query(`
+    SELECT promo_code, products_json, gift_sources_json
+    FROM orders
+    WHERE created_at >= $1
+      AND (has_promo_gift = TRUE OR has_threshold_gift = TRUE OR gift_sources_json IS NOT NULL)
+  `, [sinceIso]);
+  return summarizeGiftUsage(res.rows || []);
 }
 
 async function getPaymentsCount(sinceIso) {
@@ -961,6 +974,7 @@ module.exports = {
   getAdminSubscribersList,
   getMonthRevenue,
   getOrdersStats,
+  getGiftUsageStats,
   getPaymentsCount,
   getPaymentsStats,
   getOrdersDaily,
