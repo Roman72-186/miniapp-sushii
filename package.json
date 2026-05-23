@@ -27,6 +27,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "backup:db": "node scripts/backup-db.js",
+    "catalog:test": "python scripts/build-test-catalog.py",
     "catalog": "python scripts/build-catalog-master.py",
     "secrets:check": "node scripts/protect-secrets.js --check",
     "secrets:lock": "node scripts/protect-secrets.js --lock",

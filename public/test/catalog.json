@@ -1,0 +1,1549 @@
+{
+  "source": "Товары.csv",
+  "mode": "regular-no-subscription-no-discount",
+  "total": 164,
+  "categories": [
+    {
+      "id": "rolls",
+      "name": "Роллы",
+      "tab": "Роллы",
+      "icon": "🍣",
+      "count": 66,
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "baked-rolls",
+      "name": "Запечённые роллы",
+      "tab": "Запечённые",
+      "icon": "🔥",
+      "count": 30,
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "sets",
+      "name": "Сеты",
+      "tab": "Сеты",
+      "icon": "🍱",
+      "count": 25,
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "promo-sets",
+      "name": "Акционные сеты",
+      "tab": "Акции",
+      "icon": "⚡",
+      "count": 16,
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "soups-poke-bowls",
+      "name": "Супы, поке, боулы",
+      "tab": "Поке/супы",
+      "icon": "🥣",
+      "count": 10,
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "gunkan",
+      "name": "Суши и гунканы",
+      "tab": "Гунканы",
+      "icon": "🍣",
+      "count": 9,
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "toppings-sauces",
+      "name": "Топпинги и соусы",
+      "tab": "Соусы",
+      "icon": "🥢",
+      "count": 8,
+      "sourceCategory": "Топинги и соуса"
+    }
+  ],
+  "products": [
+    {
+      "id": "328",
+      "sku": "328",
+      "name": "сет Богемия",
+      "cleanName": "сет Богемия",
+      "price": 4850,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "49",
+      "sku": "49",
+      "name": "сет Дамский угодник",
+      "cleanName": "сет Дамский угодник",
+      "price": 1930,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "405",
+      "sku": "405",
+      "name": "сет Дары поднебесной",
+      "cleanName": "сет Дары поднебесной",
+      "price": 2830,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "330",
+      "sku": "330",
+      "name": "сет Джонни Д",
+      "cleanName": "сет Джонни Д",
+      "price": 2840,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "382",
+      "sku": "382",
+      "name": "сет Джуниор",
+      "cleanName": "сет Джуниор",
+      "price": 1640,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "50",
+      "sku": "50",
+      "name": "сет Домино",
+      "cleanName": "сет Домино",
+      "price": 2030,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "400",
+      "sku": "400",
+      "name": "сет Душевное спокойствие",
+      "cleanName": "сет Душевное спокойствие",
+      "price": 2730,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "51",
+      "sku": "51",
+      "name": "сет Жаркая осень",
+      "cleanName": "сет Жаркая осень",
+      "price": 1920,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "401",
+      "sku": "401",
+      "name": "сет Квартет удовольствия",
+      "cleanName": "сет Квартет удовольствия",
+      "price": 3030,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "102",
+      "sku": "102",
+      "name": "сет Коби Брайант",
+      "cleanName": "сет Коби Брайант",
+      "price": 2900,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "103",
+      "sku": "103",
+      "name": "сет Любимый",
+      "cleanName": "сет Любимый",
+      "price": 2630,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "331",
+      "sku": "331",
+      "name": "сет Мамина радость",
+      "cleanName": "сет Мамина радость",
+      "price": 2630,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "325",
+      "sku": "325",
+      "name": "сет На дружную компанию",
+      "cleanName": "сет На дружную компанию",
+      "price": 3560,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "403",
+      "sku": "403",
+      "name": "сет Ниватори Шива",
+      "cleanName": "сет Ниватори Шива",
+      "price": 1470,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "56",
+      "sku": "56",
+      "name": "сет Олимпия",
+      "cleanName": "сет Олимпия",
+      "price": 2130,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "57",
+      "sku": "57",
+      "name": "сет Премиум лайт",
+      "cleanName": "сет Премиум лайт",
+      "price": 2430,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "60",
+      "sku": "60",
+      "name": "сет Сердца Трёх",
+      "cleanName": "сет Сердца Трёх",
+      "price": 3040,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "61",
+      "sku": "61",
+      "name": "сет Сливочный",
+      "cleanName": "сет Сливочный",
+      "price": 1980,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "62",
+      "sku": "62",
+      "name": "сет Тёплое Удовольствие",
+      "cleanName": "сет Тёплое Удовольствие",
+      "price": 2630,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "412",
+      "sku": "412",
+      "name": "сет Токийский дрифт",
+      "cleanName": "сет Токийский дрифт",
+      "price": 2630,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "65",
+      "sku": "65",
+      "name": "сет Филадельфия люкс",
+      "cleanName": "сет Филадельфия люкс",
+      "price": 4830,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "406",
+      "sku": "406",
+      "name": "сет Хоккайдо",
+      "cleanName": "сет Хоккайдо",
+      "price": 1930,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "334",
+      "sku": "334",
+      "name": "сет Эксклюзив",
+      "cleanName": "сет Эксклюзив",
+      "price": 1870,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "404",
+      "sku": "404",
+      "name": "Тёплый лосось микс",
+      "cleanName": "Тёплый лосось микс",
+      "price": 1820,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "64",
+      "sku": "64",
+      "name": "Трипл сет",
+      "cleanName": "Трипл сет",
+      "price": 1770,
+      "category": "sets",
+      "sourceCategory": "Сеты"
+    },
+    {
+      "id": "7",
+      "sku": "7",
+      "name": "Горячий Дон жуан",
+      "cleanName": "Горячий Дон жуан",
+      "price": 610,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "386",
+      "sku": "386",
+      "name": "Запеченный лайт",
+      "cleanName": "Запеченный лайт",
+      "price": 610,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "317",
+      "sku": "317",
+      "name": "Запеченный лосось файр",
+      "cleanName": "Запеченный лосось файр",
+      "price": 480,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "22",
+      "sku": "22",
+      "name": "Запеченный Мидуэй",
+      "cleanName": "Запеченный Мидуэй",
+      "price": 610,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "24",
+      "sku": "24",
+      "name": "Запеченный ролл с беконом",
+      "cleanName": "Запеченный ролл с беконом",
+      "price": 610,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "25",
+      "sku": "25",
+      "name": "Запеченный ролл с угрем",
+      "cleanName": "Запеченный ролл с угрем",
+      "price": 890,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "387",
+      "sku": "387",
+      "name": "Запеченный тори ролл",
+      "cleanName": "Запеченный тори ролл",
+      "price": 580,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "31",
+      "sku": "31",
+      "name": "Кани гриль",
+      "cleanName": "Кани гриль",
+      "price": 480,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "392",
+      "sku": "392",
+      "name": "Клеопатра",
+      "cleanName": "Клеопатра",
+      "price": 1105,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "35",
+      "sku": "35",
+      "name": "Краб дуэт гриль",
+      "cleanName": "Краб дуэт гриль",
+      "price": 600,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "38",
+      "sku": "38",
+      "name": "Мидии маки гриль",
+      "cleanName": "Мидии маки гриль",
+      "price": 600,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "320",
+      "sku": "320",
+      "name": "Ниагара",
+      "cleanName": "Ниагара",
+      "price": 480,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "124",
+      "sku": "124",
+      "name": "Суши пицца №1 (лосось)",
+      "cleanName": "Суши пицца №1 (лосось)",
+      "price": 670,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "125",
+      "sku": "125",
+      "name": "Суши пицца №2 (креветки)",
+      "cleanName": "Суши пицца №2 (креветки)",
+      "price": 680,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "327",
+      "sku": "327",
+      "name": "Суши пицца №3 (курица)",
+      "cleanName": "Суши пицца №3 (курица)",
+      "price": 580,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "73",
+      "sku": "73",
+      "name": "Сяке Кани гриль",
+      "cleanName": "Сяке Кани гриль",
+      "price": 670,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "74",
+      "sku": "74",
+      "name": "Сяке кунсей гриль",
+      "cleanName": "Сяке кунсей гриль",
+      "price": 700,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "408",
+      "sku": "408",
+      "name": "Сяке терияки",
+      "cleanName": "Сяке терияки",
+      "price": 650,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "409",
+      "sku": "409",
+      "name": "Сяке хот",
+      "cleanName": "Сяке хот",
+      "price": 480,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "116",
+      "sku": "116",
+      "name": "Тёплый ролл с лососем",
+      "cleanName": "Тёплый ролл с лососем",
+      "price": 690,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "411",
+      "sku": "411",
+      "name": "Тилапийский дракон",
+      "cleanName": "Тилапийский дракон",
+      "price": 650,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "117",
+      "sku": "117",
+      "name": "Туна гриль",
+      "cleanName": "Туна гриль",
+      "price": 630,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "83",
+      "sku": "83",
+      "name": "Фила Кани гриль",
+      "cleanName": "Фила Кани гриль",
+      "price": 740,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "416",
+      "sku": "416",
+      "name": "Фила эби гриль",
+      "cleanName": "Фила эби гриль",
+      "price": 810,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "95",
+      "sku": "95",
+      "name": "Чикен гриль",
+      "cleanName": "Чикен гриль",
+      "price": 580,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "420",
+      "sku": "420",
+      "name": "Чикен фиера",
+      "cleanName": "Чикен фиера",
+      "price": 500,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "99",
+      "sku": "99",
+      "name": "Эби гриль",
+      "cleanName": "Эби гриль",
+      "price": 670,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "318",
+      "sku": "318",
+      "name": "Эби кани гриль",
+      "cleanName": "Эби кани гриль",
+      "price": 690,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "422",
+      "sku": "422",
+      "name": "Эби свит чили",
+      "cleanName": "Эби свит чили",
+      "price": 750,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "424",
+      "sku": "424",
+      "name": "Яки сяке хот",
+      "cleanName": "Яки сяке хот",
+      "price": 700,
+      "category": "baked-rolls",
+      "sourceCategory": "Запеченные роллы"
+    },
+    {
+      "id": "312",
+      "sku": "312",
+      "name": "Авокадо маки",
+      "cleanName": "Авокадо маки",
+      "price": 340,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "1",
+      "sku": "1",
+      "name": "Аге Гурме",
+      "cleanName": "Аге Гурме",
+      "price": 480,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "2",
+      "sku": "2",
+      "name": "Аляска Кунсей",
+      "cleanName": "Аляска Кунсей",
+      "price": 560,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "381",
+      "sku": "381",
+      "name": "Бархатный тунец",
+      "cleanName": "Бархатный тунец",
+      "price": 600,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "341",
+      "sku": "341",
+      "name": "Благородный Сёгун",
+      "cleanName": "Благородный Сёгун",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "384",
+      "sku": "384",
+      "name": "Бонито мидии",
+      "cleanName": "Бонито мидии",
+      "price": 540,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "385",
+      "sku": "385",
+      "name": "Бонито тунец",
+      "cleanName": "Бонито тунец",
+      "price": 560,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "5",
+      "sku": "5",
+      "name": "Бруклин",
+      "cleanName": "Бруклин",
+      "price": 560,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "309",
+      "sku": "309",
+      "name": "Гламур",
+      "cleanName": "Гламур",
+      "price": 470,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "380",
+      "sku": "380",
+      "name": "Гранд лосось",
+      "cleanName": "Гранд лосось",
+      "price": 740,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "348",
+      "sku": "348",
+      "name": "Гуччи",
+      "cleanName": "Гуччи",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "16",
+      "sku": "16",
+      "name": "Детройт",
+      "cleanName": "Детройт",
+      "price": 490,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "19",
+      "sku": "19",
+      "name": "Дракон",
+      "cleanName": "Дракон",
+      "price": 990,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "20",
+      "sku": "20",
+      "name": "Дракон лайт",
+      "cleanName": "Дракон лайт",
+      "price": 790,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "340",
+      "sku": "340",
+      "name": "Загадка Индии",
+      "cleanName": "Загадка Индии",
+      "price": 730,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "28",
+      "sku": "28",
+      "name": "Калифорния",
+      "cleanName": "Калифорния",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "389",
+      "sku": "389",
+      "name": "Калифорния с лососем",
+      "cleanName": "Калифорния с лососем",
+      "price": 650,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "311",
+      "sku": "311",
+      "name": "Канада 119",
+      "cleanName": "Канада 119",
+      "price": 950,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "33",
+      "sku": "33",
+      "name": "Каппа маки",
+      "cleanName": "Каппа маки",
+      "price": 260,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "313",
+      "sku": "313",
+      "name": "Кето лосось-креветка",
+      "cleanName": "Кето лосось-креветка",
+      "price": 690,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "315",
+      "sku": "315",
+      "name": "Кето лосось-тунец",
+      "cleanName": "Кето лосось-тунец",
+      "price": 680,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "314",
+      "sku": "314",
+      "name": "Кето ролл с тунцом",
+      "cleanName": "Кето ролл с тунцом",
+      "price": 690,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "390",
+      "sku": "390",
+      "name": "Кето-лосось",
+      "cleanName": "Кето-лосось",
+      "price": 660,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "391",
+      "sku": "391",
+      "name": "Киото чикен",
+      "cleanName": "Киото чикен",
+      "price": 550,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "34",
+      "sku": "34",
+      "name": "Королевский",
+      "cleanName": "Королевский",
+      "price": 1000,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "36",
+      "sku": "36",
+      "name": "Красная Москва",
+      "cleanName": "Красная Москва",
+      "price": 640,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "107",
+      "sku": "107",
+      "name": "Манхеттен",
+      "cleanName": "Манхеттен",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "393",
+      "sku": "393",
+      "name": "Мидии терияки",
+      "cleanName": "Мидии терияки",
+      "price": 540,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "417",
+      "sku": "417",
+      "name": "Миндальная филадельфия",
+      "cleanName": "Миндальная филадельфия",
+      "price": 860,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "395",
+      "sku": "395",
+      "name": "Монте Карло",
+      "cleanName": "Монте Карло",
+      "price": 800,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "347",
+      "sku": "347",
+      "name": "Нежный поцелуй",
+      "cleanName": "Нежный поцелуй",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "110",
+      "sku": "110",
+      "name": "Розовый",
+      "cleanName": "Розовый",
+      "price": 480,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "398",
+      "sku": "398",
+      "name": "Ролл с тар-таром из тунца",
+      "cleanName": "Ролл с тар-таром из тунца",
+      "price": 790,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "399",
+      "sku": "399",
+      "name": "Самура ролл",
+      "cleanName": "Самура ролл",
+      "price": 710,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "46",
+      "sku": "46",
+      "name": "Самурай",
+      "cleanName": "Самурай",
+      "price": 590,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "407",
+      "sku": "407",
+      "name": "Сказочный тунец",
+      "cleanName": "Сказочный тунец",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "68",
+      "sku": "68",
+      "name": "Спайси эби маки",
+      "cleanName": "Спайси эби маки",
+      "price": 410,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "126",
+      "sku": "126",
+      "name": "Суши сендвич с жареным лососем",
+      "cleanName": "Суши сендвич с жареным лососем",
+      "price": 640,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "127",
+      "sku": "127",
+      "name": "Суши сендвич с лососем",
+      "cleanName": "Суши сендвич с лососем",
+      "price": 560,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "75",
+      "sku": "75",
+      "name": "Сяке кунсей маки",
+      "cleanName": "Сяке кунсей маки",
+      "price": 400,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "77",
+      "sku": "77",
+      "name": "Сяке маки",
+      "cleanName": "Сяке маки",
+      "price": 270,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "410",
+      "sku": "410",
+      "name": "Сяке ясай",
+      "cleanName": "Сяке ясай",
+      "price": 670,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "351",
+      "sku": "351",
+      "name": "Таинственный гребешок",
+      "cleanName": "Таинственный гребешок",
+      "price": 850,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "414",
+      "sku": "414",
+      "name": "Тропическая гармония",
+      "cleanName": "Тропическая гармония",
+      "price": 740,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "113",
+      "sku": "113",
+      "name": "Туна маки",
+      "cleanName": "Туна маки",
+      "price": 400,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "415",
+      "sku": "415",
+      "name": "Туна фреш",
+      "cleanName": "Туна фреш",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "79",
+      "sku": "79",
+      "name": "Унаги маки",
+      "cleanName": "Унаги маки",
+      "price": 490,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "80",
+      "sku": "80",
+      "name": "Унаги Онигара",
+      "cleanName": "Унаги Онигара",
+      "price": 990,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "91",
+      "sku": "91",
+      "name": "Филадельфия без нори",
+      "cleanName": "Филадельфия без нори",
+      "price": 670,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "87",
+      "sku": "87",
+      "name": "Филадельфия лайт с огурцом",
+      "cleanName": "Филадельфия лайт с огурцом",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "88",
+      "sku": "88",
+      "name": "Филадельфия премиум",
+      "cleanName": "Филадельфия премиум",
+      "price": 1705,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "89",
+      "sku": "89",
+      "name": "Филадельфия с авокадо",
+      "cleanName": "Филадельфия с авокадо",
+      "price": 710,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "90",
+      "sku": "90",
+      "name": "Филадельфия с огурцом",
+      "cleanName": "Филадельфия с огурцом",
+      "price": 670,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "290",
+      "sku": "290",
+      "name": "Филадельфия сливочная",
+      "cleanName": "Филадельфия сливочная",
+      "price": 670,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "92",
+      "sku": "92",
+      "name": "Фреш ролл",
+      "cleanName": "Фреш ролл",
+      "price": 480,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "413",
+      "sku": "413",
+      "name": "Царская фила том-ям",
+      "cleanName": "Царская фила том-ям",
+      "price": 1115,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "339",
+      "sku": "339",
+      "name": "Царский тунец",
+      "cleanName": "Царский тунец",
+      "price": 640,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "418",
+      "sku": "418",
+      "name": "Чеддер скин ролл",
+      "cleanName": "Чеддер скин ролл",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "350",
+      "sku": "350",
+      "name": "Чёрная жемчужина",
+      "cleanName": "Чёрная жемчужина",
+      "price": 760,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "419",
+      "sku": "419",
+      "name": "Чизи эби",
+      "cleanName": "Чизи эби",
+      "price": 610,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "96",
+      "sku": "96",
+      "name": "Чикен лав",
+      "cleanName": "Чикен лав",
+      "price": 490,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "98",
+      "sku": "98",
+      "name": "Чука маки",
+      "cleanName": "Чука маки",
+      "price": 370,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "349",
+      "sku": "349",
+      "name": "Шанель",
+      "cleanName": "Шанель",
+      "price": 640,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "346",
+      "sku": "346",
+      "name": "Шёлковый путь",
+      "cleanName": "Шёлковый путь",
+      "price": 510,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "421",
+      "sku": "421",
+      "name": "Эби дрим",
+      "cleanName": "Эби дрим",
+      "price": 690,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "423",
+      "sku": "423",
+      "name": "Эби спайси",
+      "cleanName": "Эби спайси",
+      "price": 650,
+      "category": "rolls",
+      "sourceCategory": "Роллы"
+    },
+    {
+      "id": "428",
+      "sku": "428",
+      "name": "Большой и вкусный сет",
+      "cleanName": "Большой и вкусный сет",
+      "price": 3930,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "441",
+      "sku": "441",
+      "name": "сет Балтийский берег",
+      "cleanName": "сет Балтийский берег",
+      "price": 2290,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "429",
+      "sku": "429",
+      "name": "сет Брюс Ли",
+      "cleanName": "сет Брюс Ли",
+      "price": 1775,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "437",
+      "sku": "437",
+      "name": "сет Гагарин",
+      "cleanName": "сет Гагарин",
+      "price": 2790,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "430",
+      "sku": "430",
+      "name": "сет Гармония классики",
+      "cleanName": "сет Гармония классики",
+      "price": 2055,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "433",
+      "sku": "433",
+      "name": "сет Дед Мороз",
+      "cleanName": "сет Дед Мороз",
+      "price": 3570,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "440",
+      "sku": "440",
+      "name": "сет Добрый",
+      "cleanName": "сет Добрый",
+      "price": 2190,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "431",
+      "sku": "431",
+      "name": "сет Игра престолов",
+      "cleanName": "сет Игра престолов",
+      "price": 1890,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "432",
+      "sku": "432",
+      "name": "сет Индиана Джонс",
+      "cleanName": "сет Индиана Джонс",
+      "price": 2605,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "438",
+      "sku": "438",
+      "name": "сет Ломоносов",
+      "cleanName": "сет Ломоносов",
+      "price": 2190,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "436",
+      "sku": "436",
+      "name": "сет Новогодний",
+      "cleanName": "сет Новогодний",
+      "price": 5400,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "439",
+      "sku": "439",
+      "name": "сет Романтик",
+      "cleanName": "сет Романтик",
+      "price": 1590,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "427",
+      "sku": "427",
+      "name": "сет Роял",
+      "cleanName": "сет Роял",
+      "price": 2640,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "435",
+      "sku": "435",
+      "name": "сет Снегурочка",
+      "cleanName": "сет Снегурочка",
+      "price": 2900,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "426",
+      "sku": "426",
+      "name": "сет Унесенные ветром",
+      "cleanName": "сет Унесенные ветром",
+      "price": 2590,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "425",
+      "sku": "425",
+      "name": "сет Эклипс",
+      "cleanName": "сет Эклипс",
+      "price": 1795,
+      "category": "promo-sets",
+      "sourceCategory": "Акционные сеты"
+    },
+    {
+      "id": "335",
+      "sku": "335",
+      "name": "Боул с креветками",
+      "cleanName": "Боул с креветками",
+      "price": 545,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "336",
+      "sku": "336",
+      "name": "Боул с лососем",
+      "cleanName": "Боул с лососем",
+      "price": 575,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "337",
+      "sku": "337",
+      "name": "Боул с тунцом",
+      "cleanName": "Боул с тунцом",
+      "price": 555,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "43",
+      "sku": "43",
+      "name": "Поке с жареным лососем",
+      "cleanName": "Поке с жареным лососем",
+      "price": 545,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "44",
+      "sku": "44",
+      "name": "Поке с креветками",
+      "cleanName": "Поке с креветками",
+      "price": 545,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "45",
+      "sku": "45",
+      "name": "Поке с курицей",
+      "cleanName": "Поке с курицей",
+      "price": 465,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "69",
+      "sku": "69",
+      "name": "Суп Мисо гурме",
+      "cleanName": "Суп Мисо гурме",
+      "price": 425,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "352",
+      "sku": "352",
+      "name": "Суп Мисо Мен",
+      "cleanName": "Суп Мисо Мен",
+      "price": 455,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "70",
+      "sku": "70",
+      "name": "Суп Суимоно",
+      "cleanName": "Суп Суимоно",
+      "price": 495,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "128",
+      "sku": "128",
+      "name": "Суп Том ям",
+      "cleanName": "Суп Том ям",
+      "price": 565,
+      "category": "soups-poke-bowls",
+      "sourceCategory": "Супы, поке, боулы"
+    },
+    {
+      "id": "8",
+      "sku": "8",
+      "name": "Гункан с жареным лососем",
+      "cleanName": "Гункан с жареным лососем",
+      "price": 325,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "10",
+      "sku": "10",
+      "name": "Гункан с икрой масаго",
+      "cleanName": "Гункан с икрой масаго",
+      "price": 295,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "11",
+      "sku": "11",
+      "name": "Гункан с чукой",
+      "cleanName": "Гункан с чукой",
+      "price": 245,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "12",
+      "sku": "12",
+      "name": "Гункан спайси кани",
+      "cleanName": "Гункан спайси кани",
+      "price": 275,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "13",
+      "sku": "13",
+      "name": "Гункан спайси сяке унаги",
+      "cleanName": "Гункан спайси сяке унаги",
+      "price": 295,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "14",
+      "sku": "14",
+      "name": "Гункан спайси эби",
+      "cleanName": "Гункан спайси эби",
+      "price": 315,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "15",
+      "sku": "15",
+      "name": "Гункан унаги авокадо",
+      "cleanName": "Гункан унаги авокадо",
+      "price": 335,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "78",
+      "sku": "78",
+      "name": "Сяке суши",
+      "cleanName": "Сяке суши",
+      "price": 295,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "81",
+      "sku": "81",
+      "name": "Унаги суши",
+      "cleanName": "Унаги суши",
+      "price": 385,
+      "category": "gunkan",
+      "sourceCategory": "Суши и гунканы"
+    },
+    {
+      "id": "118",
+      "sku": "118",
+      "name": "Васаби (20 г)",
+      "cleanName": "Васаби (20 г)",
+      "price": 15,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    },
+    {
+      "id": "119",
+      "sku": "119",
+      "name": "Имбирь (30 г)",
+      "cleanName": "Имбирь (30 г)",
+      "price": 15,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    },
+    {
+      "id": "120",
+      "sku": "120",
+      "name": "Соевый соус (40 мл)",
+      "cleanName": "Соевый соус (40 мл)",
+      "price": 15,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    },
+    {
+      "id": "66",
+      "sku": "66",
+      "name": "Соус масаго 50г",
+      "cleanName": "Соус масаго 50г",
+      "price": 65,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    },
+    {
+      "id": "121",
+      "sku": "121",
+      "name": "Соус ореховый 50г",
+      "cleanName": "Соус ореховый 50г",
+      "price": 95,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    },
+    {
+      "id": "122",
+      "sku": "122",
+      "name": "Соус свит чилли 50г",
+      "cleanName": "Соус свит чилли 50г",
+      "price": 65,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    },
+    {
+      "id": "41",
+      "sku": "41",
+      "name": "Соус спайси 50г",
+      "cleanName": "Соус спайси 50г",
+      "price": 65,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    },
+    {
+      "id": "123",
+      "sku": "123",
+      "name": "Соус унаги 50г",
+      "cleanName": "Соус унаги 50г",
+      "price": 65,
+      "category": "toppings-sauces",
+      "sourceCategory": "Топинги и соуса"
+    }
+  ],
+  "skippedCategories": {
+    "Подписка": 4,
+    "Сеты по подписке **": 9,
+    "Роллы по подписке **": 55,
+    "Роллы (подписка)": 60,
+    "Роллы запечен. (подписка)": 25,
+    "Сеты (подписка)": 25
+  }
+}
