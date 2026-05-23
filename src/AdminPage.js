@@ -20,13 +20,12 @@ function AdminPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [tab, setTab] = useState('products');
+  const [tab, setTab] = useState('dashboard');
 
   // Products state
   const [catalogs, setCatalogs] = useState([]);
   const [activeCatalog, setActiveCatalog] = useState('');
   const [productsLoading, setProductsLoading] = useState(false);
-  const [editingItem, setEditingItem] = useState(null); // {catalogId, index, price}
   const [selectedProduct, setSelectedProduct] = useState(null); // {catalogId, index, item}
   const [editingProduct, setEditingProduct] = useState({ price: '', discount: '' });
   const [saving, setSaving] = useState(false);
@@ -35,7 +34,17 @@ function AdminPage() {
   const [upsellClearing, setUpsellClearing] = useState(false);
   const [promoGiftSkus, setPromoGiftSkus] = useState([]);
   const [thresholdGiftSkus, setThresholdGiftSkus] = useState([]);
-  const [giftSaving, setGiftSaving] = useState(null);
+  const [giftRules, setGiftRules] = useState({ promoRules: [], thresholdRules: [] });
+  const [giftRulesLoading, setGiftRulesLoading] = useState(false);
+  const [giftRuleSaving, setGiftRuleSaving] = useState(null);
+  const [giftRuleForm, setGiftRuleForm] = useState({
+    id: '',
+    type: 'promo',
+    code: '',
+    threshold: '',
+    sku: '',
+    enabled: true,
+  });
 
   // Subscribers state
   const [subscribers, setSubscribers] = useState([]);
@@ -239,38 +248,137 @@ function AdminPage() {
     setUpsellClearing(false);
   };
 
-  // Загрузка подарочных товаров
+  // Загрузка правил подарков
   const loadGifts = useCallback(async () => {
+    setGiftRulesLoading(true);
     try {
-      const res = await fetch('/api/gift-items');
+      const res = await fetch('/api/admin/gift-rules', { headers: headers() });
       const data = await res.json();
       if (data.success) {
+        setGiftRules({
+          promoRules: data.promoRules || [],
+          thresholdRules: data.thresholdRules || [],
+        });
         setPromoGiftSkus(data.promoSkus || []);
         setThresholdGiftSkus(data.thresholdSkus || []);
       }
     } catch (_) {}
-  }, []);
+    setGiftRulesLoading(false);
+  }, [headers]);
 
-  const toggleGift = async (sku, type, inList) => {
-    const endpoint = type === 'promo' ? '/api/admin/promo-gift-toggle' : '/api/admin/threshold-gift-toggle';
-    setGiftSaving(`${type}-${sku}`);
+  const resetGiftRuleForm = () => {
+    setGiftRuleForm({ id: '', type: 'promo', code: '', threshold: '', sku: '', enabled: true });
+  };
+
+  const saveGiftRule = async () => {
+    const isEdit = !!giftRuleForm.id;
+    const type = giftRuleForm.type === 'threshold' ? 'threshold' : 'promo';
+    if (type === 'promo' && !giftRuleForm.code.trim()) {
+      showToast('Введите промокод', 'error');
+      return;
+    }
+    if (!giftRuleForm.sku) {
+      showToast('Выберите подарок', 'error');
+      return;
+    }
+    if (!Number(giftRuleForm.threshold)) {
+      showToast('Введите порог суммы', 'error');
+      return;
+    }
+
+    setGiftRuleSaving('form');
     try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
+      const res = await fetch('/api/admin/gift-rules', {
+        method: isEdit ? 'PUT' : 'POST',
         headers: headers(),
-        body: JSON.stringify({ sku: String(sku), action: inList ? 'remove' : 'add' }),
+        body: JSON.stringify({
+          id: giftRuleForm.id || undefined,
+          type,
+          code: type === 'promo' ? giftRuleForm.code.trim() : undefined,
+          threshold: Number(giftRuleForm.threshold),
+          sku: String(giftRuleForm.sku),
+          enabled: giftRuleForm.enabled !== false,
+        }),
       });
       const data = await res.json();
       if (data.success) {
-        await loadGifts();
-        showToast(inList ? 'Убрано из подарков' : 'Добавлено в подарки');
+        setGiftRules({ promoRules: data.promoRules || [], thresholdRules: data.thresholdRules || [] });
+        setPromoGiftSkus(data.promoSkus || []);
+        setThresholdGiftSkus(data.thresholdSkus || []);
+        resetGiftRuleForm();
+        showToast(isEdit ? 'Правило сохранено' : 'Правило добавлено');
       } else {
         showToast(data.error || 'Ошибка', 'error');
       }
     } catch (_) {
       showToast('Ошибка сети', 'error');
     }
-    setGiftSaving(null);
+    setGiftRuleSaving(null);
+  };
+
+  const editGiftRule = (rule, type) => {
+    setGiftRuleForm({
+      id: rule.id,
+      type,
+      code: rule.code || '',
+      threshold: String(rule.threshold || ''),
+      sku: String(rule.sku || ''),
+      enabled: rule.enabled !== false,
+    });
+  };
+
+  const toggleGiftRule = async (rule, type) => {
+    setGiftRuleSaving(rule.id);
+    try {
+      const res = await fetch('/api/admin/gift-rules', {
+        method: 'PUT',
+        headers: headers(),
+        body: JSON.stringify({ ...rule, type, enabled: rule.enabled === false }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGiftRules({ promoRules: data.promoRules || [], thresholdRules: data.thresholdRules || [] });
+        setPromoGiftSkus(data.promoSkus || []);
+        setThresholdGiftSkus(data.thresholdSkus || []);
+        showToast(rule.enabled === false ? 'Акция включена' : 'Акция выключена');
+      } else {
+        showToast(data.error || 'Ошибка', 'error');
+      }
+    } catch (_) {
+      showToast('Ошибка сети', 'error');
+    }
+    setGiftRuleSaving(null);
+  };
+
+  const deleteGiftRule = async (rule) => {
+    if (!window.confirm('Удалить правило подарка?')) return;
+    setGiftRuleSaving(rule.id);
+    try {
+      const res = await fetch('/api/admin/gift-rules', {
+        method: 'DELETE',
+        headers: headers(),
+        body: JSON.stringify({ id: rule.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGiftRules({ promoRules: data.promoRules || [], thresholdRules: data.thresholdRules || [] });
+        setPromoGiftSkus(data.promoSkus || []);
+        setThresholdGiftSkus(data.thresholdSkus || []);
+        if (giftRuleForm.id === rule.id) resetGiftRuleForm();
+        showToast('Правило удалено');
+      } else {
+        showToast(data.error || 'Ошибка', 'error');
+      }
+    } catch (_) {
+      showToast('Ошибка сети', 'error');
+    }
+    setGiftRuleSaving(null);
+  };
+
+  const openGiftRuleForProduct = (sku) => {
+    setGiftRuleForm(prev => ({ ...prev, id: '', type: 'promo', sku: String(sku), enabled: true }));
+    setSelectedProduct(null);
+    setTab('gifts');
   };
 
   // Загрузка подписчиков
@@ -290,7 +398,9 @@ function AdminPage() {
   }, [headers]);
 
   useEffect(() => {
+    if (loggedIn && tab === 'dashboard') { loadGifts(); loadUpsell(); }
     if (loggedIn && tab === 'products' && catalogs.length === 0) { loadProducts(); loadUpsell(); loadGifts(); }
+    if (loggedIn && tab === 'gifts') { loadGifts(); if (catalogs.length === 0) loadProducts(); }
     if (loggedIn && tab === 'upsell') loadUpsell();
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
@@ -334,13 +444,14 @@ function AdminPage() {
             items: cat.items.map((item, i) => i === index ? { ...item, ...updates } : item),
           };
         }));
-        setEditingItem(null);
         return true;
       }
     } catch (err) {
       console.error('saveItem error:', err);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
+    return false;
   };
 
   // Toggle enabled
@@ -750,6 +861,19 @@ function AdminPage() {
 
   // ─── Main admin panel ────────────────────────────────
   const currentCatalog = catalogs.find(c => c.id === activeCatalog);
+  const giftProductOptions = catalogs.flatMap(c =>
+    (c.items || [])
+      .filter(item => item.sku && item.enabled !== false)
+      .map(item => ({
+        sku: String(item.sku),
+        name: item.name,
+        catalog: c.name,
+      }))
+  );
+  const allGiftRules = [
+    ...giftRules.promoRules.map(rule => ({ ...rule, type: 'promo' })),
+    ...giftRules.thresholdRules.map(rule => ({ ...rule, type: 'threshold' })),
+  ];
 
   const filteredSubs = subscribers.filter(s => {
     if (subsFilter !== 'all' && s.tariff !== subsFilter) return false;
@@ -763,7 +887,9 @@ function AdminPage() {
   });
 
   const TAB_LABELS = {
+    dashboard:     '▦ Дашборд',
     products:      '📦 Товары',
+    gifts:         '🎁 Подарки',
     upsell:        '🛒 Допродажи',
     subscribers:   '👥 Люди',
     orders:        '📋 Заказы',
@@ -885,6 +1011,62 @@ function AdminPage() {
       </div>
 
 
+      {/* ─── Dashboard Tab ─── */}
+      {tab === 'dashboard' && (
+        <div>
+          <div style={styles.dashboardHero}>
+            <div>
+              <div style={styles.dashboardTitle}>Панель управления</div>
+              <div style={styles.dashboardText}>Выберите раздел для настройки меню, акций, заказов и пользователей.</div>
+            </div>
+            <button style={styles.btnSmall} onClick={() => { loadGifts(); loadUpsell(); }}>
+              ↻ Обновить
+            </button>
+          </div>
+
+          <div style={styles.dashboardStats}>
+            <div style={styles.dashboardStat}>
+              <span style={styles.dashboardStatValue}>{upsellItems.length}/6</span>
+              <span style={styles.dashboardStatLabel}>Допродажи</span>
+            </div>
+            <div style={styles.dashboardStat}>
+              <span style={styles.dashboardStatValue}>{giftRules.promoRules.filter(r => r.enabled !== false).length}</span>
+              <span style={styles.dashboardStatLabel}>Промокоды</span>
+            </div>
+            <div style={styles.dashboardStat}>
+              <span style={styles.dashboardStatValue}>{giftRules.thresholdRules.filter(r => r.enabled !== false).length}</span>
+              <span style={styles.dashboardStatLabel}>Пороги</span>
+            </div>
+          </div>
+
+          <div style={styles.dashboardGrid}>
+            {[
+              { id: 'products', title: 'Товары', text: 'Цены, скидки, включение позиций' },
+              { id: 'gifts', title: 'Подарки', text: 'Промокоды и пороги суммы' },
+              { id: 'upsell', title: 'Допродажи', text: 'Товары в корзине' },
+              { id: 'subscribers', title: 'Люди', text: 'Подписчики, SHC, подарки' },
+              { id: 'orders', title: 'Заказы', text: 'История подарочных заказов' },
+              { id: 'stats', title: 'Статистика', text: 'Выручка и графики' },
+              { id: 'pricing', title: 'Цены', text: 'Тарифы подписки' },
+              { id: 'banners', title: 'Баннеры', text: 'Слайдер на главной' },
+              { id: 'stores', title: 'Точки', text: 'Самовывоз и доступность' },
+              { id: 'referrals', title: 'Рефералы', text: 'Топ и история SHC' },
+              { id: 'add', title: 'Добавить пользователя', text: 'Ручная подписка' },
+              { id: 'add-product', title: 'Добавить товар', text: 'Новая позиция' },
+            ].map(section => (
+              <button
+                key={section.id}
+                style={styles.dashboardButton}
+                onClick={() => setTab(section.id)}
+              >
+                <span style={styles.dashboardButtonTitle}>{section.title}</span>
+                <span style={styles.dashboardButtonText}>{section.text}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ─── Products Tab ─── */}
       {tab === 'products' && (
         <div>
@@ -907,7 +1089,7 @@ function AdminPage() {
           {productsLoading && <p style={styles.muted}>Загрузка...</p>}
 
           <div style={{ margin: '10px 0', padding: '8px 12px', background: '#222', borderRadius: '8px', fontSize: '13px', color: '#aaa' }}>
-            Допродажи: {upsellSkus.length}/6
+            Допродажи: {upsellSkus.length}/6 · промо: {giftRules.promoRules.filter(r => r.enabled !== false).length} · пороги: {giftRules.thresholdRules.filter(r => r.enabled !== false).length}
           </div>
 
           {currentCatalog && (
@@ -1637,11 +1819,11 @@ function AdminPage() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                         <div>
                           <div style={{ ...styles.statVal, fontSize: 18 }}>{p.promoGifts || 0}</div>
-                          <div style={styles.statLabel}>Промокод 102030</div>
+                          <div style={styles.statLabel}>Промо-подарки</div>
                         </div>
                         <div>
                           <div style={{ ...styles.statVal, fontSize: 18 }}>{p.thresholdGifts || 0}</div>
-                          <div style={styles.statLabel}>За чек ≥2500₽</div>
+                          <div style={styles.statLabel}>Подарки за порог</div>
                         </div>
                       </div>
                     </div>
@@ -2030,6 +2212,132 @@ function AdminPage() {
         </div>
       )}
 
+      {/* ─── Gifts Tab ─── */}
+      {tab === 'gifts' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+            <span style={{ color: AP.text, fontWeight: 700, fontSize: 14 }}>
+              Промокоды и подарки за чек
+            </span>
+            <button style={styles.btnSmall} onClick={loadGifts} disabled={giftRulesLoading}>
+              {giftRulesLoading ? '...' : '↻ Обновить'}
+            </button>
+          </div>
+
+          <div style={styles.giftRuleForm}>
+            <div style={styles.giftRuleFormTitle}>
+              {giftRuleForm.id ? 'Редактировать правило' : 'Новое правило'}
+            </div>
+            <div style={styles.giftRuleGrid}>
+              <select
+                style={styles.select}
+                value={giftRuleForm.type}
+                onChange={e => setGiftRuleForm(prev => ({ ...prev, type: e.target.value }))}
+              >
+                <option value="promo">Промокод</option>
+                <option value="threshold">Порог суммы</option>
+              </select>
+              {giftRuleForm.type === 'promo' && (
+                <input
+                  style={styles.input}
+                  value={giftRuleForm.code}
+                  onChange={e => setGiftRuleForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                  placeholder="Промокод"
+                  maxLength={30}
+                />
+              )}
+              <input
+                style={styles.input}
+                type="number"
+                min="1"
+                value={giftRuleForm.threshold}
+                onChange={e => setGiftRuleForm(prev => ({ ...prev, threshold: e.target.value }))}
+                placeholder={giftRuleForm.type === 'promo' ? 'Сумма для промокода' : 'Порог чека'}
+              />
+              <select
+                style={styles.select}
+                value={giftRuleForm.sku}
+                onChange={e => setGiftRuleForm(prev => ({ ...prev, sku: e.target.value }))}
+              >
+                <option value="">Выберите подарок</option>
+                {giftProductOptions.map(item => (
+                  <option key={`${item.catalog}-${item.sku}`} value={item.sku}>
+                    {item.name} · #{item.sku}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              <button
+                style={styles.btnSave}
+                onClick={saveGiftRule}
+                disabled={giftRuleSaving === 'form'}
+              >
+                {giftRuleSaving === 'form' ? '...' : (giftRuleForm.id ? 'Сохранить' : 'Добавить')}
+              </button>
+              {giftRuleForm.id && (
+                <button style={styles.btnCancel} onClick={resetGiftRuleForm}>
+                  Отмена
+                </button>
+              )}
+            </div>
+            {giftProductOptions.length === 0 && (
+              <div style={{ ...styles.muted, marginTop: 8 }}>
+                Сначала загрузите товары, чтобы выбрать подарок.
+              </div>
+            )}
+          </div>
+
+          {allGiftRules.length === 0 ? (
+            <p style={styles.muted}>Правил пока нет. Добавьте промокод или порог суммы.</p>
+          ) : (
+            <div style={styles.giftRuleList}>
+              {allGiftRules
+                .sort((a, b) => Number(a.threshold) - Number(b.threshold))
+                .map(rule => (
+                  <div key={rule.id} style={rule.enabled === false ? styles.giftRuleCardOff : styles.giftRuleCard}>
+                    <div style={styles.giftRuleHead}>
+                      <div>
+                        <div style={styles.giftRuleName}>
+                          {rule.type === 'promo' ? `Промокод ${rule.code}` : `Порог ${rule.threshold}₽`}
+                        </div>
+                        <div style={styles.giftRuleMeta}>
+                          {rule.type === 'promo' ? `От ${rule.threshold}₽` : 'Автоматически'} · {rule.product?.name || `SKU ${rule.sku}`}
+                        </div>
+                      </div>
+                      <span style={rule.enabled === false ? styles.giftRuleBadgeOff : styles.giftRuleBadge}>
+                        {rule.enabled === false ? 'выкл' : 'вкл'}
+                      </span>
+                    </div>
+                    <div style={styles.giftRuleActions}>
+                      <button
+                        style={styles.btnSmall}
+                        onClick={() => editGiftRule(rule, rule.type)}
+                      >
+                        Изменить
+                      </button>
+                      <button
+                        style={rule.enabled === false ? styles.giftBtnAdd : styles.giftBtnRemove}
+                        onClick={() => toggleGiftRule(rule, rule.type)}
+                        disabled={giftRuleSaving === rule.id}
+                      >
+                        {giftRuleSaving === rule.id ? '...' : (rule.enabled === false ? 'Включить' : 'Выключить')}
+                      </button>
+                      <button
+                        style={{ ...styles.toggleOff, fontSize: 10, padding: '5px 10px' }}
+                        onClick={() => deleteGiftRule(rule)}
+                        disabled={giftRuleSaving === rule.id}
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ─── Upsell Tab ─── */}
       {tab === 'upsell' && (
         <div>
@@ -2192,8 +2500,10 @@ function AdminPage() {
         Разделы
       </div>
       {[
+        { id: 'dashboard',    emoji: '▦', label: 'Дашборд',              sub: 'Быстрый переход по разделам' },
         { id: 'subscribers',  emoji: '👥', label: 'Люди',                  sub: 'Подписчики и их действия' },
         { id: 'products',     emoji: '📦', label: 'Товары',                sub: 'Включение, цены' },
+        { id: 'gifts',        emoji: '🎁', label: 'Подарки',               sub: 'Промокоды и пороги суммы' },
         { id: 'upsell',       emoji: '🛒', label: 'Допродажи',             sub: 'Товары в корзине' },
         { id: 'orders',       emoji: '📋', label: 'Заказы',                sub: 'Подарочные заказы' },
         { id: 'banners',      emoji: '🖼',  label: 'Баннеры',               sub: 'Слайдер на главной' },
@@ -2341,18 +2651,10 @@ function AdminPage() {
                   {upsellSaving === sku ? '...' : (inUpsell ? '★ Допродажа ✓' : '☆ Допродажа')}
                 </button>
                 <button
-                  style={inPromo ? styles.giftBtnAdd : styles.giftBtnRemove}
-                  disabled={giftSaving === `promo-${sku}`}
-                  onClick={() => toggleGift(selectedProduct.item.sku, 'promo', inPromo)}
+                  style={(inPromo || inThreshold) ? styles.giftBtnAdd : styles.giftBtnRemove}
+                  onClick={() => openGiftRuleForProduct(selectedProduct.item.sku)}
                 >
-                  {giftSaving === `promo-${sku}` ? '...' : (inPromo ? '🎁 Промо ✓' : '🎁 Промо-подарок')}
-                </button>
-                <button
-                  style={inThreshold ? styles.giftBtnAdd : styles.giftBtnRemove}
-                  disabled={giftSaving === `threshold-${sku}`}
-                  onClick={() => toggleGift(selectedProduct.item.sku, 'threshold', inThreshold)}
-                >
-                  {giftSaving === `threshold-${sku}` ? '...' : (inThreshold ? '🎁 Авто ✓' : '🎁 Авто-подарок')}
+                  {(inPromo || inThreshold) ? '🎁 Настроить подарок ✓' : '🎁 Настроить подарок'}
                 </button>
               </>);
             })()}
@@ -2704,6 +3006,156 @@ const styles = {
     boxShadow: NEU.btnOut,
     fontWeight: 600,
     transition: 'all 0.2s',
+  },
+  dashboardHero: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: 16,
+    marginBottom: 12,
+    background: AP.surface,
+    borderRadius: 16,
+    boxShadow: NEU.card,
+  },
+  dashboardTitle: {
+    color: AP.text,
+    fontSize: 18,
+    fontWeight: 800,
+    marginBottom: 5,
+  },
+  dashboardText: {
+    color: AP.muted,
+    fontSize: 12,
+    lineHeight: 1.45,
+  },
+  dashboardStats: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: 8,
+    marginBottom: 12,
+  },
+  dashboardStat: {
+    padding: 10,
+    background: AP.surface,
+    borderRadius: 12,
+    boxShadow: NEU.btnOut,
+  },
+  dashboardStatValue: {
+    display: 'block',
+    color: AP.accent,
+    fontSize: 18,
+    fontWeight: 800,
+  },
+  dashboardStatLabel: {
+    display: 'block',
+    color: AP.muted,
+    fontSize: 10,
+    marginTop: 2,
+  },
+  dashboardGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 8,
+  },
+  dashboardButton: {
+    minHeight: 78,
+    padding: 12,
+    background: AP.surface,
+    color: AP.text,
+    border: 'none',
+    borderRadius: 14,
+    textAlign: 'left',
+    cursor: 'pointer',
+    boxShadow: NEU.btnOut,
+  },
+  dashboardButtonTitle: {
+    display: 'block',
+    color: AP.text,
+    fontSize: 13,
+    fontWeight: 800,
+    marginBottom: 4,
+  },
+  dashboardButtonText: {
+    display: 'block',
+    color: AP.muted,
+    fontSize: 10,
+    lineHeight: 1.35,
+  },
+  giftRuleForm: {
+    padding: 12,
+    background: AP.surface,
+    borderRadius: 14,
+    boxShadow: NEU.card,
+    marginBottom: 14,
+  },
+  giftRuleFormTitle: {
+    color: AP.text,
+    fontSize: 13,
+    fontWeight: 800,
+    marginBottom: 10,
+  },
+  giftRuleGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gap: 8,
+  },
+  giftRuleList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  giftRuleCard: {
+    padding: 12,
+    background: AP.surface,
+    borderRadius: 14,
+    boxShadow: NEU.btnOut,
+  },
+  giftRuleCardOff: {
+    padding: 12,
+    background: AP.surface,
+    borderRadius: 14,
+    boxShadow: NEU.btnOut,
+    opacity: 0.58,
+  },
+  giftRuleHead: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 10,
+  },
+  giftRuleName: {
+    color: AP.text,
+    fontSize: 13,
+    fontWeight: 800,
+  },
+  giftRuleMeta: {
+    color: AP.muted,
+    fontSize: 11,
+    marginTop: 3,
+    lineHeight: 1.35,
+  },
+  giftRuleBadge: {
+    color: AP.accent,
+    fontSize: 10,
+    fontWeight: 800,
+    padding: '3px 7px',
+    borderRadius: 6,
+    background: 'rgba(60,200,161,0.12)',
+  },
+  giftRuleBadgeOff: {
+    color: AP.muted,
+    fontSize: 10,
+    fontWeight: 800,
+    padding: '3px 7px',
+    borderRadius: 6,
+    background: 'rgba(255,255,255,0.06)',
+  },
+  giftRuleActions: {
+    display: 'flex',
+    gap: 6,
+    flexWrap: 'wrap',
   },
   error: { color: AP.danger, marginTop: 10, fontSize: 12 },
   header: {

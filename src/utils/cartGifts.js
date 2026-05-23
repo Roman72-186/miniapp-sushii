@@ -1,13 +1,3 @@
-// src/utils/cartGifts.js — Логика подарочных роллов в корзине
-
-// Пороговые суммы (конфиг)
-export const PROMO_CODE = '102030';
-export const PROMO_THRESHOLD = 2000;
-export const AUTO_THRESHOLD = 2500;
-
-/**
- * Считает сумму корзины без подарков (подарки не участвуют в пороге)
- */
 export function calcNonGiftTotal(items) {
   return items.reduce((sum, item) => {
     if (item.product.gift) return sum;
@@ -15,73 +5,95 @@ export function calcNonGiftTotal(items) {
   }, 0);
 }
 
-/**
- * Выбирает случайный товар из массива, исключая SKU из excludeSkus
- */
-export function pickGiftProduct(giftProducts, excludeSkus = []) {
-  const available = giftProducts.filter(p => !excludeSkus.includes(String(p.sku)));
-  if (available.length === 0) return null;
-  if (available.length === 1) return available[0];
-  return available[Math.floor(Math.random() * available.length)];
+export function normalizePromoCode(code) {
+  return String(code || '').trim().toUpperCase();
 }
 
-/**
- * Синхронизирует подарки в корзине.
- * Возвращает { toAdd: [...], toRemove: [...ids] }
- */
-export function syncCartGifts({
-  items,
-  promoCode,
-  promoGiftProducts,
-  thresholdGiftProducts,
-  pickedPromoSku,
-  pickedThresholdSku,
-}) {
+function giftSourceType(source) {
+  const value = String(source || '');
+  if (value === 'promo' || value.startsWith('promo:')) return 'promo';
+  if (value === 'threshold2500' || value === 'threshold' || value.startsWith('threshold:')) return 'threshold';
+  return 'subscription';
+}
+
+function ruleSource(rule) {
+  return `${rule.type}:${rule.id}`;
+}
+
+function activeProduct(rule) {
+  return rule && rule.enabled !== false && rule.product ? rule.product : null;
+}
+
+export function syncCartGifts({ items, promoCode, promoRules = [], thresholdRules = [] }) {
   const nonGiftTotal = calcNonGiftTotal(items);
+  const normalizedCode = normalizePromoCode(promoCode);
   const toAdd = [];
   const toRemove = [];
+  const usedSkus = new Set();
 
-  const existingPromo = items.find(i => i.giftSource === 'promo');
-  const existingThreshold = items.find(i => i.giftSource === 'threshold2500');
+  const existingGifts = items.filter(item => item.product.gift);
+  const existingPromo = existingGifts.find(item => giftSourceType(item.giftSource) === 'promo');
+  const existingThresholds = existingGifts.filter(item => giftSourceType(item.giftSource) === 'threshold');
 
-  // --- Промо-подарок ---
-  const promoActive = promoCode === PROMO_CODE && nonGiftTotal >= PROMO_THRESHOLD && promoGiftProducts.length > 0;
+  const matchedPromoRule = promoRules.find(rule =>
+    activeProduct(rule) &&
+    normalizePromoCode(rule.code) === normalizedCode
+  );
+  const activePromoRule = matchedPromoRule && nonGiftTotal >= Number(matchedPromoRule.threshold || 0)
+    ? matchedPromoRule
+    : null;
 
-  if (promoActive && !existingPromo) {
-    // Выбираем товар — используем зафиксированный или новый
-    let product = pickedPromoSku
-      ? promoGiftProducts.find(p => String(p.sku) === String(pickedPromoSku))
-      : null;
-    if (!product) product = pickGiftProduct(promoGiftProducts);
-    if (product) {
-      toAdd.push({ product, giftSource: 'promo' });
+  if (activePromoRule) {
+    const expectedSource = ruleSource(activePromoRule);
+    if (!existingPromo || existingPromo.giftSource !== expectedSource) {
+      if (existingPromo) toRemove.push(existingPromo.product.id);
+      toAdd.push({
+        product: activePromoRule.product,
+        giftSource: expectedSource,
+        rule: activePromoRule,
+      });
+    } else {
+      usedSkus.add(String(existingPromo.product.sku));
     }
-  } else if (!promoActive && existingPromo) {
+    usedSkus.add(String(activePromoRule.product.sku));
+  } else if (existingPromo) {
     toRemove.push(existingPromo.product.id);
   }
 
-  // --- Подарок по порогу 2500 ---
-  const thresholdActive = nonGiftTotal >= AUTO_THRESHOLD && thresholdGiftProducts.length > 0;
+  const activeThresholdRules = thresholdRules
+    .filter(rule => activeProduct(rule) && nonGiftTotal >= Number(rule.threshold || 0))
+    .sort((a, b) => Number(a.threshold) - Number(b.threshold));
+  const activeThresholdIds = new Set(activeThresholdRules.map(rule => String(rule.id)));
 
-  if (thresholdActive && !existingThreshold) {
-    // Исключаем SKU промо-подарка чтобы не дублировать
-    const promoSku = existingPromo?.product?.sku
-      || (promoActive && toAdd[0]?.product?.sku)
-      || null;
-    const excludeSkus = promoSku ? [String(promoSku)] : [];
-
-    let product = pickedThresholdSku
-      ? thresholdGiftProducts.find(p => String(p.sku) === String(pickedThresholdSku))
-      : null;
-    if (!product) product = pickGiftProduct(thresholdGiftProducts, excludeSkus);
-    // Если все исключены — берём любой
-    if (!product) product = pickGiftProduct(thresholdGiftProducts);
-    if (product) {
-      toAdd.push({ product, giftSource: 'threshold2500' });
+  for (const gift of existingThresholds) {
+    const ruleId = String(gift.giftRuleId || String(gift.giftSource || '').split(':')[1] || '');
+    if (!activeThresholdIds.has(ruleId)) {
+      toRemove.push(gift.product.id);
+    } else {
+      usedSkus.add(String(gift.product.sku));
     }
-  } else if (!thresholdActive && existingThreshold) {
-    toRemove.push(existingThreshold.product.id);
   }
 
-  return { toAdd, toRemove };
+  for (const rule of activeThresholdRules) {
+    const expectedSource = ruleSource(rule);
+    const exists = existingThresholds.some(gift => gift.giftSource === expectedSource);
+    const sku = String(rule.product.sku);
+    if (!exists && !usedSkus.has(sku)) {
+      toAdd.push({
+        product: rule.product,
+        giftSource: expectedSource,
+        rule,
+      });
+      usedSkus.add(sku);
+    }
+  }
+
+  return { toAdd, toRemove, matchedPromoRule, activePromoRule, activeThresholdRules };
+}
+
+export function describeGiftSource(source, product = {}) {
+  const type = giftSourceType(source);
+  if (type === 'promo') return product.giftCode ? `По промокоду ${product.giftCode}` : 'По промокоду';
+  if (type === 'threshold') return product.giftThreshold ? `За чек от ${product.giftThreshold}₽` : 'За горячий чек';
+  return 'Подарок по подписке';
 }

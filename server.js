@@ -62,6 +62,7 @@ app.post('/api/admin/upsell-clear', require('./api/admin/upsell-clear'));
 app.get('/api/gift-items', require('./api/gift-items'));
 app.post('/api/admin/promo-gift-toggle', require('./api/admin/promo-gift-toggle'));
 app.post('/api/admin/threshold-gift-toggle', require('./api/admin/threshold-gift-toggle'));
+app.all('/api/admin/gift-rules', require('./api/admin/gift-rules'));
 
 // Stores config + admin
 app.get('/api/stores-config', require('./api/stores-config'));
