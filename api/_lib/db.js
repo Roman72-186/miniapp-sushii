@@ -6,6 +6,7 @@ if (process.env.USE_SUPABASE === 'true') {
 
 const Database = require('better-sqlite3');
 const path = require('path');
+const { summarizeGiftUsage } = require('./order-gift-stats');
 
 const DB_PATH = path.join(__dirname, '..', '..', 'data', 'sushii.db');
 
@@ -100,6 +101,7 @@ function getDb() {
       delivery_type         TEXT NOT NULL DEFAULT 'pickup',
       address               TEXT,
       products_json         TEXT,
+      gift_sources_json     TEXT,
       total_price           INTEGER DEFAULT 0,
       client_name           TEXT,
       created_at            TEXT DEFAULT (datetime('now'))
@@ -173,6 +175,7 @@ function getDb() {
   try { _db.exec('ALTER TABLE orders ADD COLUMN promo_code TEXT'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_promo_gift INTEGER DEFAULT 0'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_threshold_gift INTEGER DEFAULT 0'); } catch {}
+  try { _db.exec('ALTER TABLE orders ADD COLUMN gift_sources_json TEXT'); } catch {}
 
   _db.exec(`
     CREATE TABLE IF NOT EXISTS email_notifications_log (
@@ -776,10 +779,10 @@ function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Orders ─────────────────────────────────────────────
 
-function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift }) {
+function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift, giftSourcesJson }) {
   getDb().prepare(`
-    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, gift_sources_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     String(telegramId),
     frontpadOrderId || null,
@@ -788,6 +791,7 @@ function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderTy
     deliveryType || 'pickup',
     address || null,
     productsJson || null,
+    giftSourcesJson || null,
     totalPrice || 0,
     clientName || null,
     promoCode || null,
@@ -812,6 +816,16 @@ function getOrdersStats(sinceIso) {
     promoGifts: Number(row.promo_gifts) || 0,
     thresholdGifts: Number(row.threshold_gifts) || 0,
   };
+}
+
+function getGiftUsageStats(sinceIso) {
+  const rows = getDb().prepare(`
+    SELECT promo_code, products_json, gift_sources_json
+    FROM orders
+    WHERE created_at >= ?
+      AND (has_promo_gift = 1 OR has_threshold_gift = 1 OR gift_sources_json IS NOT NULL)
+  `).all(sinceIso);
+  return summarizeGiftUsage(rows);
 }
 
 function getPaymentsCount(sinceIso) {
@@ -1050,6 +1064,7 @@ module.exports = {
   getAllUsersForStats,
   getMonthRevenue,
   getOrdersStats,
+  getGiftUsageStats,
   getPaymentsCount,
   getPaymentsStats,
   getOrdersDaily,

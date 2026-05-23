@@ -1836,6 +1836,53 @@ function AdminPage() {
             </>
           )}
 
+          {dashStats?.giftUsage && (
+            <>
+              <h4 style={{ ...styles.addTitle, marginTop: 22, fontSize: 14 }}>Промо и подарки за 30 дней</h4>
+              <div style={styles.statsGrid}>
+                <div style={{ ...styles.statCard, gridColumn: '1 / -1' }}>
+                  <div style={{ ...styles.statLabel, marginBottom: 10 }}>ПРОМОКОДЫ</div>
+                  {(dashStats.giftUsage.promoCodes || []).length === 0 ? (
+                    <div style={styles.statLabel}>Нет применений</div>
+                  ) : (
+                    dashStats.giftUsage.promoCodes.map(item => (
+                      <div key={`${item.code}-${item.source}`} style={styles.giftStatRow}>
+                        <div>
+                          <div style={styles.giftStatTitle}>{item.code}</div>
+                          <div style={styles.giftStatText}>
+                            {(item.gifts || []).map(g => `${g.name}${g.uses > 1 ? ` x${g.uses}` : ''}`).join(', ')}
+                          </div>
+                        </div>
+                        <div style={styles.giftStatCount}>{item.uses}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div style={{ ...styles.statCard, gridColumn: '1 / -1' }}>
+                  <div style={{ ...styles.statLabel, marginBottom: 10 }}>ПОДАРКИ ЗА ЧЕК</div>
+                  {(dashStats.giftUsage.thresholdGifts || []).length === 0 ? (
+                    <div style={styles.statLabel}>Нет применений</div>
+                  ) : (
+                    dashStats.giftUsage.thresholdGifts.map(item => (
+                      <div key={`${item.threshold || 'rule'}-${item.source}`} style={styles.giftStatRow}>
+                        <div>
+                          <div style={styles.giftStatTitle}>
+                            {item.threshold ? `${item.threshold.toLocaleString('ru-RU')} ₽` : item.source}
+                          </div>
+                          <div style={styles.giftStatText}>
+                            {(item.gifts || []).map(g => `${g.name}${g.uses > 1 ? ` x${g.uses}` : ''}`).join(', ')}
+                          </div>
+                        </div>
+                        <div style={styles.giftStatCount}>{item.uses}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
           {Array.isArray(dashStats?.ordersDaily) && dashStats.ordersDaily.length > 0 && (() => {
             const daily = dashStats.ordersDaily;
             const maxCount = Math.max(1, ...daily.map(d => d.count || 0));
@@ -3643,6 +3690,31 @@ const styles = {
     color: AP.muted,
     marginTop: 4,
     letterSpacing: '0.04em',
+  },
+  giftStatRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: '9px 0',
+    borderTop: `1px solid ${AP.border}`,
+  },
+  giftStatTitle: {
+    color: AP.text,
+    fontSize: 13,
+    fontWeight: 700,
+  },
+  giftStatText: {
+    color: AP.muted,
+    fontSize: 11,
+    lineHeight: 1.45,
+    marginTop: 3,
+  },
+  giftStatCount: {
+    color: AP.accent,
+    fontSize: 18,
+    fontWeight: 700,
+    lineHeight: 1,
   },
   // Banners
   bannerSlot: {

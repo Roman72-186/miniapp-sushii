@@ -4,6 +4,7 @@ const {
   getAllUsersForStats,
   getMonthRevenue,
   getOrdersStats,
+  getGiftUsageStats,
   getPaymentsStats,
   getOrdersDaily,
 } = require('./_lib/db');
@@ -77,12 +78,16 @@ module.exports = async (req, res) => {
     const revenue = await getMonthRevenue(monthStart);
 
     // Периодные агрегаты + дневной график
-    const [p1, p7, p15, p30, ordersDaily] = await Promise.all([
+    const since30 = new Date();
+    since30.setDate(since30.getDate() - 30);
+
+    const [p1, p7, p15, p30, ordersDaily, giftUsage] = await Promise.all([
       buildPeriod(1),
       buildPeriod(7),
       buildPeriod(15),
       buildPeriod(30),
       getOrdersDaily(30),
+      getGiftUsageStats(toIso(since30)),
     ]);
 
     return res.status(200).json({
@@ -97,6 +102,7 @@ module.exports = async (req, res) => {
         revenueThisMonth: revenue.total,
         periods: { '1d': p1, '7d': p7, '15d': p15, '30d': p30 },
         ordersDaily,
+        giftUsage,
       },
     });
   } catch (e) {

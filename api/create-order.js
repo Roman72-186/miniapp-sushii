@@ -6,6 +6,7 @@ const { getUser, updateBalance, insertOrder } = require('./_lib/db');
 const { geocode } = require('./_lib/geocoder');
 const { findNearestStore } = require('./_lib/nearest-store');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
+const { readGiftRules } = require('./_lib/gift-rules');
 
 function parseJsonBody(req) {
   try {
@@ -34,6 +35,32 @@ function sanitizePickupComment(comment) {
       return !part.startsWith('Самовывоз:') && !part.startsWith('[pickup_point_address:');
     })
     .join(' | ');
+}
+
+function buildGiftSources(products, promoCode) {
+  const rules = readGiftRules();
+  const promoById = new Map((rules.promoRules || []).map(rule => [String(rule.id), rule]));
+  const thresholdById = new Map((rules.thresholdRules || []).map(rule => [String(rule.id), rule]));
+
+  return products
+    .map(product => {
+      const source = String(product.gift_source || '').trim();
+      if (!source.startsWith('promo') && !source.startsWith('threshold')) return null;
+      const type = source.startsWith('promo') ? 'promo' : 'threshold';
+      const ruleId = source.includes(':') ? source.split(':').slice(1).join(':') : '';
+      const rule = type === 'promo' ? promoById.get(ruleId) : thresholdById.get(ruleId);
+      return {
+        type,
+        source,
+        ruleId,
+        code: type === 'promo' ? String(rule?.code || promoCode || '').trim().toUpperCase() : undefined,
+        threshold: Number(rule?.threshold) || (source === 'threshold2500' ? 2500 : undefined),
+        sku: String(product.sku || product.frontpad_id || product.frontpadId || product.product_id || product.id || '').trim(),
+        name: product.name || String(product.id || ''),
+        qty: Math.max(1, Math.round(Number(product.quantity) || 1)),
+      };
+    })
+    .filter(Boolean);
 }
 
 module.exports = async (req, res) => {
@@ -252,6 +279,7 @@ module.exports = async (req, res) => {
           ? (body.pickup_point_address || client.street || null)
           : ([client.street, client.home].filter(Boolean).join(', ') || null);
         const productsList = products.map(p => ({
+          sku: p.sku || p.frontpad_id || p.frontpadId || p.product_id || p.id,
           name: p.name || String(p.id),
           qty: p.quantity || 1,
           price: p.price || 0,
@@ -264,6 +292,7 @@ module.exports = async (req, res) => {
           const source = String(p.gift_source || '');
           return source === 'threshold2500' || source.startsWith('threshold');
         });
+        const giftSources = buildGiftSources(products, promoCode);
         await insertOrder({
           telegramId: telegram_id,
           frontpadOrderId: String(orderResult.data.orderId || ''),
@@ -277,6 +306,7 @@ module.exports = async (req, res) => {
           promoCode,
           hasPromoGift,
           hasThresholdGift,
+          giftSourcesJson: JSON.stringify(giftSources),
         });
       } catch (saveErr) {
         console.error('[ORDER] Ошибка сохранения в БД:', saveErr.message);
