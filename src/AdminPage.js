@@ -1045,12 +1045,12 @@ function AdminPage() {
           <div style={styles.dashboardGrid}>
             {[
               { id: 'products', title: 'Товары', text: 'Цены, скидки, включение позиций' },
+              { id: 'subscribers', title: 'Люди', text: 'Подписчики, SHC, подарки' },
+              { id: 'pricing', title: 'Цены', text: 'Тарифы подписки' },
+              { id: 'orders', title: 'Заказы и статистика', text: 'История заказов, выручка и графики' },
               { id: 'promo-gifts', title: 'Промокоды', text: 'Код, порог суммы и подарок' },
               { id: 'threshold-gifts', title: 'Подарок за чек', text: 'Автоподарки по порогам' },
               { id: 'upsell', title: 'Допродажи', text: 'Товары в корзине' },
-              { id: 'subscribers', title: 'Люди', text: 'Подписчики, SHC, подарки' },
-              { id: 'orders', title: 'Заказы и статистика', text: 'История заказов, выручка и графики' },
-              { id: 'pricing', title: 'Цены', text: 'Тарифы подписки' },
               { id: 'banners', title: 'Баннеры', text: 'Слайдер на главной' },
               { id: 'stores', title: 'Точки', text: 'Самовывоз и доступность' },
               { id: 'referrals', title: 'Рефералы', text: 'Топ и история SHC' },
