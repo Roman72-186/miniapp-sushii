@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import UpsellBlock from './UpsellBlock';
+import { describeGiftSource } from '../utils/cartGifts';
 
 function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem, promoCode, onPromoCodeChange, promoMessages, isPromoValid }) {
   useEffect(() => {
@@ -49,9 +50,7 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     <p className="shop-cart__item-name">{item.product.cleanName || item.product.name}</p>
                     {item.product.gift ? (
                       <p className="shop-cart__item-price shop-cart__item-price--gift">
-                        🎁 {item.giftSource === 'promo' ? 'По промокоду'
-                           : item.giftSource === 'threshold2500' ? 'За горячий чек'
-                           : 'Подарок по подписке'}
+                        🎁 {describeGiftSource(item.giftSource, item.product)}
                       </p>
                     ) : (
                       <p className="shop-cart__item-price">{item.product.price}₽ / шт</p>
@@ -116,7 +115,7 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     placeholder="Промокод"
                     value={promoCode || ''}
                     onChange={e => onPromoCodeChange(e.target.value.trim())}
-                    maxLength={10}
+                    maxLength={30}
                     autoComplete="off"
                     aria-describedby={promoCode ? 'cart-promo-status' : undefined}
                     aria-invalid={promoCode ? !isPromoValid : undefined}

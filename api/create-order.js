@@ -259,8 +259,11 @@ module.exports = async (req, res) => {
         }));
         const rawPromo = String(body.promo_code || '').trim();
         const promoCode = /^[A-Za-z0-9]{1,20}$/.test(rawPromo) ? rawPromo : null;
-        const hasPromoGift = products.some(p => p.gift_source === 'promo');
-        const hasThresholdGift = products.some(p => p.gift_source === 'threshold2500');
+        const hasPromoGift = products.some(p => String(p.gift_source || '').startsWith('promo'));
+        const hasThresholdGift = products.some(p => {
+          const source = String(p.gift_source || '');
+          return source === 'threshold2500' || source.startsWith('threshold');
+        });
         await insertOrder({
           telegramId: telegram_id,
           frontpadOrderId: String(orderResult.data.orderId || ''),
