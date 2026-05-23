@@ -412,8 +412,7 @@ function AdminPage() {
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
     if (loggedIn && tab === 'pricing' && !pricing) loadPricing();
-    if (loggedIn && tab === 'stats') loadStats();
-    if (loggedIn && tab === 'orders') loadGiftOrders();
+    if (loggedIn && tab === 'orders') { loadGiftOrders(); loadStats(); }
     if (loggedIn && tab === 'referrals') loadReferralData();
     if (loggedIn && tab === 'stores') loadStores();
   }, [loggedIn, tab]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -895,10 +894,9 @@ function AdminPage() {
     'threshold-gifts': '🎁 Подарок за чек',
     upsell:        '🛒 Допродажи',
     subscribers:   '👥 Люди',
-    orders:        '📋 Заказы',
+    orders:        '📋 Заказы и статистика',
     banners:       '🖼 Баннеры',
     pricing:       '💰 Цены',
-    stats:         '📊 Статистика',
     referrals:     '🔗 Рефералы',
     add:           '👤 Добавить пользователя',
     'add-product': '➕ Добавить товар',
@@ -1051,8 +1049,7 @@ function AdminPage() {
               { id: 'threshold-gifts', title: 'Подарок за чек', text: 'Автоподарки по порогам' },
               { id: 'upsell', title: 'Допродажи', text: 'Товары в корзине' },
               { id: 'subscribers', title: 'Люди', text: 'Подписчики, SHC, подарки' },
-              { id: 'orders', title: 'Заказы', text: 'История подарочных заказов' },
-              { id: 'stats', title: 'Статистика', text: 'Выручка и графики' },
+              { id: 'orders', title: 'Заказы и статистика', text: 'История заказов, выручка и графики' },
               { id: 'pricing', title: 'Цены', text: 'Тарифы подписки' },
               { id: 'banners', title: 'Баннеры', text: 'Слайдер на главной' },
               { id: 'stores', title: 'Точки', text: 'Самовывоз и доступность' },
@@ -1744,11 +1741,11 @@ function AdminPage() {
         </div>
       )}
 
-      {/* ─── Stats Tab ─── */}
-      {tab === 'stats' && (
+      {/* ─── Stats Section ─── */}
+      {tab === 'orders' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={styles.addTitle}>Дашборд</h3>
+            <h3 style={styles.addTitle}>Статистика</h3>
             <button style={styles.btnSmall} onClick={loadStats} disabled={dashLoading}>
               {dashLoading ? '...' : 'Обновить'}
             </button>
@@ -2060,9 +2057,9 @@ function AdminPage() {
         </div>
       )}
 
-      {/* ─── Orders Tab ─── */}
+      {/* ─── Orders Section ─── */}
       {tab === 'orders' && (
-        <div>
+        <div style={{ marginTop: 22 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <h3 style={styles.addTitle}>Заказы подписчиков</h3>
             <button style={styles.btnSmall} onClick={loadGiftOrders} disabled={giftOrdersLoading}>
