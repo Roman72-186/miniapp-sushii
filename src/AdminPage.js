@@ -73,7 +73,6 @@ function AdminPage() {
 
   // UI state
   const [expandedActions, setExpandedActions] = useState(new Set());
-  const [menuOpen, setMenuOpen] = useState(false);
   const [catalogMenuOpen, setCatalogMenuOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [toasts, setToasts] = useState([]);
@@ -267,12 +266,13 @@ function AdminPage() {
   }, [headers]);
 
   const resetGiftRuleForm = () => {
-    setGiftRuleForm({ id: '', type: 'promo', code: '', threshold: '', sku: '', enabled: true });
+    const type = tab === 'threshold-gifts' ? 'threshold' : 'promo';
+    setGiftRuleForm({ id: '', type, code: '', threshold: '', sku: '', enabled: true });
   };
 
   const saveGiftRule = async () => {
     const isEdit = !!giftRuleForm.id;
-    const type = giftRuleForm.type === 'threshold' ? 'threshold' : 'promo';
+    const type = tab === 'threshold-gifts' ? 'threshold' : 'promo';
     if (type === 'promo' && !giftRuleForm.code.trim()) {
       showToast('Введите промокод', 'error');
       return;
@@ -375,10 +375,11 @@ function AdminPage() {
     setGiftRuleSaving(null);
   };
 
-  const openGiftRuleForProduct = (sku) => {
-    setGiftRuleForm(prev => ({ ...prev, id: '', type: 'promo', sku: String(sku), enabled: true }));
+  const openGiftRuleForProduct = (sku, type = 'promo') => {
+    const normalizedType = type === 'threshold' ? 'threshold' : 'promo';
+    setGiftRuleForm(prev => ({ ...prev, id: '', type: normalizedType, code: '', sku: String(sku), enabled: true }));
     setSelectedProduct(null);
-    setTab('gifts');
+    setTab(normalizedType === 'threshold' ? 'threshold-gifts' : 'promo-gifts');
   };
 
   // Загрузка подписчиков
@@ -400,7 +401,13 @@ function AdminPage() {
   useEffect(() => {
     if (loggedIn && tab === 'dashboard') { loadGifts(); loadUpsell(); }
     if (loggedIn && tab === 'products' && catalogs.length === 0) { loadProducts(); loadUpsell(); loadGifts(); }
-    if (loggedIn && tab === 'gifts') { loadGifts(); if (catalogs.length === 0) loadProducts(); }
+    if (loggedIn && (tab === 'promo-gifts' || tab === 'threshold-gifts')) {
+      loadGifts();
+      if (catalogs.length === 0) loadProducts();
+      if (!giftRuleForm.id) {
+        setGiftRuleForm(prev => ({ ...prev, type: tab === 'threshold-gifts' ? 'threshold' : 'promo' }));
+      }
+    }
     if (loggedIn && tab === 'upsell') loadUpsell();
     if (loggedIn && tab === 'subscribers' && subscribers.length === 0) loadSubscribers();
     if (loggedIn && tab === 'banners' && banners.length === 0) loadBanners();
@@ -870,11 +877,6 @@ function AdminPage() {
         catalog: c.name,
       }))
   );
-  const allGiftRules = [
-    ...giftRules.promoRules.map(rule => ({ ...rule, type: 'promo' })),
-    ...giftRules.thresholdRules.map(rule => ({ ...rule, type: 'threshold' })),
-  ];
-
   const filteredSubs = subscribers.filter(s => {
     if (subsFilter !== 'all' && s.tariff !== subsFilter) return false;
     if (subsSearch) {
@@ -889,7 +891,8 @@ function AdminPage() {
   const TAB_LABELS = {
     dashboard:     '▦ Дашборд',
     products:      '📦 Товары',
-    gifts:         '🎁 Подарки',
+    'promo-gifts': '🎟 Промокоды',
+    'threshold-gifts': '🎁 Подарок за чек',
     upsell:        '🛒 Допродажи',
     subscribers:   '👥 Люди',
     orders:        '📋 Заказы',
@@ -998,11 +1001,13 @@ function AdminPage() {
         }
       `}</style>
       <div style={styles.header}>
-        <button style={styles.burgerBtn} onClick={() => setMenuOpen(true)} aria-label="Открыть меню">
-          <div style={styles.burgerLine} />
-          <div style={styles.burgerLine} />
-          <div style={styles.burgerLine} />
-        </button>
+        {tab === 'dashboard' ? (
+          <span style={styles.headerSpacer} />
+        ) : (
+          <button style={styles.backBtn} onClick={() => setTab('dashboard')}>
+            ← Назад
+          </button>
+        )}
         <span style={styles.currentTabLabel}>{TAB_LABELS[tab] || 'Админка'}</span>
         <div style={{ display: 'flex', gap: 6 }}>
           <button onClick={() => { window.location.href = telegramId ? `/discount-shop?telegram_id=${telegramId}` : '/discount-shop'; }} style={styles.btnSmall}>←</button>
@@ -1042,7 +1047,8 @@ function AdminPage() {
           <div style={styles.dashboardGrid}>
             {[
               { id: 'products', title: 'Товары', text: 'Цены, скидки, включение позиций' },
-              { id: 'gifts', title: 'Подарки', text: 'Промокоды и пороги суммы' },
+              { id: 'promo-gifts', title: 'Промокоды', text: 'Код, порог суммы и подарок' },
+              { id: 'threshold-gifts', title: 'Подарок за чек', text: 'Автоподарки по порогам' },
               { id: 'upsell', title: 'Допродажи', text: 'Товары в корзине' },
               { id: 'subscribers', title: 'Люди', text: 'Подписчики, SHC, подарки' },
               { id: 'orders', title: 'Заказы', text: 'История подарочных заказов' },
@@ -2212,12 +2218,12 @@ function AdminPage() {
         </div>
       )}
 
-      {/* ─── Gifts Tab ─── */}
-      {tab === 'gifts' && (
+      {/* ─── Gift Rules Tabs ─── */}
+      {(tab === 'promo-gifts' || tab === 'threshold-gifts') && (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
             <span style={{ color: AP.text, fontWeight: 700, fontSize: 14 }}>
-              Промокоды и подарки за чек
+              {tab === 'promo-gifts' ? 'Промокоды' : 'Подарок за чек'}
             </span>
             <button style={styles.btnSmall} onClick={loadGifts} disabled={giftRulesLoading}>
               {giftRulesLoading ? '...' : '↻ Обновить'}
@@ -2226,18 +2232,10 @@ function AdminPage() {
 
           <div style={styles.giftRuleForm}>
             <div style={styles.giftRuleFormTitle}>
-              {giftRuleForm.id ? 'Редактировать правило' : 'Новое правило'}
+              {giftRuleForm.id ? 'Редактировать правило' : (tab === 'promo-gifts' ? 'Новый промокод' : 'Новый порог')}
             </div>
             <div style={styles.giftRuleGrid}>
-              <select
-                style={styles.select}
-                value={giftRuleForm.type}
-                onChange={e => setGiftRuleForm(prev => ({ ...prev, type: e.target.value }))}
-              >
-                <option value="promo">Промокод</option>
-                <option value="threshold">Порог суммы</option>
-              </select>
-              {giftRuleForm.type === 'promo' && (
+              {tab === 'promo-gifts' && (
                 <input
                   style={styles.input}
                   value={giftRuleForm.code}
@@ -2252,7 +2250,7 @@ function AdminPage() {
                 min="1"
                 value={giftRuleForm.threshold}
                 onChange={e => setGiftRuleForm(prev => ({ ...prev, threshold: e.target.value }))}
-                placeholder={giftRuleForm.type === 'promo' ? 'Сумма для промокода' : 'Порог чека'}
+                placeholder={tab === 'promo-gifts' ? 'Сумма для промокода' : 'Порог чека'}
               />
               <select
                 style={styles.select}
@@ -2288,11 +2286,13 @@ function AdminPage() {
             )}
           </div>
 
-          {allGiftRules.length === 0 ? (
-            <p style={styles.muted}>Правил пока нет. Добавьте промокод или порог суммы.</p>
+          {(tab === 'promo-gifts' ? giftRules.promoRules : giftRules.thresholdRules).length === 0 ? (
+            <p style={styles.muted}>{tab === 'promo-gifts' ? 'Промокодов пока нет.' : 'Порогов пока нет.'}</p>
           ) : (
             <div style={styles.giftRuleList}>
-              {allGiftRules
+              {(tab === 'promo-gifts'
+                ? giftRules.promoRules.map(rule => ({ ...rule, type: 'promo' }))
+                : giftRules.thresholdRules.map(rule => ({ ...rule, type: 'threshold' })))
                 .sort((a, b) => Number(a.threshold) - Number(b.threshold))
                 .map(rule => (
                   <div key={rule.id} style={rule.enabled === false ? styles.giftRuleCardOff : styles.giftRuleCard}>
@@ -2487,50 +2487,6 @@ function AdminPage() {
         </>
       )}
 
-{/* ─── Бургер меню ─── */}
-{menuOpen && (
-  <>
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 198, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-      onClick={() => setMenuOpen(false)}
-    />
-    <div style={styles.menuSheet}>
-      <div style={styles.menuHandle} />
-      <div style={{ fontSize: 11, fontWeight: 700, color: AP.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8, paddingLeft: 4 }}>
-        Разделы
-      </div>
-      {[
-        { id: 'dashboard',    emoji: '▦', label: 'Дашборд',              sub: 'Быстрый переход по разделам' },
-        { id: 'subscribers',  emoji: '👥', label: 'Люди',                  sub: 'Подписчики и их действия' },
-        { id: 'products',     emoji: '📦', label: 'Товары',                sub: 'Включение, цены' },
-        { id: 'gifts',        emoji: '🎁', label: 'Подарки',               sub: 'Промокоды и пороги суммы' },
-        { id: 'upsell',       emoji: '🛒', label: 'Допродажи',             sub: 'Товары в корзине' },
-        { id: 'orders',       emoji: '📋', label: 'Заказы',                sub: 'Подарочные заказы' },
-        { id: 'banners',      emoji: '🖼',  label: 'Баннеры',               sub: 'Слайдер на главной' },
-        { id: 'pricing',      emoji: '💰', label: 'Цены',                  sub: 'Тарифы и скидки' },
-        { id: 'stats',        emoji: '📊', label: 'Статистика',            sub: 'Выручка и активность' },
-        { id: 'referrals',    emoji: '🔗', label: 'Рефералы',              sub: 'Топ и история SHC' },
-        { id: 'add',          emoji: '👤', label: 'Добавить пользователя', sub: 'Ручное добавление' },
-        { id: 'add-product',  emoji: '➕', label: 'Добавить товар',        sub: 'Новая позиция в каталоге' },
-        { id: 'stores',       emoji: '📍', label: 'Точки самовывоза',      sub: 'Включить / выключить точки' },
-      ].map(({ id, emoji, label, sub }) => (
-        <button
-          key={id}
-          style={tab === id ? styles.menuItemActive : styles.menuItem}
-          onClick={() => { setTab(id); setMenuOpen(false); }}
-        >
-          <span style={{ fontSize: 22, width: 28, textAlign: 'center', flexShrink: 0 }}>{emoji}</span>
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: tab === id ? AP.accent : AP.text }}>{label}</span>
-            <span style={{ fontSize: 12, color: AP.muted, marginTop: 1 }}>{sub}</span>
-          </div>
-          {tab === id && <span style={{ fontSize: 14, color: AP.accent, fontWeight: 700 }}>✓</span>}
-        </button>
-      ))}
-    </div>
-  </>
-)}
-
 {/* ─── Шторка товара ─── */}
 {selectedProduct && (
   <>
@@ -2652,9 +2608,15 @@ function AdminPage() {
                 </button>
                 <button
                   style={(inPromo || inThreshold) ? styles.giftBtnAdd : styles.giftBtnRemove}
-                  onClick={() => openGiftRuleForProduct(selectedProduct.item.sku)}
+                  onClick={() => openGiftRuleForProduct(selectedProduct.item.sku, 'promo')}
                 >
-                  {(inPromo || inThreshold) ? '🎁 Настроить подарок ✓' : '🎁 Настроить подарок'}
+                  {inPromo ? '🎟 Промокод ✓' : '🎟 Промокод'}
+                </button>
+                <button
+                  style={inThreshold ? styles.giftBtnAdd : styles.giftBtnRemove}
+                  onClick={() => openGiftRuleForProduct(selectedProduct.item.sku, 'threshold')}
+                >
+                  {inThreshold ? '🎁 Порог ✓' : '🎁 Порог'}
                 </button>
               </>);
             })()}
@@ -3811,28 +3773,24 @@ const styles = {
     cursor: 'pointer',
     boxShadow: NEU.tealSm,
   },
-  // ─── Burger button ────────────────────────────────────────────
-  burgerBtn: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    gap: 5,
-    width: 44,
+  backBtn: {
+    minWidth: 86,
     height: 44,
     background: AP.surface,
+    color: AP.text,
     border: 'none',
     borderRadius: 12,
     cursor: 'pointer',
-    padding: '11px 10px',
+    padding: '0 12px',
     boxShadow: NEU.btnOut,
     flexShrink: 0,
+    fontSize: 12,
+    fontWeight: 700,
   },
-  burgerLine: {
-    display: 'block',
-    height: 2,
-    background: AP.text,
-    borderRadius: 2,
-    width: '100%',
+  headerSpacer: {
+    width: 86,
+    height: 44,
+    flexShrink: 0,
   },
   currentTabLabel: {
     fontSize: 14,
@@ -3844,7 +3802,13 @@ const styles = {
     flex: 1,
     textAlign: 'center',
   },
-  // ─── Burger menu sheet ────────────────────────────────────────
+  menuHandle: {
+    width: 36,
+    height: 4,
+    background: AP.border,
+    borderRadius: 2,
+    margin: '0 auto 14px',
+  },
   menuSheet: {
     position: 'fixed',
     bottom: 0,
@@ -3857,13 +3821,6 @@ const styles = {
     maxHeight: '85vh',
     overflowY: 'auto',
     boxShadow: '0 -8px 40px rgba(0,0,0,0.6)',
-  },
-  menuHandle: {
-    width: 36,
-    height: 4,
-    background: AP.border,
-    borderRadius: 2,
-    margin: '0 auto 14px',
   },
   menuItem: {
     display: 'flex',
