@@ -9,24 +9,30 @@ function TestCatalogCard({ product, onOpen }) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <article className="test-card">
-      <button className="test-card__image-button" onClick={() => onOpen(product)}>
+    <article className="shop-card test-menu-card">
+      <div
+        className="shop-card__image-wrap"
+        onClick={() => onOpen(product)}
+        style={{ cursor: 'pointer' }}
+      >
         <img
-          className="test-card__image"
+          className="shop-card__image"
           src={imgError ? '/logo.jpg' : product.image}
           alt={product.cleanName || product.name}
           loading="lazy"
           onError={() => setImgError(true)}
         />
-      </button>
-      <div className="test-card__body">
-        <span className="test-card__sku">SKU {product.sku || 'нет'}</span>
-        <h3 className="test-card__name">{product.cleanName || product.name}</h3>
-        <div className="test-card__bottom">
-          <strong className="test-card__price">{product.price}₽</strong>
-          <button className="test-card__details" onClick={() => onOpen(product)}>
-            Детали
+        <div className="shop-card__action-overlay" onClick={event => event.stopPropagation()}>
+          <button className="shop-card__add-btn" onClick={() => onOpen(product)}>
+            Подробнее
           </button>
+        </div>
+      </div>
+      <div className="shop-card__body">
+        <h3 className="shop-card__name">{product.cleanName || product.name}</h3>
+        <p className="test-menu-card__sku">SKU {product.sku || 'нет'}</p>
+        <div className="shop-card__prices">
+          <span className="shop-card__price">{product.price}₽</span>
         </div>
       </div>
     </article>
@@ -137,19 +143,10 @@ function TestCatalogPage() {
       <header className="shop-header">
         <div className="shop-header__center">
           <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" />
-          <span className="shop-header__title">Обычное меню</span>
+          <span className="shop-header__title">Sushi House</span>
         </div>
         <span className="test-header-count">{catalog.total}</span>
       </header>
-
-      <section className="test-hero">
-        <p className="test-hero__eyebrow">/test</p>
-        <h1 className="test-hero__title">Товары без подписки и скидки</h1>
-        <div className="test-hero__meta">
-          <span>{catalog.total} позиций</span>
-          <span>{catalog.categories.length} категорий</span>
-        </div>
-      </section>
 
       <div className="shop-search test-search">
         <input
@@ -187,9 +184,9 @@ function TestCatalogPage() {
           <button className="shop-error__retry" onClick={loadCatalog}>Попробовать снова</button>
         </div>
       ) : searchQuery ? (
-        <section className="test-section">
+        <section className="shop-section test-section">
           <h2 className="shop-section__title">Найдено: {filteredProducts.length}</h2>
-          <div className="test-grid">
+          <div className="shop-grid">
             {filteredProducts.map(product => (
               <TestCatalogCard key={product.id} product={product} onOpen={openProduct} />
             ))}
@@ -203,14 +200,14 @@ function TestCatalogPage() {
           return (
             <section
               key={category.id}
-              className="test-section"
+              className="shop-section test-section"
               data-category-id={category.id}
               ref={element => {
                 sectionRefs.current[category.id] = element;
               }}
             >
               <h2 className="shop-section__title">{category.icon} {category.name}</h2>
-              <div className="test-grid">
+              <div className="shop-grid">
                 {products.map(product => (
                   <TestCatalogCard key={product.id} product={product} onOpen={openProduct} />
                 ))}
