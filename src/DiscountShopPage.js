@@ -88,6 +88,19 @@ function isGiftLocked(category, userTarif) {
 
 const GIFT_TYPE_LABEL = { 'gift-rolls': 'Ролл', 'gift-sets': 'Сет' };
 
+function isSubscriptionGiftCartItem(item) {
+  if (!item?.product?.gift) return false;
+
+  const source = String(item.giftSource || '');
+  if (source.startsWith('promo:') || source.startsWith('threshold:')) return false;
+  if (item.product.giftRuleType === 'promo' || item.product.giftRuleType === 'threshold') return false;
+
+  return item.product.category === 'gift-rolls' ||
+    item.product.category === 'gift-sets' ||
+    source === '' ||
+    source === 'subscription';
+}
+
 function getEffectiveDiscount(itemDiscount, categoryDiscount) {
   const manualDiscount = Number(itemDiscount);
   if (Number.isFinite(manualDiscount) && manualDiscount > 0) {
@@ -283,7 +296,7 @@ function DiscountShopPage() {
   const [adminGrants, setAdminGrants] = useState({ roll: false, set: false });
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
 
-  const pendingGiftItem = cart.items.find(item => item.product.gift) || null;
+  const pendingGiftItem = cart.items.find(isSubscriptionGiftCartItem) || null;
   const pendingGiftCategory = pendingGiftItem?.product?.category || null;
   const hasGiftInCart = Boolean(pendingGiftItem);
 
