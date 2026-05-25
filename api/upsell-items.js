@@ -21,6 +21,16 @@ const CATALOGS = [
   { id: 'sets-490', file: 'подписка 490/sets-490.json' },
 ];
 
+const CATALOG_DISCOUNTS = {
+  rolls: 0.30,
+  zaproll: 0.30,
+  gunkan: 0.30,
+  'rolls-sub': 0.30,
+  'zaproll-sub': 0.30,
+  'sets': 0.20,
+  'sets-sub': 0.20,
+};
+
 /**
  * Читает JSON каталог: сначала из data/products/ (админские правки),
  * потом fallback на build/ (оригинал)
@@ -53,6 +63,33 @@ function readUpsellSkus() {
   }
 }
 
+function normalizeManualDiscount(discount) {
+  const value = Number(discount);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Math.min(value, 100);
+}
+
+function formatUpsellProduct(product, catalogId, sku) {
+  const basePrice = Number(product.price) || 0;
+  const manualDiscount = normalizeManualDiscount(product.discount);
+  const effectiveDiscount = manualDiscount > 0
+    ? manualDiscount / 100
+    : CATALOG_DISCOUNTS[catalogId] || 0;
+  const price = effectiveDiscount > 0
+    ? Math.round(basePrice * (1 - effectiveDiscount))
+    : basePrice;
+
+  return {
+    sku: product.sku || product.id || sku,
+    name: product.name,
+    price,
+    oldPrice: effectiveDiscount > 0 ? basePrice : null,
+    discount: effectiveDiscount > 0 ? Math.round(effectiveDiscount * 100) : null,
+    hasManualDiscount: manualDiscount > 0,
+    catalog: catalogId,
+  };
+}
+
 const handler = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -70,10 +107,9 @@ const handler = async (req, res) => {
 
     // Ищем товары по SKU во всех каталогах
     for (const sku of upsellSkus) {
-      let found = false;
+      const matches = [];
 
       for (const catalog of CATALOGS) {
-        if (found) break;
 
         const data = readCatalog(catalog.file);
         if (!data || !data.items) continue;
@@ -84,14 +120,17 @@ const handler = async (req, res) => {
         );
 
         if (product && product.enabled !== false) {
-          items.push({
-            sku: product.sku || product.id || sku,
-            name: product.name,
-            price: product.price,
-            catalog: catalog.id,
-          });
-          found = true;
+          matches.push(formatUpsellProduct(product, catalog.id, sku));
         }
+      }
+
+      if (matches.length > 0) {
+        const selected =
+          matches.find(item => item.hasManualDiscount) ||
+          matches.find(item => item.discount) ||
+          matches[0];
+        const { hasManualDiscount, ...item } = selected;
+        items.push(item);
       }
     }
 
