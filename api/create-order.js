@@ -7,6 +7,7 @@ const { geocode } = require('./_lib/geocoder');
 const { findNearestStore } = require('./_lib/nearest-store');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 const { readGiftRules } = require('./_lib/gift-rules');
+const { appendEligibleOrderGifts } = require('./_lib/order-gifts');
 
 function parseJsonBody(req) {
   try {
@@ -211,7 +212,10 @@ module.exports = async (req, res) => {
           et: client.et || '',
         };
 
-    const orderTotal = products.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.quantity) || 1), 0);
+    const rawPromo = String(body.promo_code || '').trim();
+    const promoCode = /^[A-Za-z0-9]{1,20}$/.test(rawPromo) ? rawPromo : null;
+    const orderProducts = appendEligibleOrderGifts(products, promoCode);
+    const orderTotal = orderProducts.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.quantity) || 1), 0);
 
     // Списание SHC баллов
     const shcToUse = Number(shc_used) || 0;
@@ -247,7 +251,7 @@ module.exports = async (req, res) => {
     ].filter(Boolean).join(' | ');
 
     const orderResult = await createOrder({
-      products: products.map(product => ({
+      products: orderProducts.map(product => ({
         id: product.frontpad_id || product.frontpadId || product.sku || product.product_id || product.id,
         quantity: product.quantity,
         price: product.price,
@@ -278,21 +282,19 @@ module.exports = async (req, res) => {
         const orderAddress = isPickupOrder
           ? (body.pickup_point_address || client.street || null)
           : ([client.street, client.home].filter(Boolean).join(', ') || null);
-        const productsList = products.map(p => ({
+        const productsList = orderProducts.map(p => ({
           sku: p.sku || p.frontpad_id || p.frontpadId || p.product_id || p.id,
           name: p.name || String(p.id),
           qty: p.quantity || 1,
           price: p.price || 0,
           giftSource: p.gift_source || undefined,
         }));
-        const rawPromo = String(body.promo_code || '').trim();
-        const promoCode = /^[A-Za-z0-9]{1,20}$/.test(rawPromo) ? rawPromo : null;
-        const hasPromoGift = products.some(p => String(p.gift_source || '').startsWith('promo'));
-        const hasThresholdGift = products.some(p => {
+        const hasPromoGift = orderProducts.some(p => String(p.gift_source || '').startsWith('promo'));
+        const hasThresholdGift = orderProducts.some(p => {
           const source = String(p.gift_source || '');
           return source === 'threshold2500' || source.startsWith('threshold');
         });
-        const giftSources = buildGiftSources(products, promoCode);
+        const giftSources = buildGiftSources(orderProducts, promoCode);
         await insertOrder({
           telegramId: telegram_id,
           frontpadOrderId: String(orderResult.data.orderId || ''),
