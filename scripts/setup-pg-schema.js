@@ -20,6 +20,7 @@ const TABLES = [
     subscription_start TEXT,
     subscription_end   TEXT,
     payment_method_id  TEXT,
+    auto_renew_disabled BOOLEAN DEFAULT FALSE,
     ref_url            TEXT,
     watbot_contact_id  TEXT,
     partner_code       TEXT,

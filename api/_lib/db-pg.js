@@ -19,10 +19,13 @@ const pool = new Pool({
 
 // Runtime-миграции: добавить колонки если нет (идемпотентно)
 let _migrationsDone = false;
+let _migrationsPromise = null;
 async function ensureMigrations() {
   if (_migrationsDone) return;
-  _migrationsDone = true;
-  try {
+  if (_migrationsPromise) return _migrationsPromise;
+
+  _migrationsPromise = (async () => {
+    try {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS middle_name TEXT');
@@ -32,6 +35,7 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_word_status TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_session_id TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_renew_disabled BOOLEAN DEFAULT FALSE');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code TEXT');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_promo_gift BOOLEAN DEFAULT FALSE');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_threshold_gift BOOLEAN DEFAULT FALSE');
@@ -93,9 +97,14 @@ async function ensureMigrations() {
     } catch (e) {
       console.warn('[db-pg] game-words.json sync failed:', e.message);
     }
-  } catch (err) {
-    console.error('[db-pg] migration error:', err.message);
-  }
+    } catch (err) {
+      console.error('[db-pg] migration error:', err.message);
+    } finally {
+      _migrationsDone = true;
+    }
+  })();
+
+  return _migrationsPromise;
 }
 ensureMigrations();
 
@@ -105,6 +114,7 @@ ensureMigrations();
 const fmt = d => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
 
 async function query(sql, params) {
+  await ensureMigrations();
   const client = await pool.connect();
   try {
     return await client.query(sql, params);
@@ -157,8 +167,8 @@ async function upsertUser(data) {
     INSERT INTO users (
       telegram_id, name, phone, tariff, invited_by, is_ambassador,
       subscription_status, subscription_start, subscription_end,
-      payment_method_id, ref_url, partner_code, watbot_contact_id, updated_at
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, NOW())
+      payment_method_id, auto_renew_disabled, ref_url, partner_code, watbot_contact_id, updated_at
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, NOW())
     ON CONFLICT (telegram_id) DO UPDATE SET
       name               = COALESCE($2, users.name),
       phone              = COALESCE($3, users.phone),
@@ -169,9 +179,10 @@ async function upsertUser(data) {
       subscription_start = COALESCE($8, users.subscription_start),
       subscription_end   = COALESCE($9, users.subscription_end),
       payment_method_id  = COALESCE($10, users.payment_method_id),
-      ref_url            = COALESCE($11, users.ref_url),
-      partner_code       = COALESCE(users.partner_code, $12),
-      watbot_contact_id  = COALESCE($13, users.watbot_contact_id),
+      auto_renew_disabled = COALESCE($11, users.auto_renew_disabled),
+      ref_url            = COALESCE($12, users.ref_url),
+      partner_code       = COALESCE(users.partner_code, $13),
+      watbot_contact_id  = COALESCE($14, users.watbot_contact_id),
       updated_at         = NOW()
   `, [
     tid,
@@ -184,6 +195,7 @@ async function upsertUser(data) {
     data.subscription_start || null,
     data.subscription_end || null,
     data.payment_method_id || null,
+    data.auto_renew_disabled != null ? !!data.auto_renew_disabled : null,
     data.ref_url || null,
     data.partner_code || null,
     data.watbot_contact_id || null,
@@ -462,7 +474,7 @@ async function getExpiredToday() {
 
 async function cancelAutoRenew(telegramId) {
   await query(
-    'UPDATE users SET payment_method_id = NULL, updated_at = NOW() WHERE telegram_id = $1',
+    'UPDATE users SET payment_method_id = NULL, auto_renew_disabled = TRUE, updated_at = NOW() WHERE telegram_id = $1',
     [String(telegramId)]
   );
 }

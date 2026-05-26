@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
   subscription_start TEXT,   -- DD.MM.YYYY (как в SQLite)
   subscription_end   TEXT,   -- DD.MM.YYYY (как в SQLite)
   payment_method_id  TEXT,
+  auto_renew_disabled BOOLEAN DEFAULT FALSE,
   ref_url            TEXT,
   watbot_contact_id  TEXT,
   partner_code       TEXT,

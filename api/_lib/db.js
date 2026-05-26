@@ -33,6 +33,7 @@ function getDb() {
       subscription_start TEXT,
       subscription_end TEXT,
       payment_method_id TEXT,
+      auto_renew_disabled INTEGER DEFAULT 0,
       ref_url TEXT,
       watbot_contact_id TEXT,
       created_at TEXT DEFAULT (datetime('now')),
@@ -172,6 +173,7 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN game_word_status TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN game_session_id TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN email TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN auto_renew_disabled INTEGER DEFAULT 0'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN promo_code TEXT'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_promo_gift INTEGER DEFAULT 0'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_threshold_gift INTEGER DEFAULT 0'); } catch {}
@@ -210,10 +212,10 @@ function upsertUser(data) {
   const stmt = db.prepare(`
     INSERT INTO users (telegram_id, name, phone, tariff, invited_by, is_ambassador,
                        subscription_status, subscription_start, subscription_end,
-                       payment_method_id, ref_url, partner_code, watbot_contact_id, updated_at)
+                       payment_method_id, auto_renew_disabled, ref_url, partner_code, watbot_contact_id, updated_at)
     VALUES (@telegram_id, @name, @phone, @tariff, @invited_by, @is_ambassador,
             @subscription_status, @subscription_start, @subscription_end,
-            @payment_method_id, @ref_url, @partner_code, @watbot_contact_id, datetime('now'))
+            @payment_method_id, @auto_renew_disabled, @ref_url, @partner_code, @watbot_contact_id, datetime('now'))
     ON CONFLICT(telegram_id) DO UPDATE SET
       name = COALESCE(@name, users.name),
       phone = COALESCE(@phone, users.phone),
@@ -224,6 +226,7 @@ function upsertUser(data) {
       subscription_start = COALESCE(@subscription_start, users.subscription_start),
       subscription_end = COALESCE(@subscription_end, users.subscription_end),
       payment_method_id = COALESCE(@payment_method_id, users.payment_method_id),
+      auto_renew_disabled = COALESCE(@auto_renew_disabled, users.auto_renew_disabled),
       ref_url = COALESCE(@ref_url, users.ref_url),
       partner_code = COALESCE(users.partner_code, @partner_code),
       watbot_contact_id = COALESCE(@watbot_contact_id, users.watbot_contact_id),
@@ -240,6 +243,7 @@ function upsertUser(data) {
     subscription_start: data.subscription_start || null,
     subscription_end: data.subscription_end || null,
     payment_method_id: data.payment_method_id || null,
+    auto_renew_disabled: data.auto_renew_disabled != null ? (data.auto_renew_disabled ? 1 : 0) : null,
     ref_url: data.ref_url || null,
     partner_code: data.partner_code || null,
     watbot_contact_id: data.watbot_contact_id || null,
@@ -634,13 +638,14 @@ function getExpiredToday() {
 }
 
 /**
- * Отменить автопродление (payment_method_id = NULL, статус не меняем)
+ * Отменить автопродление (payment_method_id = NULL, статус подписки не меняем)
  */
 function cancelAutoRenew(telegramId) {
   const db = getDb();
   db.prepare(`
     UPDATE users
     SET payment_method_id = NULL,
+        auto_renew_disabled = 1,
         updated_at = datetime('now')
     WHERE telegram_id = ?
   `).run(String(telegramId));
