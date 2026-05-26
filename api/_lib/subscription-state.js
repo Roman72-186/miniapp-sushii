@@ -13,6 +13,10 @@ function normalizePaymentMethodId(value) {
   return String(value).trim();
 }
 
+function normalizeBoolean(value) {
+  return value === true || value === 1 || value === '1' || value === 'true';
+}
+
 function isActiveByDates({ subscriptionStart, subscriptionEnd }) {
   const today = todayUTC();
   const start = parseDDMMYYYY(subscriptionStart);
@@ -49,6 +53,7 @@ function deriveSubscriptionState({
   subscriptionStart,
   subscriptionEnd,
   paymentMethodId,
+  autoRenewDisabled,
 }) {
   // Защита от null/undefined
   if (!tariff && !subscriptionStatus && !subscriptionStart && !subscriptionEnd) {
@@ -64,6 +69,7 @@ function deriveSubscriptionState({
   const normalizedStatus = normalizeStatus(subscriptionStatus);
   const hasSubscriptionWindow = Boolean(tariff || subscriptionStart || subscriptionEnd);
   const activeByDates = isActiveByDates({ subscriptionStart, subscriptionEnd });
+  const isAutoRenewDisabled = normalizeBoolean(autoRenewDisabled);
 
   // 🔍 DEBUG: Логируем входные данные
   console.log('[subscription-state] deriveSubscriptionState вызван:', {
@@ -72,6 +78,7 @@ function deriveSubscriptionState({
     subscriptionStart,
     subscriptionEnd,
     paymentMethodId,
+    autoRenewDisabled: isAutoRenewDisabled,
     normalizedStatus,
     hasSubscriptionWindow,
     activeByDates,
@@ -89,7 +96,7 @@ function deriveSubscriptionState({
     console.log('[subscription-state] Статус активно по normalizedStatus');
   }
 
-  const hasPaymentMethod = Boolean(normalizePaymentMethodId(paymentMethodId));
+  const hasPaymentMethod = Boolean(normalizePaymentMethodId(paymentMethodId)) && !isAutoRenewDisabled;
 
   const result = {
     subscriptionStatus: resolvedSubscriptionStatus,
@@ -120,6 +127,7 @@ function deriveFromDbUser(user) {
     subscriptionStart: user.subscription_start,
     subscriptionEnd: user.subscription_end,
     paymentMethodId: user.payment_method_id,
+    autoRenewDisabled: user.auto_renew_disabled,
   });
 }
 
@@ -150,6 +158,7 @@ function deriveFromCache(cache) {
     'датаНачала': variables['датаНачала'],
     'датаОКОНЧАНИЯ': variables['датаОКОНЧАНИЯ'],
     'PaymentID': variables['PaymentID'],
+    'auto_renew_disabled': variables['auto_renew_disabled'],
   });
 
   return deriveSubscriptionState({
@@ -158,6 +167,7 @@ function deriveFromCache(cache) {
     subscriptionStart: variables['датаНачала'] || null,
     subscriptionEnd: variables['датаОКОНЧАНИЯ'] || null,
     paymentMethodId: variables['PaymentID'] || null,
+    autoRenewDisabled: variables['auto_renew_disabled'] || null,
   });
 }
 

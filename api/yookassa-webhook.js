@@ -25,6 +25,10 @@ function formatDate(date) {
   return `${d}.${m}.${y}`;
 }
 
+function isAutoRenewDisabled(user) {
+  return user?.auto_renew_disabled === true || user?.auto_renew_disabled === 1 || user?.auto_renew_disabled === '1';
+}
+
 /**
  * Верифицирует платёж через YooKassa API (fallback если IP проверка не прошла)
  */
@@ -140,6 +144,9 @@ module.exports = async (req, res) => {
       console.error('webhook: frontpad error', fpErr.message);
     }
 
+    const autoRenewDisabled = isAutoRenewDisabled(dbUser);
+    const shouldStorePaymentMethod = !isOneTime && !autoRenewDisabled;
+
     // 3. SQLite: записываем платёж + начисляем комиссии
     try {
       // Обновляем пользователя в SQLite
@@ -150,7 +157,7 @@ module.exports = async (req, res) => {
         subscription_status: isOneTime ? undefined : 'активно',
         subscription_start: (isOneTime || isRenewal) ? undefined : formatDate(now),
         subscription_end: isOneTime ? undefined : formatDate(endDate),
-        payment_method_id: isOneTime ? undefined : (paymentMethodId || undefined),
+        payment_method_id: shouldStorePaymentMethod ? (paymentMethodId || undefined) : undefined,
       });
 
       // Записываем платёж
@@ -197,6 +204,8 @@ module.exports = async (req, res) => {
         updatedVariables['статусСписания'] = 'активно';
         updatedVariables['датаНачала'] = formatDate(now);
         updatedVariables['датаОКОНЧАНИЯ'] = formatDate(endDate);
+        updatedVariables['PaymentID'] = shouldStorePaymentMethod ? (paymentMethodId || '') : '';
+        updatedVariables['auto_renew_disabled'] = autoRenewDisabled ? '1' : '';
       }
 
       await writeUserCache(telegramId, {

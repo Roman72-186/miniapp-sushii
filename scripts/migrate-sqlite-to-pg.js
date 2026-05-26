@@ -48,9 +48,9 @@ async function run() {
         INSERT INTO users (
           telegram_id, name, phone, tariff, invited_by, balance_shc,
           is_ambassador, subscription_status, subscription_start, subscription_end,
-          payment_method_id, ref_url, watbot_contact_id, partner_code, notes,
+          payment_method_id, auto_renew_disabled, ref_url, watbot_contact_id, partner_code, notes,
           created_at, updated_at
-        ) VALUES ($1,$2,$3,$4,NULL,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+        ) VALUES ($1,$2,$3,$4,NULL,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
         ON CONFLICT (telegram_id) DO NOTHING
       `, [
         u.telegram_id, u.name || null, u.phone || null, u.tariff || null,
@@ -60,6 +60,7 @@ async function run() {
         u.subscription_start || null,
         u.subscription_end || null,
         u.payment_method_id || null,
+        u.auto_renew_disabled ? true : false,
         u.ref_url || null,
         u.watbot_contact_id || null,
         u.partner_code || null,

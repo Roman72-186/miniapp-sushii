@@ -28,6 +28,11 @@ function getRecurringAmount(tariff) {
   return Number.isFinite(amount) && amount > 0 ? amount : null;
 }
 
+function isAutoRenewEnabled(user) {
+  const disabled = user.auto_renew_disabled === true || user.auto_renew_disabled === 1 || user.auto_renew_disabled === '1';
+  return Boolean(user.payment_method_id) && !disabled;
+}
+
 function formatDate(date) {
   const d = String(date.getDate()).padStart(2, '0');
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -59,7 +64,7 @@ async function sendMessage(telegramId, text, replyMarkup) {
  */
 async function tryRecurringPayment(user) {
   if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) return { success: false, reason: 'no_credentials' };
-  if (!user.payment_method_id) return { success: false, reason: 'no_payment_method' };
+  if (!isAutoRenewEnabled(user)) return { success: false, reason: 'no_payment_method' };
   const amount = getRecurringAmount(user.tariff);
   if (!user.tariff || !amount) return { success: false, reason: 'invalid_tariff' };
 
@@ -146,10 +151,10 @@ async function runSubscriptionCron() {
     for (const user of expiring1) {
       await sendMessage(
         user.telegram_id,
-        `⚠️ <b>Подписка заканчивается завтра!</b>\n\nВаша подписка (${user.tariff}₽) истекает ${user.subscription_end}.\n\n${user.payment_method_id ? '💳 Завтра произойдёт автоматическое списание.' : '❗ Успейте продлить, чтобы сохранить скидки и подарки!'}`,
+        `⚠️ <b>Подписка заканчивается завтра!</b>\n\nВаша подписка (${user.tariff}₽) истекает ${user.subscription_end}.\n\n${isAutoRenewEnabled(user) ? '💳 Завтра произойдёт автоматическое списание.' : '❗ Успейте продлить, чтобы сохранить скидки и подарки!'}`,
         {
           inline_keyboard: [
-            user.payment_method_id ? [] : [{ text: '🔄 Продлить сейчас', url: `https://sushi-house-39.ru/pay/${user.tariff}?telegram_id=${user.telegram_id}` }],
+            isAutoRenewEnabled(user) ? [] : [{ text: '🔄 Продлить сейчас', url: `https://sushi-house-39.ru/pay/${user.tariff}?telegram_id=${user.telegram_id}` }],
             [{ text: '🏠 Главное меню', callback_data: '/start' }],
           ].filter(row => row.length > 0),
         }
@@ -157,7 +162,7 @@ async function runSubscriptionCron() {
       results.reminded1++;
 
       // Email-напоминание: только если автосписание включено + есть email
-      if (user.email && user.payment_method_id) {
+      if (user.email && isAutoRenewEnabled(user)) {
         try {
           const amount = getRecurringAmount(user.tariff);
           if (!amount) {
@@ -194,7 +199,7 @@ async function runSubscriptionCron() {
   try {
     const expiredToday = await getExpiredToday();
     for (const user of expiredToday) {
-      if (user.payment_method_id) {
+      if (isAutoRenewEnabled(user)) {
         // Есть сохранённый метод оплаты — пробуем списать
         const result = await tryRecurringPayment(user);
 

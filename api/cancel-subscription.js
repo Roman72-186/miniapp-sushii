@@ -1,5 +1,5 @@
 // api/cancel-subscription.js — Отмена автосписания подписки
-// Работает через SQLite: очищает payment_method_id, ставит статус «неактивно»
+// Очищает payment_method_id и запоминает, что пользователь отключил автосписание.
 
 const { getUser, cancelAutoRenew } = require('./_lib/db');
 const { writeUserCache } = require('./_lib/user-cache');
@@ -25,8 +25,10 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
 
-    // Проверка: есть ли что отменять
-    if (!user.payment_method_id) {
+    const autoRenewDisabled = user.auto_renew_disabled === true || user.auto_renew_disabled === 1 || user.auto_renew_disabled === '1';
+
+    // Если метода оплаты уже нет, всё равно фиксируем намерение пользователя на будущее.
+    if (!user.payment_method_id && autoRenewDisabled) {
       return res.status(200).json({
         success: true,
         already_inactive: true,
@@ -42,7 +44,7 @@ module.exports = async (req, res) => {
       subscription_end: user.subscription_end,
     });
 
-    // Только убираем payment_method_id — подписка остаётся активной до конца срока
+    // Убираем payment_method_id и ставим флаг отмены — подписка остаётся активной до конца срока
     await cancelAutoRenew(telegram_id);
 
     // Очищаем кэш пользователя (чтобы изменения применились сразу)

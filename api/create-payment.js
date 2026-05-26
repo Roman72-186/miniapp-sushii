@@ -20,6 +20,10 @@ function buildGuestUserId(phone) {
   return `web_${phone}_${crypto.randomUUID().slice(0, 8)}`;
 }
 
+function isAutoRenewDisabled(user) {
+  return user?.auto_renew_disabled === true || user?.auto_renew_disabled === 1 || user?.auto_renew_disabled === '1';
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -139,8 +143,8 @@ module.exports = async (req, res) => {
     },
   };
 
-  // Сохраняем метод оплаты только для подписок (не для разовых)
-  if (!isOneTime) {
+  // Сохраняем метод оплаты только для подписок, если пользователь не отключил автосписание.
+  if (!isOneTime && !isAutoRenewDisabled(dbUser)) {
     body.save_payment_method = true;
   }
 

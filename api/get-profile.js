@@ -61,6 +61,7 @@ module.exports = async (req, res) => {
     } catch (_) {}
 
     const giftHistory = await getGiftHistory(telegram_id);
+    const autoRenewDisabled = dbUser.auto_renew_disabled === true || dbUser.auto_renew_disabled === 1 || dbUser.auto_renew_disabled === '1';
     return res.status(200).json({
       name: dbUser.name || null,
       phone: dbUser.phone || null,
@@ -71,7 +72,7 @@ module.exports = async (req, res) => {
       датаПодарка: giftDate,
       contact_id: dbUser.watbot_contact_id || null,
       ref_url: dbUser.ref_url || null,
-      has_payment_id: !!dbUser.payment_method_id,
+      has_payment_id: !!dbUser.payment_method_id && !autoRenewDisabled,
       giftHistory,
     });
   } catch (error) {

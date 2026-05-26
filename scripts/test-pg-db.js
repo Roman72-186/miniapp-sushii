@@ -180,11 +180,12 @@ async function main() {
     assert(u.subscription_end === expectedStr, `end: ${u.subscription_end}, ожидал: ${expectedStr}`);
   });
 
-  await test('cancelAutoRenew: очищает payment_method_id', async () => {
+  await test('cancelAutoRenew: очищает payment_method_id и ставит флаг', async () => {
     await db.upsertUser({ telegram_id: TEST_ID, payment_method_id: 'pm_test_123' });
     await db.cancelAutoRenew(TEST_ID);
     const u = await db.getUser(TEST_ID);
     assert(u.payment_method_id === null, `payment_method_id: ${u.payment_method_id}`);
+    assert(u.auto_renew_disabled === true, `auto_renew_disabled: ${u.auto_renew_disabled}`);
   });
 
   await test('getExpiringSubscriptions: возвращает массив', async () => {

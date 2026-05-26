@@ -116,6 +116,7 @@ module.exports = async (req, res) => {
       subscription_start: dbUser?.subscription_start,
       subscription_end: dbUser?.subscription_end,
       payment_method_id: dbUser?.payment_method_id,
+      auto_renew_disabled: dbUser?.auto_renew_disabled,
       is_ambassador: dbUser?.is_ambassador,
     });
 
@@ -170,11 +171,15 @@ module.exports = async (req, res) => {
       }
     } catch (_) {}
 
+    const autoRenewDisabled = dbUser?.auto_renew_disabled === true || dbUser?.auto_renew_disabled === 1 || dbUser?.auto_renew_disabled === '1';
+    const effectivePaymentMethodId = autoRenewDisabled ? '' : (dbUser?.payment_method_id || '');
+
     const variables = {
       'статусСписания': dbUser?.subscription_status || '',
       'датаНачала': dbUser?.subscription_start || '',
       'датаОКОНЧАНИЯ': dbUser?.subscription_end || '',
-      'PaymentID': dbUser?.payment_method_id || '',
+      'PaymentID': effectivePaymentMethodId,
+      'auto_renew_disabled': autoRenewDisabled ? '1' : '',
       'balance_shc': dbUser?.balance_shc ? String(dbUser.balance_shc) : '',
       'ref_url': dbUser?.ref_url || '',
       'partner_code': dbUser?.partner_code || '',
