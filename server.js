@@ -107,6 +107,32 @@ app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
 
 app.use(express.static(path.join(__dirname, 'build'), { setHeaders: noCacheHeaders }));
 
+function sendLatestStaticAsset(req, res, next) {
+  const match = req.path.match(/^\/static\/(js|css)\/main\.[a-f0-9]+\.(js|css)$/);
+  if (!match) return next();
+
+  const [, dir, ext] = match;
+  const staticDir = path.join(__dirname, 'build', 'static', dir);
+  try {
+    const latest = require('fs')
+      .readdirSync(staticDir)
+      .filter(name => name.startsWith('main.') && name.endsWith(`.${ext}`) && !name.endsWith('.map'))
+      .sort()
+      .pop();
+    if (latest) {
+      if (ext === 'js') res.type('application/javascript');
+      if (ext === 'css') res.type('text/css');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      return res.sendFile(path.join(staticDir, latest));
+    }
+  } catch (err) {
+    console.warn('[static-fallback] failed:', err.message);
+  }
+  return next();
+}
+
+app.get('/static/{*splat}', sendLatestStaticAsset);
+
 // SPA fallback — all non-API routes serve index.html (no-cache для Telegram WebView)
 app.get('/{*splat}', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
