@@ -3,7 +3,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '8mb' }));
 
 // API routes (handlers manage CORS and method checks internally)
 app.all('/api/sync-user', require('./api/sync-user'));
