@@ -189,6 +189,7 @@ module.exports = async (req, res) => {
       'last_name': dbUser?.last_name || '',
       'middle_name': dbUser?.middle_name || '',
       'email': dbUser?.email || '',
+      'avatar_url': dbUser?.avatar_url || '',
     };
 
     // 🔍 DEBUG: Вычисляем статус подписки через deriveFromDbUser

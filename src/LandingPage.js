@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import AppFooter from './components/AppFooter';
 import { useUser } from './UserContext';
+import OptimizedImage from './components/OptimizedImage';
+import UserAvatar from './components/UserAvatar';
+import { useOrderRating } from './hooks/useOrderRating';
 
 const SITE_URL = 'https://sushi-house-39.ru';
 const HERO_IMAGE = '/new_set/%D0%A1%D0%B5%D1%82%20%C2%AB%D0%A2%D0%B8%D1%85%D0%B8%D0%B9%20%D0%B2%D0%B5%D1%87%D0%B5%D1%80%C2%BB.jpg';
@@ -228,7 +231,8 @@ function setJsonLd() {
 }
 
 function LandingPage() {
-  const { loading: userLoading, profile, tarif } = useUser();
+  const { telegramId, loading: userLoading, profile, tarif } = useUser();
+  const orderRating = useOrderRating(telegramId, 15);
   const subscriptionStatus = profile?.статусСписания || null;
   const hasActiveSubscription = subscriptionStatus === 'активно';
   const hadSubscription = Boolean(profile && !hasActiveSubscription && (tarif || subscriptionStatus));
@@ -328,11 +332,33 @@ function LandingPage() {
           <a href="#tariffs">Тарифы</a>
           <a href="#faq">Вопросы</a>
         </nav>
-        <a className="landing-nav__login" href={navCta.href}>{navCta.label}</a>
+        {profile ? (
+          <UserAvatar
+            userId={telegramId}
+            name={profile?.name}
+            avatarUrl={profile?.avatar_url}
+            rating={orderRating}
+            size="sm"
+            className="landing-nav__avatar"
+            href={navCta.href}
+            title="Личный кабинет"
+          />
+        ) : (
+          <a className="landing-nav__login" href={navCta.href}>{navCta.label}</a>
+        )}
       </header>
 
       <section className="landing-hero" aria-labelledby="landing-title">
-        <img className="landing-hero__image" src={HERO_IMAGE} alt="Сет роллов Суши-Хаус 39" />
+        <OptimizedImage
+          className="landing-hero__image"
+          src={HERO_IMAGE}
+          alt="Сет роллов Суши-Хаус 39"
+          loading="eager"
+          fetchPriority="high"
+          width={1280}
+          widths={[640, 960, 1280]}
+          sizes="100vw"
+        />
         <div className="landing-hero__shade" />
         <div className="landing-hero__content">
           <p className="landing-kicker landing-reveal">Суши и роллы по подписке в Калининграде</p>

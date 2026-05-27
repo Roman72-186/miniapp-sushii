@@ -33,8 +33,10 @@ yarn-error.log*
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 data/sushii.db
+data/image-cache/
 data/users/
 data/gifts/
+data/avatars/
 
 # Archive of old scripts (kept locally but not in git)
 /_archive

@@ -1,6 +1,7 @@
 // src/components/ProductModal.js — Полноэкранная модалка товара (bottom-sheet)
 
 import React, { useEffect, useRef, useCallback } from 'react';
+import OptimizedImage from './OptimizedImage';
 
 function ProductModal({ product, onClose }) {
   const sheetRef = useRef(null);
@@ -82,11 +83,14 @@ function ProductModal({ product, onClose }) {
         <div className="product-modal-sheet__handle" />
 
         <div className="product-modal-sheet__image-wrap">
-          <img
+          <OptimizedImage
             className="product-modal-sheet__image"
             src={product.image || '/logo.jpg'}
             alt={product.cleanName || product.name}
-            onError={(e) => { e.target.src = '/logo.jpg'; }}
+            loading="eager"
+            width={960}
+            widths={[480, 640, 960, 1280]}
+            sizes="(max-width: 720px) 100vw, 720px"
           />
           <button className="product-modal-sheet__close" onClick={onClose}>
             &times;

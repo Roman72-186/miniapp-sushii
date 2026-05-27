@@ -8,6 +8,8 @@ import './shop.css';
 import BrandLoader from './components/BrandLoader';
 import EditProfileModal from './components/EditProfileModal';
 import GiftPeriodsHistory from './components/GiftPeriodsHistory';
+import UserAvatar from './components/UserAvatar';
+import { useOrderRating } from './hooks/useOrderRating';
 
 function ProfilePage() {
   useEffect(() => {
@@ -42,6 +44,7 @@ function ProfilePage() {
   const [bonuses, setBonuses] = useState(null);
   const [showAllBonuses, setShowAllBonuses] = useState(false);
   const [showShcInfo, setShowShcInfo] = useState(false);
+  const orderRating = useOrderRating(telegramId, 15);
 
   // === Constants ===
   const TARIFF_INFO = {
@@ -224,6 +227,14 @@ function ProfilePage() {
 
           {/* ── БЛОК 1: HERO ─────────────────────── */}
           <div className="pf-hero">
+            <UserAvatar
+              userId={telegramId}
+              name={profile?.name}
+              avatarUrl={profile?.avatar_url}
+              rating={orderRating}
+              size="xl"
+              className="pf-hero__avatar"
+            />
             <div className="pf-hero__identity">
               <div className="pf-hero__name-row">
                 <span className="pf-hero__name">{profile?.name || '—'}</span>
@@ -659,6 +670,7 @@ function ProfilePage() {
             middle_name: profile?.middle_name,
             phone: profile?.phone,
             email: profile?.email,
+            avatar_url: profile?.avatar_url,
           }}
           onClose={() => setEditOpen(false)}
           onSaved={async () => { await sync(true); }}
@@ -678,6 +690,7 @@ function ProfilePage() {
             middle_name: profile?.middle_name,
             phone: profile?.phone,
             email: '',
+            avatar_url: profile?.avatar_url,
           }}
           onClose={() => setRequireEmailOpen(false)}
           onSaved={async () => { await sync(true); setRequireEmailOpen(false); }}

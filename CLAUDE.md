@@ -1,3 +1,8 @@
+﻿> Совместимый вход для Claude Code: перед работой читать [AGENTS.md](AGENTS.md), затем [../AGENTS.md](../AGENTS.md).  
+> Сохранить сессию → C:\Users\User\.agents\skills\save-session\SKILL.md → session-handoffs/current.md.  
+> Прочитай сохранённую сессию → сначала session-handoffs/current.md, затем [AGENTS.md](AGENTS.md).
+
+---
 # CLAUDE.md
 
 Канонический файл инструкций для этого проекта: [AGENTS.md](C:/Users/User/Desktop/Project/miniapp-sushii/AGENTS.md).

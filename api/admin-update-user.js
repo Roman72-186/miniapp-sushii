@@ -109,6 +109,7 @@ module.exports = async (req, res) => {
         middle_name: updated.middle_name,
         phone: updated.phone,
         email: updated.email || null,
+        avatar_url: updated.avatar_url || null,
       },
     });
   } catch (err) {
