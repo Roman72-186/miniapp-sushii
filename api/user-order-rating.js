@@ -1,5 +1,4 @@
 const { getOrderRatingRows } = require('./_lib/db');
-const { deriveFromDbUser } = require('./_lib/subscription-state');
 
 function clampDays(value) {
   const n = Number(value);
@@ -7,10 +6,36 @@ function clampDays(value) {
   return Math.min(60, Math.max(1, Math.round(n)));
 }
 
+function parseDDMMYYYY(value) {
+  const parts = String(value || '').split('.');
+  if (parts.length !== 3) return null;
+  const [day, month, year] = parts.map(part => Number(part));
+  if (!day || !month || !year) return null;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return date;
+}
+
+function isActiveByDates(row) {
+  const today = new Date();
+  const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  const start = parseDDMMYYYY(row.subscription_start);
+  const end = parseDDMMYYYY(row.subscription_end);
+  if (!start && !end) return false;
+  if (start && todayUtc < start) return false;
+  if (end && todayUtc > end) return false;
+  return true;
+}
+
 function isActiveUser(row) {
   const status = String(row.subscription_status || '').trim().toLowerCase();
-  const derived = deriveFromDbUser(row);
-  return Boolean(row.tariff) && status !== 'неактивно' && derived.activeByDates;
+  return Boolean(row.tariff) && status !== 'неактивно' && isActiveByDates(row);
 }
 
 function publicRatingRow(row, rank, activeUsers) {
