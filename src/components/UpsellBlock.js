@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getProductImage } from '../config/imageMap';
+import OptimizedImage from './OptimizedImage';
 
 function UpsellBlock({ onAddItem, cartSkus }) {
   const [products, setProducts] = useState([]);
@@ -26,11 +27,14 @@ function UpsellBlock({ onAddItem, cartSkus }) {
       <div className="upsell-block__items">
         {products.map(p => (
           <div key={p.sku} className="upsell-block__item">
-            <img
+            <OptimizedImage
               className="upsell-block__item-img"
               src={getProductImage(p.name) || '/logo.jpg'}
               alt={p.name}
-              onError={(e) => { e.target.src = '/logo.jpg'; }}
+              loading="lazy"
+              width={240}
+              widths={[160, 240, 320]}
+              sizes="120px"
             />
             <p className="upsell-block__item-name">{p.name}</p>
             <p className="upsell-block__item-price">{p.price}₽</p>

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getProductImage } from './config/imageMap';
 import { getProductDescription } from './config/descriptionMap';
 import ProductModal from './components/ProductModal';
+import OptimizedImage from './components/OptimizedImage';
 
 const TEST_CATALOG_URL = '/test/catalog.json';
 
@@ -15,12 +16,15 @@ function TestCatalogCard({ product, onOpen }) {
         onClick={() => onOpen(product)}
         style={{ cursor: 'pointer' }}
       >
-        <img
+        <OptimizedImage
           className="shop-card__image"
           src={imgError ? '/logo.jpg' : product.image}
           alt={product.cleanName || product.name}
           loading="lazy"
           onError={() => setImgError(true)}
+          width={480}
+          widths={[240, 320, 480, 640]}
+          sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
         />
         <div className="shop-card__action-overlay" onClick={event => event.stopPropagation()}>
           <button className="shop-card__add-btn" onClick={() => onOpen(product)}>

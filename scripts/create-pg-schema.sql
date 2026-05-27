@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
   watbot_contact_id  TEXT,
   partner_code       TEXT,
   notes              TEXT,
+  avatar_url         TEXT,
   created_at         TIMESTAMPTZ DEFAULT NOW(),
   updated_at         TIMESTAMPTZ DEFAULT NOW()
 );

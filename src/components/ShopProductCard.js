@@ -1,4 +1,5 @@
 import React from 'react';
+import OptimizedImage from './OptimizedImage';
 
 function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity, onImageClick }) {
   return (
@@ -8,11 +9,14 @@ function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity, onImageCl
         onClick={() => onImageClick && onImageClick(product)}
         style={onImageClick ? { cursor: 'pointer' } : undefined}
       >
-        <img
+        <OptimizedImage
           className="shop-card__image"
           src={product.image || '/logo.jpg'}
           alt={product.cleanName || product.name}
           loading="lazy"
+          width={480}
+          widths={[240, 320, 480, 640]}
+          sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
         />
         <div className="shop-card__action-overlay" onClick={e => e.stopPropagation()}>
           {quantity > 0 ? (

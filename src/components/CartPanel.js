@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import UpsellBlock from './UpsellBlock';
+import OptimizedImage from './OptimizedImage';
 import { describeGiftSource } from '../utils/cartGifts';
 
 function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem, promoCode, onPromoCodeChange, promoMessages, isPromoValid }) {
@@ -41,10 +42,14 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
             <div className="shop-cart__items">
               {items.map(item => (
                 <div key={item.product.id} className={`shop-cart__item${item.product.gift ? ' shop-cart__item--gift' : ''}`}>
-                  <img
+                  <OptimizedImage
                     className="shop-cart__item-img"
                     src={item.product.image || '/logo.jpg'}
                     alt={item.product.cleanName || item.product.name}
+                    loading="lazy"
+                    width={160}
+                    widths={[96, 160, 240]}
+                    sizes="72px"
                   />
                   <div className="shop-cart__item-info">
                     <p className="shop-cart__item-name">{item.product.cleanName || item.product.name}</p>

@@ -27,7 +27,10 @@ app.all('/api/nearest-store', require('./api/nearest-store'));
 app.all('/api/address-suggest', require('./api/address-suggest'));
 app.all('/api/get-gift-history', require('./api/get-gift-history'));
 app.all('/api/get-order-history', require('./api/get-order-history'));
+app.all('/api/user-order-rating', require('./api/user-order-rating'));
 app.all('/api/update-profile', require('./api/update-profile'));
+app.all('/api/upload-avatar', require('./api/upload-avatar'));
+app.all('/api/image', require('./api/image'));
 
 // Auth API
 app.all('/api/auth/login-by-phone', require('./api/auth/login-by-phone'));
@@ -85,6 +88,13 @@ function noCacheHeaders(res, filePath) {
 app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: noCacheHeaders }));
 app.use('/data/product-images', express.static(
   path.join(__dirname, 'data', 'product-images'),
+  { setHeaders: (res, fp) => {
+    if (/\.(jpg|jpeg|png|webp)$/i.test(fp))
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+  }}
+));
+app.use('/data/avatars', express.static(
+  path.join(__dirname, 'data', 'avatars'),
   { setHeaders: (res, fp) => {
     if (/\.(jpg|jpeg|png|webp)$/i.test(fp))
       res.setHeader('Cache-Control', 'public, max-age=604800');

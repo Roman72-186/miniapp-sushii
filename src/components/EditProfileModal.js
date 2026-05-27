@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { normalizePhone } from '../utils/phone';
 import { WEB_TOKEN_KEY } from '../utils/webAuth';
+import { getFallbackFace } from '../utils/avatar';
 
 const ADMIN_TOKEN_KEY = 'admin_token';
 
@@ -33,6 +34,9 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
   const [middleName, setMiddleName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [avatarData, setAvatarData] = useState(null);
+  const [avatarReset, setAvatarReset] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -51,12 +55,57 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
     }
     setPhone(currentUser.phone ? formatPhoneInput(currentUser.phone) : '');
     setEmail(currentUser.email || '');
+    setAvatarPreview(currentUser.avatar_url || '');
+    setAvatarData(null);
+    setAvatarReset(false);
   }, [currentUser]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   }, []);
+
+  const handleAvatarChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!/^image\/(png|jpeg|jpg|webp)$/.test(file.type)) {
+      setError('Загрузите изображение PNG, JPG или WEBP');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Размер аватара должен быть до 2 МБ');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      setAvatarPreview(dataUrl);
+      setAvatarData(dataUrl);
+      setAvatarReset(false);
+      setError(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadAvatarIfNeeded = async () => {
+    if (mode !== 'user' || (!avatarData && !avatarReset)) return undefined;
+
+    const token = localStorage.getItem(WEB_TOKEN_KEY) || '';
+    const res = await fetch('/api/upload-avatar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(avatarReset ? { reset: true } : { imageData: avatarData }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Не удалось сохранить аватар');
+    }
+    return data.avatar_url || null;
+  };
 
   const handleSave = async () => {
     setError(null);
@@ -127,7 +176,11 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
         throw new Error(data.error || 'Ошибка сохранения');
       }
 
-      if (onSaved) await onSaved(data.user);
+      const uploadedAvatarUrl = await uploadAvatarIfNeeded();
+      if (onSaved) await onSaved({
+        ...data.user,
+        avatar_url: uploadedAvatarUrl !== undefined ? uploadedAvatarUrl : data.user?.avatar_url,
+      });
       onClose();
     } catch (err) {
       setError(err.message || 'Ошибка сети');
@@ -147,6 +200,43 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
         </div>
 
         <div className="edit-profile-modal__body">
+          <div className="edit-profile-modal__avatar">
+            <div className="edit-profile-modal__avatar-preview">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="" />
+              ) : (
+                <span>{getFallbackFace(currentUser?.telegram_id || currentUser?.name)}</span>
+              )}
+            </div>
+            {mode === 'user' && (
+              <div className="edit-profile-modal__avatar-actions">
+                <label className="edit-profile-modal__avatar-btn">
+                  Загрузить фото
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleAvatarChange}
+                    disabled={saving}
+                  />
+                </label>
+                {(avatarPreview || currentUser?.avatar_url) && (
+                  <button
+                    type="button"
+                    className="edit-profile-modal__avatar-reset"
+                    onClick={() => {
+                      setAvatarPreview('');
+                      setAvatarData(null);
+                      setAvatarReset(true);
+                    }}
+                    disabled={saving}
+                  >
+                    Сбросить
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="edit-profile-modal__field">
             <label>Имя</label>
             <input

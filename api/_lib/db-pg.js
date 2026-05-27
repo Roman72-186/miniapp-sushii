@@ -36,6 +36,7 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS game_session_id TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_renew_disabled BOOLEAN DEFAULT FALSE');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code TEXT');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_promo_gift BOOLEAN DEFAULT FALSE');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_threshold_gift BOOLEAN DEFAULT FALSE');
@@ -560,6 +561,14 @@ async function updateUserProfile(telegramId, data) {
   return await getUser(telegramId);
 }
 
+async function updateUserAvatar(telegramId, avatarUrl) {
+  await query(
+    'UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE telegram_id = $2',
+    [avatarUrl || null, String(telegramId)]
+  );
+  return await getUser(telegramId);
+}
+
 async function setUserEmail(telegramId, email) {
   if (!email) return null;
   await query(
@@ -710,6 +719,30 @@ async function getOrdersDaily(days) {
     ORDER BY day ASC
   `, [String(Number(days) || 30)]);
   return res.rows.map(r => ({ date: r.day, count: Number(r.count) || 0, revenue: Number(r.revenue) || 0 }));
+}
+
+async function getOrderRatingRows(days = 15) {
+  const res = await query(`
+    SELECT
+      u.telegram_id,
+      u.name,
+      u.tariff,
+      u.subscription_status,
+      u.subscription_start,
+      u.subscription_end,
+      u.payment_method_id,
+      u.auto_renew_disabled,
+      u.avatar_url,
+      COUNT(o.id)::int AS orders_count,
+      COALESCE(SUM(o.total_price), 0)::int AS total_spent
+    FROM orders o
+    JOIN users u ON u.telegram_id = o.telegram_id
+    WHERE o.created_at >= NOW() - ($1 || ' days')::interval
+    GROUP BY u.telegram_id, u.name, u.tariff, u.subscription_status, u.subscription_start,
+             u.subscription_end, u.payment_method_id, u.auto_renew_disabled, u.avatar_url
+    ORDER BY total_spent DESC, orders_count DESC
+  `, [String(Number(days) || 15)]);
+  return res.rows;
 }
 
 async function getOrderHistory(telegramId, limit = 50) {
@@ -978,6 +1011,7 @@ module.exports = {
   setUserNotes,
   updateLastAddress,
   updateUserProfile,
+  updateUserAvatar,
   setUserEmail,
   getUserEmail,
   hasEmailNotification,
@@ -990,6 +1024,7 @@ module.exports = {
   getPaymentsCount,
   getPaymentsStats,
   getOrdersDaily,
+  getOrderRatingRows,
   getAdminTopReferrers,
   getAdminRecentBonuses,
   getGameDailyWord,

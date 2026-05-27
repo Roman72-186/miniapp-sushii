@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import OptimizedImage from "./components/OptimizedImage";
 
 const CLOSE_BEHAVIOR = "redirect";
 
@@ -65,12 +66,15 @@ function ProductCard({ product, telegramId }) {
 
   return (
     <div className="product-card">
-      <img
+      <OptimizedImage
         src={imageSrc}
         alt={product.name}
         className="product-img"
         loading="lazy"
         onError={() => setImgError(true)}
+        width={480}
+        widths={[240, 320, 480, 640]}
+        sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
       />
       <div className="product-info">
         <h3>{product.name}</h3>

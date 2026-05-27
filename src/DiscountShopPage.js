@@ -13,6 +13,9 @@ import { useCartGifts } from './hooks/useCartGifts';
 import AppFooter from './components/AppFooter';
 import GamesModal from './components/GamesModal';
 import SubscriptionRequiredModal from './components/SubscriptionRequiredModal';
+import OptimizedImage from './components/OptimizedImage';
+import UserAvatar from './components/UserAvatar';
+import { useOrderRating } from './hooks/useOrderRating';
 import './shop.css';
 import './shop-v2.css';
 
@@ -209,11 +212,15 @@ function SubCard({ product, onSelect, onImageClick, disabled }) {
         onClick={() => onImageClick && onImageClick(product)}
         style={onImageClick ? { cursor: 'pointer' } : undefined}
       >
-        <img
+        <OptimizedImage
           src={imgError ? '/logo.jpg' : product.image}
           alt={product.name}
           className="shop-card__image"
           onError={() => setImgError(true)}
+          loading="lazy"
+          width={480}
+          widths={[240, 320, 480, 640]}
+          sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
         />
       </div>
 
@@ -255,6 +262,7 @@ function DiscountShopPage() {
   }, [paymentSuccess]);
 
   const { telegramId, loading: userLoading, tarif: userTarif, profile } = useUser();
+  const orderRating = useOrderRating(telegramId, 15);
   const { products, loading, error, refetch } = useDiscountMenu();
   const cart = useCart();
   const subscriptionStatus = profile?.статусСписания || profile?.subscriptionStatus;
@@ -687,6 +695,17 @@ function DiscountShopPage() {
 
         <div className="shop-header__actions">
           {telegramId ? (
+            <>
+            <UserAvatar
+              userId={telegramId}
+              name={profile?.name}
+              avatarUrl={profile?.avatar_url}
+              rating={orderRating}
+              size="sm"
+              className="shop-header__profile"
+              href={`/profile${telegramId ? `?telegram_id=${telegramId}` : ''}`}
+              title="Личный кабинет"
+            />
             <button
               className="shop-header__profile"
               onClick={() => {
@@ -696,6 +715,7 @@ function DiscountShopPage() {
             >
               👤
             </button>
+            </>
           ) : (
             <button
               className="shop-header__login"

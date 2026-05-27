@@ -174,6 +174,7 @@ function getDb() {
   try { _db.exec('ALTER TABLE users ADD COLUMN game_session_id TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN email TEXT'); } catch {}
   try { _db.exec('ALTER TABLE users ADD COLUMN auto_renew_disabled INTEGER DEFAULT 0'); } catch {}
+  try { _db.exec('ALTER TABLE users ADD COLUMN avatar_url TEXT'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN promo_code TEXT'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_promo_gift INTEGER DEFAULT 0'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_threshold_gift INTEGER DEFAULT 0'); } catch {}
@@ -295,6 +296,13 @@ function updateUserProfile(telegramId, data) {
     fullName,
     String(telegramId)
   );
+  return getUser(telegramId);
+}
+
+function updateUserAvatar(telegramId, avatarUrl) {
+  getDb().prepare(
+    "UPDATE users SET avatar_url = ?, updated_at = datetime('now') WHERE telegram_id = ?"
+  ).run(avatarUrl || null, String(telegramId));
   return getUser(telegramId);
 }
 
@@ -862,6 +870,29 @@ function getOrdersDaily(days) {
   return rows.map(r => ({ date: r.day, count: Number(r.count) || 0, revenue: Number(r.revenue) || 0 }));
 }
 
+function getOrderRatingRows(days = 15) {
+  return getDb().prepare(`
+    SELECT
+      u.telegram_id,
+      u.name,
+      u.tariff,
+      u.subscription_status,
+      u.subscription_start,
+      u.subscription_end,
+      u.payment_method_id,
+      u.auto_renew_disabled,
+      u.avatar_url,
+      COUNT(o.id) AS orders_count,
+      COALESCE(SUM(o.total_price), 0) AS total_spent
+    FROM orders o
+    JOIN users u ON u.telegram_id = o.telegram_id
+    WHERE o.created_at >= datetime('now', ?)
+    GROUP BY u.telegram_id, u.name, u.tariff, u.subscription_status, u.subscription_start,
+             u.subscription_end, u.payment_method_id, u.auto_renew_disabled, u.avatar_url
+    ORDER BY total_spent DESC, orders_count DESC
+  `).all(`-${Number(days) || 15} days`);
+}
+
 function getOrderHistory(telegramId, limit = 50) {
   return getDb().prepare(`
     SELECT id, order_type, delivery_type, address, products_json, total_price,
@@ -1073,9 +1104,11 @@ module.exports = {
   getPaymentsCount,
   getPaymentsStats,
   getOrdersDaily,
+  getOrderRatingRows,
   getGiftOrders,
   updateLastAddress,
   updateUserProfile,
+  updateUserAvatar,
   setUserEmail,
   getUserEmail,
   hasEmailNotification,
