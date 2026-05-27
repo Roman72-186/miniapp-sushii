@@ -72,8 +72,8 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
       setError('Загрузите изображение PNG, JPG или WEBP');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setError('Размер аватара должен быть до 2 МБ');
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Размер аватара должен быть до 5 МБ');
       return;
     }
 

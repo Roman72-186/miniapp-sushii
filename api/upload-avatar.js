@@ -6,7 +6,7 @@ const { getUser, updateUserAvatar } = require('./_lib/db');
 const { deleteUserCache } = require('./_lib/user-cache');
 
 const AVATAR_DIR = path.join(__dirname, '..', 'data', 'avatars');
-const MAX_INPUT_BYTES = 2 * 1024 * 1024;
+const MAX_INPUT_BYTES = 5 * 1024 * 1024;
 
 function safeUserPart(userId) {
   return String(userId || 'user').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
 
       const input = Buffer.from(match[2], 'base64');
       if (!input.length || input.length > MAX_INPUT_BYTES) {
-        return res.status(400).json({ error: 'Размер аватара должен быть до 2 МБ' });
+        return res.status(400).json({ error: 'Размер аватара должен быть до 5 МБ' });
       }
 
       await fs.mkdir(AVATAR_DIR, { recursive: true });
