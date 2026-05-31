@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
 import { TARIFF_DATA } from './config/tariffs';
 import { usePricing } from './hooks/usePricing';
+import { getAttributionForRequest } from './analytics/attribution';
+import { reachGoal, YM_GOALS } from './analytics/metrika';
 import './shop.css';
 
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
@@ -81,6 +83,7 @@ function PaymentPage() {
           phone,
           ...(!telegramId ? { name } : {}),
           ...(tariff.oneTime ? {} : { months }),
+          attribution: getAttributionForRequest(),
         }),
       });
 
@@ -94,6 +97,11 @@ function PaymentPage() {
 
       // Редирект на страницу оплаты YooKassa
       sessionStorage.setItem(PENDING_PAYMENT_KEY, String(Date.now()));
+      reachGoal(YM_GOALS.PAYMENT_REDIRECT, {
+        tariff: tarifKey,
+        months: tariff.oneTime ? 1 : months,
+        value: priceTable?.[tarifKey]?.[tariff.oneTime ? 1 : months] || undefined,
+      });
       const tg = window.Telegram?.WebApp;
       if (tg?.openLink) {
         tg.openLink(data.confirmation_url);

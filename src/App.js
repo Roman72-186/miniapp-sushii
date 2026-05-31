@@ -24,6 +24,7 @@ import NotFoundPage from "./NotFoundPage"; // страница 404
 import WordlePage from "./WordlePage"; // игра «Пятибуквенное слово»
 import TestCatalogPage from "./TestCatalogPage"; // тестовая страница обычного меню
 import WebRegistrationPrompt from "./components/WebRegistrationPrompt";
+import MetrikaRouteTracker from "./components/MetrikaRouteTracker";
 
 function App() {
   const pathname =
@@ -98,6 +99,7 @@ function App() {
 
   return (
     <>
+      <MetrikaRouteTracker />
       {page}
       {showWebRegPrompt && <WebRegistrationPrompt />}
     </>

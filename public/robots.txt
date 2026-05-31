@@ -1,5 +1,18 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Disallow: /api/
+Disallow: /admin/
+Disallow: /profile
+Disallow: /settings
+Disallow: /pay/
+Disallow: /login
+Disallow: /partner-code
+Disallow: /complete-registration
+Disallow: /success
+Disallow: /gift-rolls
+Disallow: /gift-sets
+Disallow: /sets-received
+Disallow: /game
+Disallow: /test
 
 Sitemap: https://sushi-house-39.ru/sitemap.xml

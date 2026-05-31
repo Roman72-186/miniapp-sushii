@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { normalizePhone } from './utils/phone';
 import { saveWebAuth } from './utils/webAuth';
+import { reachGoal, reachGoalOnce, YM_GOALS } from './analytics/metrika';
 import './shop.css';
 
 function CompleteRegistrationPage() {
@@ -27,6 +28,16 @@ function CompleteRegistrationPage() {
       clearInterval(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!telegramId || profile?.статусСписания !== 'активно') return;
+    reachGoalOnce(`payment_success_${telegramId}`, YM_GOALS.PAYMENT_SUCCESS, {
+      source: 'complete_registration',
+    }, 'local');
+    reachGoalOnce(`subscription_success_${telegramId}`, YM_GOALS.SUBSCRIPTION_PURCHASE_SUCCESS, {
+      source: 'complete_registration',
+    }, 'local');
+  }, [telegramId, profile]);
 
   useEffect(() => {
     if (!telegramId) {
@@ -112,6 +123,7 @@ function CompleteRegistrationPage() {
       });
       const data = await response.json();
       if (!response.ok || !data.success) throw new Error(data.error || 'Неверный код');
+      reachGoal(YM_GOALS.EMAIL_OTP_SUCCESS);
       setOtpToken(data.otpToken);
       setPassword('');
       setPasswordConfirm('');
@@ -151,6 +163,8 @@ function CompleteRegistrationPage() {
       if (!response.ok || !data.success) throw new Error(data.error || 'Не удалось сохранить пароль');
 
       saveWebAuth(data);
+      reachGoal(YM_GOALS.PASSWORD_SET_SUCCESS);
+      reachGoal(YM_GOALS.AUTH_PHONE_SUCCESS);
       sessionStorage.removeItem('pending_payment_check');
       window.location.href = '/discount-shop?payment=success';
     } catch (err) {

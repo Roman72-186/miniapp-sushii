@@ -10,6 +10,7 @@ import ProductModal from './components/ProductModal';
 import CartPanel from './components/CartPanel';
 import CheckoutForm from './components/CheckoutForm';
 import { useCartGifts } from './hooks/useCartGifts';
+import { trackAddToCart } from './analytics/ecommerce';
 import './shop.css';
 
 // 3 категории с путями к JSON
@@ -142,6 +143,19 @@ function ShopPage() {
     return item ? item.quantity : 0;
   };
 
+  const handleProductAdd = (product) => {
+    cart.addItem(product);
+    trackAddToCart(product, 1);
+  };
+
+  const handleProductQuantity = (productId, quantity) => {
+    const current = cart.items.find(i => i.product.id === productId);
+    if (current && quantity > current.quantity) {
+      trackAddToCart(current.product, quantity - current.quantity);
+    }
+    cart.updateQuantity(productId, quantity);
+  };
+
   const handleCheckout = () => {
     setShowCart(false);
     setShowCheckout(true);
@@ -232,8 +246,8 @@ function ShopPage() {
                       key={product.id}
                       product={product}
                       quantity={getQuantity(product.id)}
-                      onAdd={cart.addItem}
-                      onUpdateQuantity={cart.updateQuantity}
+                      onAdd={handleProductAdd}
+                      onUpdateQuantity={handleProductQuantity}
                       onImageClick={(p) => setModalProduct({ ...p, description: getProductDescription(p.name) })}
                     />
                   ))}
@@ -267,12 +281,12 @@ function ShopPage() {
       <CartPanel
         items={cart.items}
         total={cart.total}
-        onUpdateQuantity={cart.updateQuantity}
+        onUpdateQuantity={handleProductQuantity}
         onRemove={cart.removeItem}
         onClear={cart.clear}
         onClose={() => setShowCart(false)}
         onCheckout={handleCheckout}
-        onAddItem={cart.addItem}
+        onAddItem={handleProductAdd}
         promoCode={promoCode}
         onPromoCodeChange={setPromoCode}
         promoMessages={promoMessages}

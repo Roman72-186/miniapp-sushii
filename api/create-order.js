@@ -64,6 +64,19 @@ function buildGiftSources(products, promoCode) {
     .filter(Boolean);
 }
 
+function sanitizeAttribution(input) {
+  const allowed = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'yclid', 'landing_path', 'saved_at'];
+  if (!input || typeof input !== 'object') return null;
+
+  const result = {};
+  allowed.forEach(key => {
+    const value = String(input[key] || '').trim().slice(0, 300);
+    if (value) result[key] = value;
+  });
+
+  return Object.keys(result).length ? result : null;
+}
+
 module.exports = async (req, res) => {
   const allowedOrigins = ['https://sushi-house-39.ru', 'http://localhost:3000'];
   const origin = req.headers.origin;
@@ -214,6 +227,7 @@ module.exports = async (req, res) => {
 
     const rawPromo = String(body.promo_code || '').trim();
     const promoCode = /^[A-Za-z0-9]{1,20}$/.test(rawPromo) ? rawPromo : null;
+    const attribution = sanitizeAttribution(body.attribution);
     const orderProducts = appendEligibleOrderGifts(products, promoCode);
     const orderTotal = orderProducts.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.quantity) || 1), 0);
 
@@ -309,6 +323,7 @@ module.exports = async (req, res) => {
           hasPromoGift,
           hasThresholdGift,
           giftSourcesJson: JSON.stringify(giftSources),
+          attributionJson: attribution ? JSON.stringify(attribution) : null,
         });
       } catch (saveErr) {
         console.error('[ORDER] Ошибка сохранения в БД:', saveErr.message);

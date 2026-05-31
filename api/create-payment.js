@@ -24,6 +24,19 @@ function isAutoRenewDisabled(user) {
   return user?.auto_renew_disabled === true || user?.auto_renew_disabled === 1 || user?.auto_renew_disabled === '1';
 }
 
+function sanitizeAttribution(input) {
+  const allowed = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'yclid', 'landing_path', 'saved_at'];
+  if (!input || typeof input !== 'object') return null;
+
+  const result = {};
+  allowed.forEach(key => {
+    const value = String(input[key] || '').trim().slice(0, 300);
+    if (value) result[key] = value;
+  });
+
+  return Object.keys(result).length ? result : null;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -33,6 +46,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
   const { telegram_id, tarif, months, phone: reqPhone, name: reqName } = req.body || {};
+  const attribution = sanitizeAttribution(req.body?.attribution);
 
   if (!tarif || !VALID_TARIFS.includes(String(tarif))) {
     return res.status(400).json({ error: 'Некорректный тариф' });
@@ -140,6 +154,7 @@ module.exports = async (req, res) => {
       telegram_id: String(paymentUserId),
       tarif: tarifStr,
       months: String(monthsNum),
+      ...(attribution ? { attribution_json: JSON.stringify(attribution) } : {}),
     },
   };
 

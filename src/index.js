@@ -4,6 +4,11 @@ import './index.css';
 import App from './App';
 import { UserProvider } from './UserContext';
 import reportWebVitals from './reportWebVitals';
+import { initMetrika } from './analytics/metrika';
+import { saveAttributionFromUrl } from './analytics/attribution';
+
+saveAttributionFromUrl();
+initMetrika();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
