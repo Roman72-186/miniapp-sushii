@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { normalizePhone } from './utils/phone';
 import { getSafeReturnUrl, saveWebAuth } from './utils/webAuth';
+import { reachGoal, YM_GOALS } from './analytics/metrika';
 import './shop.css';
 
 function LoginPage() {
@@ -58,6 +59,7 @@ function LoginPage() {
       return;
     }
     setLoading(true);
+    reachGoal(YM_GOALS.AUTH_PHONE_START);
     try {
       const resp = await fetch('/api/auth/login-by-phone', {
         method: 'POST',
@@ -79,6 +81,7 @@ function LoginPage() {
         setStep('email');
       } else {
         saveWebAuth(data);
+        reachGoal(YM_GOALS.AUTH_PHONE_SUCCESS);
         finishLogin();
       }
     } catch {
@@ -130,6 +133,7 @@ function LoginPage() {
       });
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Неверный код'); return; }
+      reachGoal(YM_GOALS.EMAIL_OTP_SUCCESS);
       setOtpToken(data.otpToken);
       setPassword('');
       setPasswordConfirm('');
@@ -179,6 +183,7 @@ function LoginPage() {
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Неверный пароль'); return; }
       saveWebAuth(data);
+      reachGoal(YM_GOALS.AUTH_PHONE_SUCCESS);
       finishLogin();
     } catch {
       setError('Ошибка соединения.');
@@ -218,6 +223,8 @@ function LoginPage() {
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Ошибка сохранения пароля'); return; }
       saveWebAuth(data);
+      reachGoal(YM_GOALS.PASSWORD_SET_SUCCESS);
+      reachGoal(YM_GOALS.AUTH_PHONE_SUCCESS);
       finishLogin();
     } catch {
       setError('Ошибка соединения.');

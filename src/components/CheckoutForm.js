@@ -5,6 +5,9 @@ import { useUser } from '../UserContext';
 import { isShopOpen, getTimeSlots } from '../utils/timeUtils';
 import { normalizePhone } from '../utils/phone';
 import { PICKUP_POINTS } from '../config/pickupPoints';
+import { getAttributionForRequest } from '../analytics/attribution';
+import { reachGoal, YM_GOALS } from '../analytics/metrika';
+import { trackPurchase } from '../analytics/ecommerce';
 
 /**
  * Формирует datetime строку для Frontpad (YYYY-MM-DD HH:MM:SS)
@@ -245,6 +248,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           order_type: 'discount',
           shc_used: shcApplied > 0 ? shcApplied : undefined,
           promo_code: promoCode || undefined,
+          attribution: getAttributionForRequest(),
         }),
       });
 
@@ -253,6 +257,17 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
       if (!data.success) {
         throw new Error(data.error || 'Ошибка создания заказа');
       }
+
+      if (deliveryType === 'delivery') {
+        reachGoal(YM_GOALS.DELIVERY_ADDRESS_ENTERED, { delivery_type: 'delivery' });
+      }
+
+      trackPurchase({
+        orderId: data.orderNumber || data.orderId,
+        items,
+        total: effectiveTotal,
+        orderType: 'discount',
+      });
 
       // Если в заказе есть подарок — фиксируем его получение (только после успеха Frontpad)
       const giftItem = items.find(item => item?.product?.gift);

@@ -16,6 +16,8 @@ import SubscriptionRequiredModal from './components/SubscriptionRequiredModal';
 import OptimizedImage from './components/OptimizedImage';
 import UserAvatar from './components/UserAvatar';
 import { useOrderRating } from './hooks/useOrderRating';
+import { trackAddToCart } from './analytics/ecommerce';
+import { reachGoalOnce, YM_GOALS } from './analytics/metrika';
 import './shop.css';
 import './shop-v2.css';
 
@@ -268,6 +270,17 @@ function DiscountShopPage() {
   const subscriptionStatus = profile?.статусСписания || profile?.subscriptionStatus;
   const hasActiveSubscription = subscriptionStatus === 'активно';
 
+  useEffect(() => {
+    if (!paymentSuccess || !telegramId || !hasActiveSubscription) return;
+    reachGoalOnce(`payment_success_${telegramId}`, YM_GOALS.PAYMENT_SUCCESS, {
+      source: 'discount_shop',
+    }, 'local');
+    reachGoalOnce(`subscription_success_${telegramId}`, YM_GOALS.SUBSCRIPTION_PURCHASE_SUCCESS, {
+      source: 'discount_shop',
+      tariff: userTarif || undefined,
+    }, 'local');
+  }, [paymentSuccess, telegramId, hasActiveSubscription, userTarif]);
+
   const [promoCode, setPromoCode] = useState('');
   const { messages: promoMessages, isPromoValid } = useCartGifts({
     items: cart.items,
@@ -488,12 +501,17 @@ function DiscountShopPage() {
       return;
     }
     cart.addItem(product);
+    trackAddToCart(product, 1);
   };
 
   const handleProductQuantity = (productId, quantity) => {
     if (!hasActiveSubscription) {
       requireSubscription();
       return;
+    }
+    const current = cart.items.find(entry => (entry.product.cartId || entry.product.id) === productId);
+    if (current && quantity > current.quantity) {
+      trackAddToCart(current.product, quantity - current.quantity);
     }
     cart.updateQuantity(productId, quantity);
   };

@@ -29,6 +29,18 @@ function isAutoRenewDisabled(user) {
   return user?.auto_renew_disabled === true || user?.auto_renew_disabled === 1 || user?.auto_renew_disabled === '1';
 }
 
+function parseAttribution(metadata) {
+  try {
+    const raw = metadata?.attribution_json;
+    if (!raw) return null;
+    const parsed = JSON.parse(String(raw));
+    if (!parsed || typeof parsed !== 'object') return null;
+    return JSON.stringify(parsed);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Верифицирует платёж через YooKassa API (fallback если IP проверка не прошла)
  */
@@ -62,6 +74,7 @@ module.exports = async (req, res) => {
     const telegramId = payment.metadata?.telegram_id;
     const tarif = payment.metadata?.tarif;
     const months = Number(payment.metadata?.months) || 1;
+    const attributionJson = parseAttribution(payment.metadata);
 
     if (!telegramId || !tarif) {
       console.error('webhook: missing metadata', { telegramId, tarif });
@@ -167,6 +180,7 @@ module.exports = async (req, res) => {
         amount: paymentAmount,
         months,
         yookassa_payment_id: payment.id || null,
+        attributionJson,
       });
 
       // Амбассадорские комиссии (processCommissions) — отключены намеренно

@@ -1,15 +1,29 @@
 // src/components/CartPanel.js — Выдвижная панель корзины (тёмная тема)
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import UpsellBlock from './UpsellBlock';
 import OptimizedImage from './OptimizedImage';
 import { describeGiftSource } from '../utils/cartGifts';
+import { reachGoal, YM_GOALS } from '../analytics/metrika';
 
 function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem, promoCode, onPromoCodeChange, promoMessages, isPromoValid }) {
+  const trackedPromoRef = useRef('');
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
+    reachGoal(YM_GOALS.CART_OPEN, {
+      value: Number(total) || 0,
+      items_count: items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0),
+    });
     return () => { document.body.style.overflow = ''; };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const code = String(promoCode || '').trim().toUpperCase();
+    if (!code || !isPromoValid || trackedPromoRef.current === code) return;
+    trackedPromoRef.current = code;
+    reachGoal(YM_GOALS.PROMO_APPLY_SUCCESS, { promo_type: 'public' });
+  }, [promoCode, isPromoValid]);
 
   const cartSkus = useMemo(
     () => items.map(i => i.product.sku || i.product.id),
@@ -160,7 +174,17 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                 <span className="shop-cart__total-label">Сумма заказа:</span>
                 <span className="shop-cart__total-value">{total}₽</span>
               </div>
-              <button type="button" className="shop-cart__checkout-btn" onClick={onCheckout}>
+              <button
+                type="button"
+                className="shop-cart__checkout-btn"
+                onClick={() => {
+                  reachGoal(YM_GOALS.CHECKOUT_START, {
+                    value: Number(total) || 0,
+                    items_count: items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0),
+                  });
+                  onCheckout();
+                }}
+              >
                 Оформить заказ
               </button>
             </div>

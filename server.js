@@ -4,6 +4,12 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json({ limit: '8mb' }));
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  }
+  next();
+});
 
 // API routes (handlers manage CORS and method checks internally)
 app.all('/api/sync-user', require('./api/sync-user'));
@@ -83,6 +89,28 @@ function noCacheHeaders(res, filePath) {
     res.setHeader('Expires', '0');
   }
 }
+
+function robotsNoIndex(req, res, next) {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+  next();
+}
+
+[
+  '/api',
+  '/admin',
+  '/profile',
+  '/settings',
+  '/pay',
+  '/login',
+  '/partner-code',
+  '/complete-registration',
+  '/success',
+  '/gift-rolls',
+  '/gift-sets',
+  '/sets-received',
+  '/game',
+  '/test',
+].forEach(route => app.use(route, robotsNoIndex));
 
 // Serve product overrides from persistent volume (admin edits), then React build
 app.use('/data/banners', express.static(path.join(__dirname, 'data', 'banners'), { setHeaders: noCacheHeaders }));

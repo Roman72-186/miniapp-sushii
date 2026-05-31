@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { normalizePhone } from '../utils/phone';
 import { WEB_TOKEN_KEY } from '../utils/webAuth';
 import { getFallbackFace } from '../utils/avatar';
+import { reachGoal, YM_GOALS } from '../analytics/metrika';
 
 const ADMIN_TOKEN_KEY = 'admin_token';
 
@@ -181,6 +182,9 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
         ...data.user,
         avatar_url: uploadedAvatarUrl !== undefined ? uploadedAvatarUrl : data.user?.avatar_url,
       });
+      if (mode === 'user') {
+        reachGoal(YM_GOALS.PROFILE_UPDATE_SUCCESS);
+      }
       onClose();
     } catch (err) {
       setError(err.message || 'Ошибка сети');

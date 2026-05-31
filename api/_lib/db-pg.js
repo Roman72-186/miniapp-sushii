@@ -41,6 +41,8 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_promo_gift BOOLEAN DEFAULT FALSE');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS has_threshold_gift BOOLEAN DEFAULT FALSE');
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS gift_sources_json TEXT');
+    await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS attribution_json TEXT');
+    await pool.query('ALTER TABLE payments ADD COLUMN IF NOT EXISTS attribution_json TEXT');
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS email_notifications_log (
@@ -247,8 +249,8 @@ async function setInvitedBy(telegramId, ambassadorId) {
 
 async function recordPayment(data) {
   const res = await query(`
-    INSERT INTO payments (telegram_id, tariff, amount, months, yookassa_payment_id, status)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO payments (telegram_id, tariff, amount, months, yookassa_payment_id, attribution_json, status)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id
   `, [
     String(data.telegram_id),
@@ -256,6 +258,7 @@ async function recordPayment(data) {
     Number(data.amount),
     Number(data.months) || 1,
     data.yookassa_payment_id || null,
+    data.attributionJson || null,
     data.status || 'succeeded',
   ]);
   return res.rows[0].id;
@@ -640,10 +643,10 @@ async function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Orders ──────────────────────────────────────────────────
 
-async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift, giftSourcesJson }) {
+async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift, giftSourcesJson, attributionJson }) {
   await query(`
-    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, gift_sources_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, gift_sources_json, attribution_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
   `, [
     String(telegramId),
     frontpadOrderId || null,
@@ -653,6 +656,7 @@ async function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, o
     address || null,
     productsJson || null,
     giftSourcesJson || null,
+    attributionJson || null,
     totalPrice || 0,
     clientName || null,
     promoCode || null,

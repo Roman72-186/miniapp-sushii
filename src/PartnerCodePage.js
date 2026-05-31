@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
+import { reachGoal, reachGoalOnce, YM_GOALS } from './analytics/metrika';
 import './shop.css';
 
 function PartnerCodePage() {
@@ -32,6 +33,19 @@ function PartnerCodePage() {
     }
   }, [synced, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    const status = profile?.статусСписания || profile?.subscriptionStatus;
+    if (!synced || !telegramId || status !== 'активно') return;
+    reachGoalOnce(`payment_success_${telegramId}`, YM_GOALS.PAYMENT_SUCCESS, {
+      tariff: profile?.tarif || profile?.tariff || undefined,
+      source: 'partner_code',
+    }, 'local');
+    reachGoalOnce(`subscription_success_${telegramId}`, YM_GOALS.SUBSCRIPTION_PURCHASE_SUCCESS, {
+      tariff: profile?.tarif || profile?.tariff || undefined,
+      source: 'partner_code',
+    }, 'local');
+  }, [synced, telegramId, profile]);
+
   const goToShop = () => {
     const tid = telegramId ? `?telegram_id=${telegramId}` : '';
     window.location.href = `/discount-shop${tid}`;
@@ -60,6 +74,7 @@ function PartnerCodePage() {
       }
 
       setSuccess(data);
+      reachGoal(YM_GOALS.PARTNER_CODE_APPLY_SUCCESS);
       // Через 2 секунды переходим в магазин
       setTimeout(goToShop, 2000);
     } catch {

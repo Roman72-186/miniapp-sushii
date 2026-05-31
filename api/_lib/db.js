@@ -47,6 +47,7 @@ function getDb() {
       amount REAL NOT NULL,
       months INTEGER DEFAULT 1,
       yookassa_payment_id TEXT,
+      attribution_json TEXT,
       status TEXT DEFAULT 'succeeded',
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (telegram_id) REFERENCES users(telegram_id)
@@ -103,6 +104,7 @@ function getDb() {
       address               TEXT,
       products_json         TEXT,
       gift_sources_json     TEXT,
+      attribution_json      TEXT,
       total_price           INTEGER DEFAULT 0,
       client_name           TEXT,
       created_at            TEXT DEFAULT (datetime('now'))
@@ -179,6 +181,8 @@ function getDb() {
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_promo_gift INTEGER DEFAULT 0'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN has_threshold_gift INTEGER DEFAULT 0'); } catch {}
   try { _db.exec('ALTER TABLE orders ADD COLUMN gift_sources_json TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE orders ADD COLUMN attribution_json TEXT'); } catch {}
+  try { _db.exec('ALTER TABLE payments ADD COLUMN attribution_json TEXT'); } catch {}
 
   _db.exec(`
     CREATE TABLE IF NOT EXISTS email_notifications_log (
@@ -365,8 +369,8 @@ function setInvitedBy(telegramId, ambassadorId) {
 function recordPayment(data) {
   const db = getDb();
   const stmt = db.prepare(`
-    INSERT INTO payments (telegram_id, tariff, amount, months, yookassa_payment_id, status)
-    VALUES (@telegram_id, @tariff, @amount, @months, @yookassa_payment_id, @status)
+    INSERT INTO payments (telegram_id, tariff, amount, months, yookassa_payment_id, attribution_json, status)
+    VALUES (@telegram_id, @tariff, @amount, @months, @yookassa_payment_id, @attribution_json, @status)
   `);
   const result = stmt.run({
     telegram_id: String(data.telegram_id),
@@ -374,6 +378,7 @@ function recordPayment(data) {
     amount: Number(data.amount),
     months: Number(data.months) || 1,
     yookassa_payment_id: data.yookassa_payment_id || null,
+    attribution_json: data.attributionJson || null,
     status: data.status || 'succeeded',
   });
   return result.lastInsertRowid;
@@ -792,10 +797,10 @@ function adminApplyUserTagAction(telegramId, action, tag) {
 
 // ─── Orders ─────────────────────────────────────────────
 
-function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift, giftSourcesJson }) {
+function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderType, deliveryType, address, productsJson, totalPrice, clientName, promoCode, hasPromoGift, hasThresholdGift, giftSourcesJson, attributionJson }) {
   getDb().prepare(`
-    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, gift_sources_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (telegram_id, frontpad_order_id, frontpad_order_number, order_type, delivery_type, address, products_json, gift_sources_json, attribution_json, total_price, client_name, promo_code, has_promo_gift, has_threshold_gift)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     String(telegramId),
     frontpadOrderId || null,
@@ -805,6 +810,7 @@ function insertOrder({ telegramId, frontpadOrderId, frontpadOrderNumber, orderTy
     address || null,
     productsJson || null,
     giftSourcesJson || null,
+    attributionJson || null,
     totalPrice || 0,
     clientName || null,
     promoCode || null,
