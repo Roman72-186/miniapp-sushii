@@ -32,32 +32,39 @@ export function syncCartGifts({ items, promoCode, promoRules = [], thresholdRule
   const usedSkus = new Set();
 
   const existingGifts = items.filter(item => item.product.gift);
-  const existingPromo = existingGifts.find(item => giftSourceType(item.giftSource) === 'promo');
+  const existingPromos = existingGifts.filter(item => giftSourceType(item.giftSource) === 'promo');
   const existingThresholds = existingGifts.filter(item => giftSourceType(item.giftSource) === 'threshold');
 
-  const matchedPromoRule = promoRules.find(rule =>
+  const matchedPromoRules = promoRules.filter(rule =>
     activeProduct(rule) &&
     normalizePromoCode(rule.code) === normalizedCode
   );
-  const activePromoRule = matchedPromoRule && nonGiftTotal >= Number(matchedPromoRule.threshold || 0)
-    ? matchedPromoRule
-    : null;
+  const activePromoRules = matchedPromoRules
+    .filter(rule => nonGiftTotal >= Number(rule.threshold || 0))
+    .sort((a, b) => Number(a.threshold) - Number(b.threshold));
+  const activePromoIds = new Set(activePromoRules.map(rule => String(rule.id)));
 
-  if (activePromoRule) {
-    const expectedSource = ruleSource(activePromoRule);
-    if (!existingPromo || existingPromo.giftSource !== expectedSource) {
-      if (existingPromo) toRemove.push(existingPromo.product.id);
-      toAdd.push({
-        product: activePromoRule.product,
-        giftSource: expectedSource,
-        rule: activePromoRule,
-      });
+  for (const gift of existingPromos) {
+    const ruleId = String(gift.giftRuleId || String(gift.giftSource || '').split(':')[1] || '');
+    if (!activePromoIds.has(ruleId)) {
+      toRemove.push(gift.product.id);
     } else {
-      usedSkus.add(String(existingPromo.product.sku));
+      usedSkus.add(String(gift.product.sku));
     }
-    usedSkus.add(String(activePromoRule.product.sku));
-  } else if (existingPromo) {
-    toRemove.push(existingPromo.product.id);
+  }
+
+  for (const rule of activePromoRules) {
+    const expectedSource = ruleSource(rule);
+    const exists = existingPromos.some(gift => gift.giftSource === expectedSource);
+    const sku = String(rule.product.sku);
+    if (!exists && !usedSkus.has(sku)) {
+      toAdd.push({
+        product: rule.product,
+        giftSource: expectedSource,
+        rule,
+      });
+      usedSkus.add(sku);
+    }
   }
 
   const activeThresholdRules = thresholdRules
@@ -88,7 +95,15 @@ export function syncCartGifts({ items, promoCode, promoRules = [], thresholdRule
     }
   }
 
-  return { toAdd, toRemove, matchedPromoRule, activePromoRule, activeThresholdRules };
+  return {
+    toAdd,
+    toRemove,
+    matchedPromoRule: matchedPromoRules[0] || null,
+    activePromoRule: activePromoRules[0] || null,
+    matchedPromoRules,
+    activePromoRules,
+    activeThresholdRules,
+  };
 }
 
 export function describeGiftSource(source, product = {}) {

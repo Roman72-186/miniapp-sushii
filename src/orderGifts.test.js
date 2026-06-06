@@ -39,6 +39,37 @@ test('сервер добавляет подарок по промокоду в 
   });
 });
 
+test('сервер добавляет несколько подарков по одному промокоду в заказ для Frontpad', () => {
+  const products = appendEligibleOrderGifts([
+    { id: 'BASE-ROLL', sku: 'BASE-ROLL', name: 'Платный ролл', price: 2100, quantity: 1 },
+  ], '102030', () => ({
+    promoRules: [
+      {
+        id: 'promo-102030-1',
+        type: 'promo',
+        code: '102030',
+        threshold: 2000,
+        enabled: true,
+        product: { sku: 'PROMO-GIFT-ROLL-1', name: 'Промо ролл 1' },
+      },
+      {
+        id: 'promo-102030-2',
+        type: 'promo',
+        code: '102030',
+        threshold: 2000,
+        enabled: true,
+        product: { sku: 'PROMO-GIFT-ROLL-2', name: 'Промо ролл 2' },
+      },
+    ],
+    thresholdRules: [],
+  }));
+
+  expect(products.map(product => product.gift_source).filter(Boolean)).toEqual([
+    'promo:promo-102030-1',
+    'promo:promo-102030-2',
+  ]);
+});
+
 test('сервер добавляет подарок за порог чека в заказ для Frontpad', () => {
   const products = appendEligibleOrderGifts([
     { id: 'SET-2600', sku: 'SET-2600', name: 'Сет', price: 2600, quantity: 1 },

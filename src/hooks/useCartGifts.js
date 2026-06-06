@@ -68,24 +68,28 @@ export function useCartGifts({ items, promoCode, addItem, removeItem }) {
   const nonGiftTotal = calcNonGiftTotal(items);
   const normalizedCode = normalizePromoCode(promoCode);
   const messages = [];
-  const matchedPromoRule = promoRules.find(rule =>
+  const matchedPromoRules = promoRules.filter(rule =>
     rule.enabled !== false &&
     rule.product &&
     normalizePromoCode(rule.code) === normalizedCode
   );
-  const activePromoGift = items.find(item => item.product.gift && String(item.giftSource || '').startsWith('promo:'));
+  const activeMatchedPromoRules = matchedPromoRules.filter(rule => nonGiftTotal >= Number(rule.threshold || 0));
+  const activePromoGifts = items.filter(item => item.product.gift && String(item.giftSource || '').startsWith('promo:'));
 
   if (normalizedCode) {
-    if (!matchedPromoRule) {
+    if (matchedPromoRules.length === 0) {
       messages.push({ type: 'info', text: 'Промокод не действует' });
-    } else if (nonGiftTotal < Number(matchedPromoRule.threshold || 0)) {
-      const diff = Number(matchedPromoRule.threshold || 0) - nonGiftTotal;
+    } else if (activePromoGifts.length === 0 && activeMatchedPromoRules.length === 0) {
+      const minThreshold = Math.min(...matchedPromoRules.map(rule => Number(rule.threshold || 0)));
+      const diff = minThreshold - nonGiftTotal;
       messages.push({ type: 'info', text: `Добавьте товаров ещё на ${diff}₽, чтобы получить подарок по промокоду` });
-    } else if (activePromoGift) {
-      messages.push({
-        type: 'success',
-        text: `Подарок «${activePromoGift.product.cleanName || activePromoGift.product.name}» по промокоду добавлен`,
-      });
+    } else {
+      for (const gift of activePromoGifts) {
+        messages.push({
+          type: 'success',
+          text: `Подарок «${gift.product.cleanName || gift.product.name}» по промокоду добавлен`,
+        });
+      }
     }
   }
 
@@ -99,7 +103,7 @@ export function useCartGifts({ items, promoCode, addItem, removeItem }) {
 
   return {
     messages,
-    isPromoValid: !normalizedCode || !!matchedPromoRule,
+    isPromoValid: !normalizedCode || matchedPromoRules.length > 0,
     loaded,
   };
 }

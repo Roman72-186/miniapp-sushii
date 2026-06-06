@@ -2278,6 +2278,11 @@ function AdminPage() {
             <div style={styles.giftRuleFormTitle}>
               {giftRuleForm.id ? 'Редактировать правило' : (tab === 'promo-gifts' ? 'Новый промокод' : 'Новый порог')}
             </div>
+            {tab === 'promo-gifts' && (
+              <div style={{ ...styles.muted, marginBottom: 10 }}>
+                Чтобы один промокод выдавал несколько подарков, добавьте несколько правил с одинаковым кодом и разными подарками.
+              </div>
+            )}
             <div style={styles.giftRuleGrid}>
               {tab === 'promo-gifts' && (
                 <input
@@ -2346,7 +2351,7 @@ function AdminPage() {
                           {rule.type === 'promo' ? `Промокод ${rule.code}` : `Порог ${rule.threshold}₽`}
                         </div>
                         <div style={styles.giftRuleMeta}>
-                          {rule.type === 'promo' ? `От ${rule.threshold}₽` : 'Автоматически'} · {rule.product?.name || `SKU ${rule.sku}`}
+                          {rule.type === 'promo' ? `От ${rule.threshold}₽ · один подарок из группы кода` : 'Автоматически'} · {rule.product?.name || `SKU ${rule.sku}`}
                         </div>
                       </div>
                       <span style={rule.enabled === false ? styles.giftRuleBadgeOff : styles.giftRuleBadge}>

@@ -71,10 +71,6 @@ const handler = async (req, res) => {
       const { rule, error } = validatePayload(body, type);
       if (error) return res.status(400).json({ error });
 
-      if (type === 'promo' && rules.promoRules.some(item => item.enabled && item.code === rule.code)) {
-        return res.status(400).json({ error: 'Активный промокод с таким кодом уже есть' });
-      }
-
       rules[listKey] = [...rules[listKey], rule];
       writeGiftRules(rules);
       return sendRules(res);
@@ -89,10 +85,6 @@ const handler = async (req, res) => {
       const current = rules[listKey][index];
       const { rule, error } = validatePayload({ ...current, ...body, createdAt: current.createdAt }, type, id);
       if (error) return res.status(400).json({ error });
-
-      if (type === 'promo' && rule.enabled && rules.promoRules.some(item => item.id !== id && item.enabled && item.code === rule.code)) {
-        return res.status(400).json({ error: 'Активный промокод с таким кодом уже есть' });
-      }
 
       rules[listKey][index] = rule;
       writeGiftRules(rules);

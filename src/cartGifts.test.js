@@ -23,6 +23,37 @@ test('добавляет подарок по настраиваемому про
   expect(result.toAdd[0].giftSource).toBe('promo:promo-1');
 });
 
+test('добавляет несколько подарков по одному промокоду', () => {
+  const result = syncCartGifts({
+    items: baseCart,
+    promoCode: 'summer',
+    promoRules: [
+      {
+        id: 'promo-1',
+        type: 'promo',
+        code: 'SUMMER',
+        threshold: 1500,
+        enabled: true,
+        product: { sku: 'GIFT-1', name: 'Подарок 1' },
+      },
+      {
+        id: 'promo-2',
+        type: 'promo',
+        code: 'SUMMER',
+        threshold: 1500,
+        enabled: true,
+        product: { sku: 'GIFT-2', name: 'Подарок 2' },
+      },
+    ],
+    thresholdRules: [],
+  });
+
+  expect(result.toAdd.map(item => item.giftSource)).toEqual([
+    'promo:promo-1',
+    'promo:promo-2',
+  ]);
+});
+
 test('добавляет подарки по нескольким достигнутым порогам', () => {
   const result = syncCartGifts({
     items: baseCart,

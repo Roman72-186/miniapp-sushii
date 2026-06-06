@@ -42,14 +42,16 @@ function appendEligibleOrderGifts(products, promoCode, rulesProvider = getEnrich
   const existingSources = new Set(orderProducts.map(product => String(product.gift_source || product.giftSource || '').trim()).filter(Boolean));
   const existingGiftSkus = new Set(orderProducts.filter(isGiftProduct).map(getProductSku).filter(Boolean));
 
-  const promoRule = promoRules.find(rule =>
-    rule.enabled !== false &&
-    rule.product &&
-    normalizePromoCode(rule.code) === normalizedCode &&
-    total >= Number(rule.threshold || 0)
-  );
+  const activePromoRules = promoRules
+    .filter(rule =>
+      rule.enabled !== false &&
+      rule.product &&
+      normalizePromoCode(rule.code) === normalizedCode &&
+      total >= Number(rule.threshold || 0)
+    )
+    .sort((a, b) => Number(a.threshold) - Number(b.threshold));
 
-  if (promoRule) {
+  for (const promoRule of activePromoRules) {
     const source = `${promoRule.type}:${promoRule.id}`;
     const sku = String(promoRule.product.sku || '');
     if (!existingSources.has(source) && !existingGiftSkus.has(sku)) {
