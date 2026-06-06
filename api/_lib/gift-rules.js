@@ -56,7 +56,7 @@ function readLegacySkus(file) {
 
 function legacyRules() {
   const now = new Date().toISOString();
-  const promoRules = readLegacySkus(LEGACY_PROMO_FILE).slice(0, 1).map((sku, index) => ({
+  const promoRules = readLegacySkus(LEGACY_PROMO_FILE).map((sku, index) => ({
     id: `legacy_promo_${index}_${sku}`,
     type: 'promo',
     code: '102030',
