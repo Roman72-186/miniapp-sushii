@@ -1,6 +1,6 @@
 // src/components/CartPanel.js — Выдвижная панель корзины (тёмная тема)
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import UpsellBlock from './UpsellBlock';
 import OptimizedImage from './OptimizedImage';
 import { describeGiftSource } from '../utils/cartGifts';
@@ -8,6 +8,10 @@ import { reachGoal, YM_GOALS } from '../analytics/metrika';
 
 function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose, onCheckout, onAddItem, promoCode, onPromoCodeChange, promoMessages, isPromoValid }) {
   const trackedPromoRef = useRef('');
+  const [promoDraft, setPromoDraft] = useState(promoCode || '');
+  const appliedPromoCode = String(promoCode || '').trim();
+  const isPromoApplied = !!appliedPromoCode;
+  const normalizedPromoDraft = String(promoDraft || '').trim().toUpperCase();
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -24,6 +28,21 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
     trackedPromoRef.current = code;
     reachGoal(YM_GOALS.PROMO_APPLY_SUCCESS, { promo_type: 'public' });
   }, [promoCode, isPromoValid]);
+
+  useEffect(() => {
+    setPromoDraft(promoCode || '');
+  }, [promoCode]);
+
+  const applyPromoCode = () => {
+    if (!normalizedPromoDraft) return;
+    onPromoCodeChange(normalizedPromoDraft);
+  };
+
+  const clearPromoCode = () => {
+    trackedPromoRef.current = '';
+    setPromoDraft('');
+    onPromoCodeChange('');
+  };
 
   const cartSkus = useMemo(
     () => items.map(i => i.product.sku || i.product.id),
@@ -132,24 +151,35 @@ function CartPanel({ items, total, onUpdateQuantity, onRemove, onClear, onClose,
                     type="text"
                     className="shop-cart__promo-input"
                     placeholder="Промокод"
-                    value={promoCode || ''}
-                    onChange={e => onPromoCodeChange(e.target.value.trim())}
+                    value={isPromoApplied ? appliedPromoCode : promoDraft}
+                    onChange={e => setPromoDraft(e.target.value.toUpperCase())}
+                    disabled={isPromoApplied}
                     maxLength={30}
                     autoComplete="off"
-                    aria-describedby={promoCode ? 'cart-promo-status' : undefined}
-                    aria-invalid={promoCode ? !isPromoValid : undefined}
+                    aria-describedby={isPromoApplied ? 'cart-promo-status' : undefined}
+                    aria-invalid={isPromoApplied ? !isPromoValid : undefined}
                   />
-                  {promoCode && (
+                  {!isPromoApplied && (
+                    <button
+                      type="button"
+                      className="shop-cart__promo-apply"
+                      onClick={applyPromoCode}
+                      disabled={!normalizedPromoDraft}
+                    >
+                      Применить
+                    </button>
+                  )}
+                  {(promoDraft || isPromoApplied) && (
                     <button
                       type="button"
                       className="shop-cart__promo-clear"
-                      onClick={() => onPromoCodeChange('')}
+                      onClick={clearPromoCode}
                       aria-label="Очистить промокод"
                     >
                       &times;
                     </button>
                   )}
-                  {promoCode && (
+                  {isPromoApplied && (
                     <span
                       id="cart-promo-status"
                       className={`shop-cart__promo-status ${isPromoValid ? 'shop-cart__promo-status--ok' : 'shop-cart__promo-status--err'}`}
