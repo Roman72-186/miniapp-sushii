@@ -220,6 +220,12 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
             name: item.product.cleanName || item.product.name,
             price: item.product.price,
             gift_source: item.giftSource || (item.product.gift ? 'subscription' : undefined),
+            gift_category: item.product.category,
+            gift_type: item.product.category === 'gift-rolls'
+              ? 'roll'
+              : item.product.category === 'gift-sets'
+                ? 'set'
+                : undefined,
           })),
           client: {
             name: name.trim(),
