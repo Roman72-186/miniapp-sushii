@@ -72,6 +72,7 @@ const GIFT_CATEGORIES = [
     icon: '🎁',
     jsonUrl: '/подписка 490/rolls-490.json',
     minTarif: '490',
+    allowedTariffs: ['490'],
   },
   {
     id: 'gift-sets',
@@ -80,15 +81,13 @@ const GIFT_CATEGORIES = [
     icon: '🎁',
     jsonUrl: '/подписка 490/sets-490.json',
     minTarif: '1190',
+    allowedTariffs: ['1190', '9990'],
   },
 ];
 
 function isGiftLocked(category, userTarif) {
   if (!userTarif) return true;
-  if (userTarif === '9990') return false;
-
-  const tariffRank = { '290': 1, '490': 2, '1190': 3 };
-  return (tariffRank[String(userTarif)] || 0) < (tariffRank[String(category.minTarif)] || 0);
+  return !category.allowedTariffs?.includes(String(userTarif));
 }
 
 const GIFT_TYPE_LABEL = { 'gift-rolls': 'Ролл', 'gift-sets': 'Сет' };

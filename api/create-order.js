@@ -8,6 +8,7 @@ const { findNearestStore } = require('./_lib/nearest-store');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 const { readGiftRules } = require('./_lib/gift-rules');
 const { appendEligibleOrderGifts } = require('./_lib/order-gifts');
+const { validateSubscriptionGifts } = require('./_lib/subscription-gift-access');
 
 function parseJsonBody(req) {
   try {
@@ -134,6 +135,14 @@ module.exports = async (req, res) => {
       const subscription = deriveFromDbUser(orderUser);
       if (subscription.subscriptionStatus !== 'активно') {
         return res.status(403).json({ success: false, error: 'Для оформления заказа нужна активная подписка' });
+      }
+    }
+
+    if ((body.order_type || 'discount') === 'discount') {
+      const orderUser = await getUser(telegram_id);
+      const giftAccess = validateSubscriptionGifts(products, orderUser);
+      if (!giftAccess.ok) {
+        return res.status(403).json({ success: false, error: giftAccess.error });
       }
     }
 
