@@ -23,8 +23,10 @@ import LandingPage from "./LandingPage";
 import NotFoundPage from "./NotFoundPage"; // страница 404
 import WordlePage from "./WordlePage"; // игра «Пятибуквенное слово»
 import TestCatalogPage from "./TestCatalogPage"; // тестовая страница обычного меню
+import SubscriptionPreviewPage from "./SubscriptionPreviewPage";
 import WebRegistrationPrompt from "./components/WebRegistrationPrompt";
 import MetrikaRouteTracker from "./components/MetrikaRouteTracker";
+import MetrikaClickTracker from "./components/MetrikaClickTracker";
 
 function App() {
   const pathname =
@@ -71,9 +73,12 @@ function App() {
     pathname === "/game";
   const isTestCatalogPage =
     pathname === "/test";
+  const isSubscriptionPreviewPage =
+    pathname === "/subscription-preview";
 
   let page;
-  if (isTestCatalogPage) page = <TestCatalogPage />;
+  if (isSubscriptionPreviewPage) page = <SubscriptionPreviewPage />;
+  else if (isTestCatalogPage) page = <TestCatalogPage />;
   else if (isGamePage) page = <WordlePage />;
   else if (isLoginPage) page = <LoginPage />;
   else if (isBenefitsPage) page = <BenefitsPage />;
@@ -100,6 +105,7 @@ function App() {
   return (
     <>
       <MetrikaRouteTracker />
+      <MetrikaClickTracker />
       {page}
       {showWebRegPrompt && <WebRegistrationPrompt />}
     </>
