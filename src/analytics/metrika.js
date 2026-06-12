@@ -20,6 +20,8 @@ export const YM_GOALS = {
   SUBSCRIPTION_PURCHASE_SUCCESS: 'subscription_purchase_success',
   PROFILE_UPDATE_SUCCESS: 'profile_update_success',
   PARTNER_CODE_APPLY_SUCCESS: 'partner_code_apply_success',
+  UI_CLICK: 'ui_click',
+  NAVIGATION_CLICK: 'navigation_click',
 };
 
 function canUseMetrika() {
