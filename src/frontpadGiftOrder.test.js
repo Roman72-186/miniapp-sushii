@@ -50,6 +50,7 @@ test('отправляет во Frontpad корзину с подарком по
     ],
     client: { name: 'Тест Промокод', phone: '79999999999' },
     payment: 'cash',
+    promoCode: '102030',
     comment: 'Промокод 102030',
   });
 
@@ -57,12 +58,45 @@ test('отправляет во Frontpad корзину с подарком по
   expect(global.fetch).toHaveBeenCalledTimes(1);
 
   const params = frontpadCalls[0].params;
+  expect(params.get('descr')).toContain('PROMO: 102030');
   expect(params.get('product[0]')).toBe('BASE-ROLL-2100');
   expect(params.get('product_kol[0]')).toBe('1');
   expect(params.get('product_price[0]')).toBe('2100');
   expect(params.get('product[1]')).toBe('PROMO-GIFT-ROLL');
   expect(params.get('product_kol[1]')).toBe('1');
   expect(params.get('product_price[1]')).toBe('0');
+});
+
+test('sends paid promo and threshold items in one Frontpad product array', async () => {
+  const frontpadCalls = mockFrontpadSuccess();
+  const { createOrder } = loadFrontpadClient();
+
+  const result = await createOrder({
+    products: [
+      { id: 'PAID-ROLL', quantity: 2, price: 450 },
+      { id: 'PROMO-GIFT-ROLL', quantity: 1, price: 0 },
+      { id: 'THRESHOLD-GIFT-ROLL', quantity: 1, price: 0 },
+    ],
+    client: { name: 'Test Mixed Order', phone: '79999999999' },
+    payment: 'cash',
+    promoCode: '102030',
+    comment: 'Mixed order',
+  });
+
+  expect(result.success).toBe(true);
+  expect(global.fetch).toHaveBeenCalledTimes(1);
+
+  const params = frontpadCalls[0].params;
+  expect(params.get('descr')).toContain('PROMO: 102030');
+  expect(params.get('product[0]')).toBe('PAID-ROLL');
+  expect(params.get('product_kol[0]')).toBe('2');
+  expect(params.get('product_price[0]')).toBe('450');
+  expect(params.get('product[1]')).toBe('PROMO-GIFT-ROLL');
+  expect(params.get('product_kol[1]')).toBe('1');
+  expect(params.get('product_price[1]')).toBe('0');
+  expect(params.get('product[2]')).toBe('THRESHOLD-GIFT-ROLL');
+  expect(params.get('product_kol[2]')).toBe('1');
+  expect(params.get('product_price[2]')).toBe('0');
 });
 
 test('отправляет во Frontpad корзину с подарком за чек больше 2500 с ценой 0', async () => {

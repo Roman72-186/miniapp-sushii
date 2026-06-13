@@ -284,6 +284,7 @@ module.exports = async (req, res) => {
       affiliate: orderAffiliate,
       datetime: datetime || '',
       comment: orderComment,
+      promoCode,
       ...frontpadDiscount,
     });
 
@@ -292,6 +293,10 @@ module.exports = async (req, res) => {
         success: false,
         error: orderResult.error?.message || 'Ошибка создания заказа в Frontpad',
       });
+    }
+
+    if (orderResult.data?.warnings) {
+      console.warn('[ORDER] Frontpad warnings:', JSON.stringify(orderResult.data.warnings));
     }
 
     if (shcToUse > 0 && telegram_id) {
