@@ -169,6 +169,7 @@ async function createOrder(orderData) {
     client,   // { name, phone, street?, home?, apart?, pod?, et? }
     payment,  // 'cash' | 'card' | 'online'
     comment,
+    promoCode,
     datetime, // Время предзаказа (опционально)
     affiliate, // ID точки (stock_id)
     discountPercent, // процентная скидка Frontpad, 1-100
@@ -180,6 +181,14 @@ async function createOrder(orderData) {
   if (phone.length === 11 && phone.startsWith('8')) phone = '7' + phone.slice(1);
   if (phone.length === 10) phone = '7' + phone;
 
+  const descriptionParts = [];
+  const normalizedPromoCode = String(promoCode || '').trim().toUpperCase();
+  if (normalizedPromoCode) {
+    // Frontpad has no separate internal promo-code field, so keep it visible in order notes.
+    descriptionParts.push(`PROMO: ${normalizedPromoCode}`);
+  }
+  if (comment) descriptionParts.push(comment);
+
   const params = {
     name: client.name || '',
     phone,
@@ -188,7 +197,7 @@ async function createOrder(orderData) {
     apart: client.apart || '',
     pod: client.pod || '',
     et: client.et || '',
-    descr: comment || '',
+    descr: descriptionParts.join(' | '),
   };
 
   if (discountPercent) {
@@ -230,6 +239,7 @@ async function createOrder(orderData) {
     data: {
       orderId: result.data.order_id,
       orderNumber: result.data.order_number,
+      warnings: result.data.warnings || null,
     }
   };
 }
