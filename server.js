@@ -65,6 +65,7 @@ app.all('/api/admin/gift-orders', require('./api/admin-gift-orders'));
 app.all('/api/admin/add-product', require('./api/admin-add-product'));
 app.all('/api/admin/referrals', require('./api/admin-referrals'));
 app.all('/api/admin/update-user', require('./api/admin-update-user'));
+app.all('/api/admin/add-shc', require('./api/admin-add-shc'));
 app.get('/api/upsell-items', require('./api/upsell-items'));
 app.post('/api/admin/upsell-toggle', require('./api/admin/upsell-toggle'));
 app.post('/api/admin/upsell-clear', require('./api/admin/upsell-clear'));

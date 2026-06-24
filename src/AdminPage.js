@@ -58,6 +58,8 @@ function AdminPage() {
   const [settingTariff, setSettingTariff] = useState(null); // telegram_id пока идёт смена тарифа
   const [extendingDays, setExtendingDays] = useState({}); // {telegram_id: '5'}
   const [extending, setExtending] = useState(null); // telegram_id пока идёт продление
+  const [shcAmount, setShcAmount] = useState('');
+  const [addingShc, setAddingShc] = useState(null); // telegram_id пока идёт начисление
   // inline смена тарифа с датой: { telegram_id, tariff, end_date }
   const [subEdit, setSubEdit] = useState(null);
   const [dashStats, setDashStats] = useState(null);
@@ -558,6 +560,37 @@ function AdminPage() {
       if (data.success) { loadSubscribers(); setExtendingDays(prev => ({ ...prev, [telegramId]: '' })); }
     } catch (err) { console.error('extendSub error:', err); }
     setExtending(null);
+  };
+
+  // Ручное начисление SHC пользователю
+  const addShc = async (telegramId) => {
+    const amount = Number(shcAmount);
+    if (!Number.isInteger(amount) || amount < 1 || amount > 1000000) {
+      showToast('Введите целое число от 1 до 1 000 000', 'error');
+      return;
+    }
+    if (!window.confirm(`Начислить пользователю ${amount} SHC?`)) return;
+
+    setAddingShc(telegramId);
+    try {
+      const res = await fetch(`${API}/api/admin/add-shc`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ telegram_id: telegramId, amount }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShcAmount('');
+        await loadSubscribers();
+        showToast(`✓ Начислено ${amount} SHC`);
+      } else {
+        showToast(data.error || 'Не удалось начислить SHC', 'error');
+      }
+    } catch (err) {
+      console.error('addShc error:', err);
+      showToast('Ошибка соединения', 'error');
+    }
+    setAddingShc(null);
   };
 
   const showToast = useCallback((text, type = 'success') => {
@@ -2716,6 +2749,51 @@ function AdminPage() {
         >
           ✕
         </button>
+      </div>
+
+      {/* SHC */}
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>💎 Начислить SHC</div>
+        <div style={{ fontSize: 12, color: AP.muted, marginBottom: 8 }}>
+          Текущий баланс: {Math.round(Number(selectedUser.balance_shc) || 0)} SHC
+        </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {[5, 50].map(amount => (
+            <button
+              key={amount}
+              type="button"
+              style={{ ...styles.btnSmall, flex: 1, textAlign: 'center', color: AP.yellow }}
+              onClick={() => setShcAmount(String(amount))}
+              disabled={!!addingShc}
+            >
+              +{amount} SHC
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="number"
+            min="1"
+            max="1000000"
+            step="1"
+            placeholder="Количество SHC"
+            value={shcAmount}
+            onChange={e => setShcAmount(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') addShc(selectedUser.telegram_id); }}
+            style={{ ...styles.daysInput, flex: 1, width: 'auto', fontSize: 14 }}
+            disabled={!!addingShc}
+          />
+          <button
+            style={{ ...styles.extendBtn, padding: '10px 18px', fontSize: 13 }}
+            onClick={() => addShc(selectedUser.telegram_id)}
+            disabled={!!addingShc || !shcAmount}
+          >
+            {addingShc === selectedUser.telegram_id ? '...' : 'Начислить'}
+          </button>
+        </div>
+        <div style={{ fontSize: 11, color: AP.muted, marginTop: 8 }}>
+          5 SHC — награда за игру, 50 SHC — базовый бонус за друга.
+        </div>
       </div>
 
       {/* Подарки — PROMINENTLY */}
