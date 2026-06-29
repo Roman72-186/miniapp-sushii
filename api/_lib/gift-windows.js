@@ -110,7 +110,10 @@ function getCurrentWindow(windows) {
   for (const w of windows) {
     const wStart = parseDDMMYYYY(w.start);
     const wEnd = parseDDMMYYYY(w.end);
-    if (wStart && wEnd && today >= wStart && today < wEnd) {
+    // The end date is the last calendar day when a gift can be claimed.
+    // The window closes at the next UTC midnight after `end`.
+    const closesAt = wEnd ? addDays(wEnd, 1) : null;
+    if (wStart && closesAt && today >= wStart && today < closesAt) {
       return w;
     }
   }
@@ -143,7 +146,8 @@ function computeStatus(windows) {
 
   if (current.status === 'claimed') {
     const wEnd = parseDDMMYYYY(current.end);
-    const daysLeft = wEnd ? Math.ceil((wEnd - today) / 86400000) : 0;
+    const closesAt = wEnd ? addDays(wEnd, 1) : null;
+    const daysLeft = closesAt ? Math.ceil((closesAt - today) / 86400000) : 0;
     return { currentStatus: 'claimed', daysLeft, currentWindow: current.num, totalWindows };
   }
 
