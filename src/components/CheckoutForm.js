@@ -8,6 +8,7 @@ import { PICKUP_POINTS } from '../config/pickupPoints';
 import { getAttributionForRequest } from '../analytics/attribution';
 import { reachGoal, YM_GOALS } from '../analytics/metrika';
 import { trackPurchase } from '../analytics/ecommerce';
+import { getOrderGiftSource, isSubscriptionGiftItem } from '../utils/subscriptionGifts';
 
 /**
  * Формирует datetime строку для Frontpad (YYYY-MM-DD HH:MM:SS)
@@ -219,7 +220,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
             quantity: item.quantity,
             name: item.product.cleanName || item.product.name,
             price: item.product.price,
-            gift_source: item.giftSource || (item.product.gift ? 'subscription' : undefined),
+            gift_source: getOrderGiftSource(item),
             gift_category: item.product.category,
             gift_type: item.product.category === 'gift-rolls'
               ? 'roll'
@@ -276,7 +277,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
       });
 
       // Если в заказе есть подарок — фиксируем его получение (только после успеха Frontpad)
-      const giftItem = items.find(item => item?.product?.gift);
+      const giftItem = items.find(isSubscriptionGiftItem);
       let giftClaim = null;
       if (giftItem && telegramId) {
         try {
