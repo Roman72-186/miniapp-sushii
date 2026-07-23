@@ -127,10 +127,30 @@ async function tryRecurringPayment(user) {
   }
 }
 
+// Инвариант: встроенный setTimeout-крон в server.js и HTTP-эндпоинт
+// /api/cron-subscriptions работают в одном Node-процессе (single-instance
+// деплой без реплик) и вызывают одну и ту же функцию — лок в модуле
+// защищает от параллельного запуска и двойного списания/деактивации.
+let isCronRunning = false;
+
 /**
  * Основная функция cron-задачи
  */
 async function runSubscriptionCron() {
+  if (isCronRunning) {
+    console.warn('cron: already running, skipping concurrent invocation');
+    return { skipped: true };
+  }
+  isCronRunning = true;
+
+  try {
+    return await runSubscriptionCronInner();
+  } finally {
+    isCronRunning = false;
+  }
+}
+
+async function runSubscriptionCronInner() {
   const startTime = Date.now();
   console.log('cron: starting subscription check at', new Date().toISOString());
 

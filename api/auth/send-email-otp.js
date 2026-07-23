@@ -2,6 +2,7 @@
 
 const otpStore = require('./_otp-store');
 const { sendOtpViaEmail } = require('./_email-sender');
+const { getUserByPhone } = require('../_lib/db');
 
 function normalizePhone(raw) {
   const nums = String(raw || '').replace(/\D/g, '');
@@ -28,13 +29,22 @@ module.exports = async (req, res) => {
   }
 
   const phone = normalizePhone(rawPhone);
+  const normalizedEmail = String(email).trim().toLowerCase();
+
+  // Если к номеру уже привязан email — код шлём только на него. Иначе
+  // любой, кто знает чужой телефон, мог бы указать свою почту, получить
+  // код и захватить аккаунт (вход через verify-otp или сброс пароля через
+  // set-password).
+  const existingUser = await getUserByPhone(phone);
+  if (existingUser?.email && existingUser.email.toLowerCase() !== normalizedEmail) {
+    return res.status(403).json({ error: 'На этот номер уже привязан другой email. Обратитесь в поддержку.' });
+  }
 
   if (!otpStore.canResend(phone)) {
     const wait = otpStore.timeUntilResend(phone);
     return res.status(429).json({ error: `Подождите ${wait} сек. перед повторной отправкой` });
   }
 
-  const normalizedEmail = String(email).trim().toLowerCase();
   const code = otpStore.set(phone, normalizedEmail);
   const sent = await sendOtpViaEmail(normalizedEmail, code);
   if (!sent) {
