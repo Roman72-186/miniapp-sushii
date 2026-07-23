@@ -6,6 +6,10 @@ const fs = require('fs');
 const storesPath = path.join(__dirname, '..', '..', 'config', 'stores.json');
 const stores = JSON.parse(fs.readFileSync(storesPath, 'utf8'));
 const { readStates } = require('../stores-config');
+const overridesPath = path.join(__dirname, '..', '..', 'config', 'delivery-zone-overrides.json');
+const deliveryZoneOverrides = fs.existsSync(overridesPath)
+  ? JSON.parse(fs.readFileSync(overridesPath, 'utf8'))
+  : [];
 
 function getActiveStores(states = readStates()) {
   const points = states?.points || {};
@@ -14,6 +18,17 @@ function getActiveStores(states = readStates()) {
 
 function findActiveStoreById(storeId, states = readStates()) {
   return getActiveStores(states).find(store => String(store.id) === String(storeId)) || null;
+}
+
+function normalizeStreet(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/\bул\.?\s*/g, '')
+    .replace(/\bулица\b/g, '')
+    .replace(/[^а-яa-z0-9]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -45,6 +60,25 @@ function findNearestStore(lat, lon, states = readStates()) {
   return nearest;
 }
 
+function findStoreForDelivery(address, lat, lon, states = readStates()) {
+  const normalizedAddress = normalizeStreet(address);
+  const activeStores = getActiveStores(states);
+  const override = deliveryZoneOverrides.find(rule => {
+    const street = normalizeStreet(rule.street);
+    return street && normalizedAddress.includes(street);
+  });
+
+  if (override) {
+    const store = activeStores.find(item => String(item.id) === String(override.storeId));
+    if (store) {
+      const distance = haversine(lat, lon, store.lat, store.lon);
+      return { ...store, distance, distanceText: formatDistance(distance), zoneOverride: true };
+    }
+  }
+
+  return findNearestStore(lat, lon, states);
+}
+
 function findAllSorted(lat, lon, states = readStates()) {
   return getActiveStores(states)
     .map((s) => {
@@ -56,6 +90,7 @@ function findAllSorted(lat, lon, states = readStates()) {
 
 module.exports = {
   findNearestStore,
+  findStoreForDelivery,
   findAllSorted,
   findActiveStoreById,
   getActiveStores,

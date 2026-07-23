@@ -664,6 +664,13 @@ function cancelAutoRenew(telegramId) {
   `).run(String(telegramId));
 }
 
+function getPaymentByYooKassaId(paymentId) {
+  if (!paymentId) return null;
+  return getDb().prepare(
+    'SELECT * FROM payments WHERE yookassa_payment_id = ? ORDER BY created_at ASC LIMIT 1'
+  ).get(String(paymentId)) || null;
+}
+
 /**
  * Деактивировать подписку пользователя
  */
@@ -1082,6 +1089,7 @@ module.exports = {
   getReferrals,
   setInvitedBy,
   recordPayment,
+  getPaymentByYooKassaId,
   recordTransaction,
   getTransactions,
   getTotalEarnings,

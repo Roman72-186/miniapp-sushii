@@ -39,6 +39,28 @@ afterEach(() => {
   jest.resetModules();
 });
 
+test('показывает понятное сообщение, когда кассовая смена Frontpad закрыта', async () => {
+  global.fetch = jest.fn(async () => ({
+    ok: true,
+    json: async () => ({ result: 'error', error: 'cash_close' }),
+  }));
+  const { createOrder } = loadFrontpadClient();
+
+  const result = await createOrder({
+    products: [{ id: 'ROLL-1', quantity: 1, price: 500 }],
+    client: { name: 'Тест', phone: '79999999999' },
+    payment: 'cash',
+  });
+
+  expect(result).toEqual({
+    success: false,
+    error: {
+      code: 'cash_close',
+      message: 'Выбранный филиал сейчас не принимает заказы: кассовая смена закрыта. Попробуйте позже или свяжитесь с рестораном.',
+    },
+  });
+});
+
 test('отправляет во Frontpad корзину с подарком по промокоду с ценой 0', async () => {
   const frontpadCalls = mockFrontpadSuccess();
   const { createOrder } = loadFrontpadClient();

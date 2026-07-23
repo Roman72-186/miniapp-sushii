@@ -1,7 +1,7 @@
 // api/nearest-store.js — Определение ближайшего пункта по адресу или координатам
 
 const { geocode } = require('./_lib/geocoder');
-const { findNearestStore, findAllSorted } = require('./_lib/nearest-store');
+const { findStoreForDelivery, findAllSorted } = require('./_lib/nearest-store');
 
 module.exports = async (req, res) => {
   const allowedOrigins = ['https://sushi-house-39.ru', 'http://localhost:3000'];
@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Укажите address или lat+lon' });
     }
 
-    const nearest = findNearestStore(userLat, userLon);
+    const nearest = findStoreForDelivery(address || formatted, userLat, userLon);
     const all = findAllSorted(userLat, userLon);
 
     return res.status(200).json({

@@ -61,6 +61,7 @@ async function frontpadRequest(method, params = {}) {
         'api_off': 'API Frontpad выключен',
         'invalid_plant': 'API недоступен на текущем тарифе',
         'invalidclientphone': 'Неверный формат номера телефона',
+        'cash_close': 'Выбранный филиал сейчас не принимает заказы: кассовая смена закрыта. Попробуйте позже или свяжитесь с рестораном.',
       };
       return {
         success: false,

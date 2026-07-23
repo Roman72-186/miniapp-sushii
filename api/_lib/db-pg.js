@@ -264,6 +264,15 @@ async function recordPayment(data) {
   return res.rows[0].id;
 }
 
+async function getPaymentByYooKassaId(paymentId) {
+  if (!paymentId) return null;
+  const res = await query(
+    'SELECT * FROM payments WHERE yookassa_payment_id = $1 ORDER BY created_at ASC LIMIT 1',
+    [String(paymentId)]
+  );
+  return res.rows[0] || null;
+}
+
 // ─── Transactions ────────────────────────────────────────────
 
 async function recordTransaction(data, client) {
@@ -994,6 +1003,7 @@ module.exports = {
   getReferrals,
   setInvitedBy,
   recordPayment,
+  getPaymentByYooKassaId,
   getLastPayment,
   recordTransaction,
   getTransactions,

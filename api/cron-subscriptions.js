@@ -18,7 +18,6 @@ const {
 const { getPriceTable } = require('./admin-pricing');
 const { sendRenewalReminderEmail } = require('./_lib/email-notifications');
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
 
@@ -44,19 +43,9 @@ function formatDate(date) {
  * Отправить сообщение в Telegram
  */
 async function sendMessage(telegramId, text, replyMarkup) {
-  if (!BOT_TOKEN) return;
-  const body = { chat_id: telegramId, text, parse_mode: 'HTML' };
-  if (replyMarkup) body.reply_markup = replyMarkup;
-
-  try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    console.error(`cron: failed to send message to ${telegramId}:`, err.message);
-  }
+  // Приложение больше не использует Telegram. Сохраняем вызовы в кроне как
+  // no-op, чтобы не менять платёжный flow и гарантированно не слать сообщения.
+  return undefined;
 }
 
 /**
@@ -120,7 +109,9 @@ async function tryRecurringPayment(user) {
     const data = await res.json();
 
     if (data.status === 'succeeded') {
-      return { success: true, paymentId: data.id, amount };
+      // Даже мгновенно успешный платёж дальше обрабатывает webhook. Иначе
+      // cron и webhook одновременно продлят подписку дважды.
+      return { success: true, pending: true, paymentId: data.id, amount };
     }
 
     // Если pending — webhook обработает позже

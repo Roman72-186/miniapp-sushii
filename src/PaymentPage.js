@@ -102,12 +102,7 @@ function PaymentPage() {
         months: tariff.oneTime ? 1 : months,
         value: priceTable?.[tarifKey]?.[tariff.oneTime ? 1 : months] || undefined,
       });
-      const tg = window.Telegram?.WebApp;
-      if (tg?.openLink) {
-        tg.openLink(data.confirmation_url);
-      } else {
-        window.location.href = data.confirmation_url;
-      }
+      window.location.assign(data.confirmation_url);
     } catch (err) {
       setError('Ошибка сети. Проверьте подключение и попробуйте снова.');
       setSubmitting(false);
