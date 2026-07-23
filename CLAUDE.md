@@ -5,7 +5,7 @@
 ---
 # CLAUDE.md
 
-Канонический файл инструкций для этого проекта: [AGENTS.md](C:/Users/User/Desktop/Project/miniapp-sushii/AGENTS.md).
+Канонический файл инструкций для этого проекта: [AGENTS.md](AGENTS.md).
 
 Роли файлов:
 
