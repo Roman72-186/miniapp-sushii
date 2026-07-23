@@ -6,14 +6,14 @@
       "command": ["npx", "-y", "@testsprite/testsprite-mcp@latest"],
       "enabled": true,
       "environment": {
-        "API_KEY": "***REMOVED-TESTSPRITE-KEY***",
+        "API_KEY": "{env:TESTSPRITE_API_KEY}",
       }
     },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "headers": {
-        "CONTEXT7_API_KEY": "***REMOVED-CONTEXT7-KEY***"
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
       },
       "enabled": true
     }
