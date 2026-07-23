@@ -6,6 +6,7 @@ import { TARIFF_DATA } from './config/tariffs';
 import { usePricing } from './hooks/usePricing';
 import { getAttributionForRequest } from './analytics/attribution';
 import { reachGoal, YM_GOALS } from './analytics/metrika';
+import { getAuthHeader } from './utils/webAuth';
 import './shop.css';
 
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
@@ -76,7 +77,7 @@ function PaymentPage() {
     try {
       const resp = await fetch('/api/create-payment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({
           telegram_id: telegramId,
           tarif: tarifKey,

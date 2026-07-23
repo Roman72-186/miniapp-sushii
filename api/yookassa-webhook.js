@@ -2,7 +2,7 @@
 
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { frontpadRequest } = require('./_lib/frontpad');
-const { getUser, upsertUser, recordPayment, processReferralSHC } = require('./_lib/db');
+const { getUser, upsertUser, recordPayment, getPaymentByYooKassaId, processReferralSHC } = require('./_lib/db');
 
 // ID подписок во Frontpad
 const TARIF_PRODUCT_ID = {
@@ -11,9 +11,6 @@ const TARIF_PRODUCT_ID = {
   '1190': '1178',
   '9990': '1215',
 };
-
-// YooKassa IP ranges (для проверки подлинности)
-const YOOKASSA_CIDRS = ['185.71.76.', '185.71.77.'];
 
 /**
  * Форматирует дату в DD.MM.YYYY
@@ -69,7 +66,22 @@ module.exports = async (req, res) => {
       return res.status(200).json({ status: 'ignored', event });
     }
 
-    const payment = body.object || {};
+    const rawPaymentId = body.object?.id;
+    if (!rawPaymentId) {
+      console.error('webhook: missing payment id in body');
+      return res.status(200).json({ status: 'ignored', reason: 'no payment id' });
+    }
+
+    // Тело webhook приходит от клиента без проверки подлинности (IP легко подделать
+    // через X-Forwarded-For за обратным прокси). Поэтому не доверяем ни метаданным,
+    // ни сумме из body — запрашиваем платёж напрямую у YooKassa по его ID и работаем
+    // только с проверенным ответом API.
+    const payment = await verifyPayment(rawPaymentId);
+    if (!payment || payment.status !== 'succeeded') {
+      console.error('webhook: payment verification failed', { paymentId: rawPaymentId });
+      return res.status(403).json({ error: 'Payment verification failed' });
+    }
+
     const paymentMethodId = payment.payment_method?.id;
     const telegramId = payment.metadata?.telegram_id;
     const tarif = payment.metadata?.tarif;
@@ -81,18 +93,12 @@ module.exports = async (req, res) => {
       return res.status(200).json({ status: 'ignored', reason: 'no metadata' });
     }
 
-    // Проверка IP отправителя
-    const forwardedFor = req.headers['x-forwarded-for'] || '';
-    const clientIp = forwardedFor.split(',')[0].trim();
-    const isYooKassaIp = YOOKASSA_CIDRS.some(cidr => clientIp.startsWith(cidr));
-
-    // Если IP не из диапазона YooKassa — верифицируем платёж через API
-    if (!isYooKassaIp) {
-      const verified = await verifyPayment(payment.id);
-      if (!verified || verified.status !== 'succeeded') {
-        console.error('webhook: payment verification failed', { paymentId: payment.id, clientIp });
-        return res.status(403).json({ error: 'Payment verification failed' });
-      }
+    // YooKassa может повторно доставить один и тот же webhook. Не продлеваем
+    // подписку и не создаём повторный заказ, если этот платёж уже обработан.
+    const existingPayment = await getPaymentByYooKassaId(payment.id);
+    if (existingPayment) {
+      console.log('webhook: duplicate payment ignored', { paymentId: payment.id });
+      return res.status(200).json({ status: 'already_processed' });
     }
 
     const isOneTime = String(tarif) === '9990';

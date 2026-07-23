@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
+import { getAuthHeader } from './utils/webAuth';
 import { reachGoal, reachGoalOnce, YM_GOALS } from './analytics/metrika';
 import './shop.css';
 
@@ -62,7 +63,7 @@ function PartnerCodePage() {
     try {
       const res = await fetch('/api/apply-partner-code', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ telegram_id: telegramId, code: trimmed }),
       });
       const data = await res.json();

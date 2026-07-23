@@ -1,31 +1,23 @@
 // api/get-referrals.js — Получение рефералов из SQLite
 
-const { getUser, getReferrals: getDbReferrals } = require('./_lib/db');
+const { getReferrals: getDbReferrals } = require('./_lib/db');
+const { authMiddleware } = require('./_lib/auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { contact_id, telegram_id } = req.body || {};
+  let authorized = false;
+  authMiddleware(req, res, () => { authorized = true; });
+  if (!authorized) return;
+
+  const tgId = req.userId;
 
   try {
-    // Определяем telegram_id (можно передать напрямую или через contact_id)
-    let tgId = telegram_id;
-
-    if (!tgId && contact_id) {
-      const { getUserByContactId } = require('./_lib/db');
-      const user = await getUserByContactId(contact_id);
-      if (user) tgId = user.telegram_id;
-    }
-
-    if (!tgId) {
-      return res.status(400).json({ error: 'telegram_id или contact_id обязателен' });
-    }
-
     // Получаем рефералов из SQLite
     const referrals = await getDbReferrals(tgId);
 

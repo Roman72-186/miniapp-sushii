@@ -1,7 +1,7 @@
 // src/UserContext.js — Контекст пользователя
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { WEB_TOKEN_KEY, clearWebAuth, saveWebAuth } from './utils/webAuth';
+import { WEB_TOKEN_KEY, clearWebAuth, saveWebAuth, getAuthHeader } from './utils/webAuth';
 
 const UserContext = createContext(null);
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
@@ -76,7 +76,7 @@ export function UserProvider({ children }) {
     setLoading(true);
     return fetch('/api/sync-user', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify({ telegram_id: telegramId, force, tg_name: tgUser?.name || webAuth?.name || null }),
     })
       .then(r => r.json())
@@ -145,7 +145,7 @@ export function UserProvider({ children }) {
     if (pendingInvitedBy && telegramId && String(pendingInvitedBy) !== String(telegramId)) {
       fetch('/api/register-referral', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({ telegram_id: telegramId, invited_by: pendingInvitedBy }),
       })
         .then(r => r.json())

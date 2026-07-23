@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUser } from './UserContext';
+import { getAuthHeader } from './utils/webAuth';
 import './shop.css';
 import BrandLoader from './components/BrandLoader';
 
@@ -30,7 +31,7 @@ function SettingsPage() {
     setCancelLoading(true);
     fetch('/api/cancel-subscription', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify({ telegram_id: telegramId, contact_id: profile.contact_id }),
     })
       .then(r => r.json())

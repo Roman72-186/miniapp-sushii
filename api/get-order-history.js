@@ -1,16 +1,20 @@
 // api/get-order-history.js — История всех заказов пользователя
 
 const { getOrderHistory } = require('./_lib/db');
+const { authMiddleware } = require('./_lib/auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const telegram_id = req.query?.telegram_id || req.body?.telegram_id;
-  if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
+  let authorized = false;
+  authMiddleware(req, res, () => { authorized = true; });
+  if (!authorized) return;
+
+  const telegram_id = req.userId;
 
   try {
     const orders = await getOrderHistory(telegram_id, 50);

@@ -1,4 +1,5 @@
 const { getOrderRatingRows } = require('./_lib/db');
+const { authMiddleware } = require('./_lib/auth');
 
 function clampDays(value) {
   const n = Number(value);
@@ -53,15 +54,18 @@ function publicRatingRow(row, rank, activeUsers) {
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Метод не поддерживается' });
   }
 
-  const userId = req.query?.telegram_id || req.body?.telegram_id || req.query?.user_id || req.body?.user_id;
-  if (!userId) return res.status(400).json({ error: 'telegram_id обязателен' });
+  let authorized = false;
+  authMiddleware(req, res, () => { authorized = true; });
+  if (!authorized) return;
+
+  const userId = req.userId;
 
   try {
     const days = clampDays(req.query?.days || req.body?.days);

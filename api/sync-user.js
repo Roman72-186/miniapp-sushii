@@ -6,19 +6,24 @@ const { getUser, upsertUser, generatePartnerCode, getPartnerByCode } = require('
 const { readGiftWindows } = require('./_lib/blob-store');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 const { supabase } = require('./_lib/supabase');
+const { authMiddleware } = require('./_lib/auth');
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 минут
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || 'https://sushii-miniapp.vercel.app');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, force, tg_name } = req.body || {};
-  if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
+  let authorized = false;
+  authMiddleware(req, res, () => { authorized = true; });
+  if (!authorized) return;
+
+  const telegram_id = req.userId;
+  const { force, tg_name } = req.body || {};
 
   // 🔍 DEBUG: Логируем входящий запрос
   console.log('[sync-user] Запрос:', { telegram_id, force, tg_name: tg_name ? 'exists' : 'empty' });

@@ -4,6 +4,7 @@
 const crypto = require('crypto');
 const { getPriceTable } = require('./admin-pricing');
 const { getUser, upsertUser } = require('./_lib/db');
+const { getAuthenticatedUserId } = require('./_lib/auth');
 
 const VALID_TARIFS = ['290', '490', '1190', '9990'];
 const VALID_MONTHS = [1, 3, 5];
@@ -40,13 +41,22 @@ function sanitizeAttribution(input) {
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
   const { telegram_id, tarif, months, phone: reqPhone, name: reqName } = req.body || {};
   const attribution = sanitizeAttribution(req.body?.attribution);
+
+  // telegram_id опционален (гостевой чекаут по телефону), но если он заявлен —
+  // это уже существующий аккаунт, платёж от его имени должен подтверждаться JWT.
+  if (telegram_id) {
+    const authedUserId = getAuthenticatedUserId(req);
+    if (!authedUserId || String(authedUserId) !== String(telegram_id)) {
+      return res.status(401).json({ error: 'Требуется авторизация' });
+    }
+  }
 
   if (!tarif || !VALID_TARIFS.includes(String(tarif))) {
     return res.status(400).json({ error: 'Некорректный тариф' });

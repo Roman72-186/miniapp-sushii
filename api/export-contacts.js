@@ -1,13 +1,15 @@
-// api/export-contacts.js — Экспорт всех пользователей из SQLite
+// api/export-contacts.js — Экспорт всех пользователей из SQLite (только для админки)
 
 const { getAllUsers } = require('./_lib/db');
+const { checkAuth } = require('./_lib/admin-auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (!checkAuth(req, res)) return;
 
   try {
     const users = await getAllUsers();

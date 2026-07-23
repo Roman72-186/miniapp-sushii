@@ -1,21 +1,27 @@
 // api/apply-partner-code.js — Применение партнёрского кода после покупки подписки
 
 const { getUser, getPartnerByCode, setInvitedBy, updateBalance, getLastPayment } = require('./_lib/db');
+const { authMiddleware } = require('./_lib/auth');
 const fs = require('fs');
 const path = require('path');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, code } = req.body || {};
+  let authorized = false;
+  authMiddleware(req, res, () => { authorized = true; });
+  if (!authorized) return;
 
-  if (!telegram_id || !code) {
-    return res.status(400).json({ error: 'telegram_id и code обязательны' });
+  const telegram_id = req.userId;
+  const { code } = req.body || {};
+
+  if (!code) {
+    return res.status(400).json({ error: 'code обязателен' });
   }
 
   const cleanCode = String(code).trim().toUpperCase();

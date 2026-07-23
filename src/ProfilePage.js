@@ -10,6 +10,7 @@ import EditProfileModal from './components/EditProfileModal';
 import GiftPeriodsHistory from './components/GiftPeriodsHistory';
 import UserAvatar from './components/UserAvatar';
 import { useOrderRating } from './hooks/useOrderRating';
+import { getAuthHeader } from './utils/webAuth';
 
 function ProfilePage() {
   useEffect(() => {
@@ -71,7 +72,7 @@ function ProfilePage() {
     const body = telegramId ? { telegram_id: telegramId } : { contact_id: contactId };
     fetch('/api/get-referrals', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify(body),
     })
       .then(r => r.ok ? r.json() : null)
@@ -83,7 +84,7 @@ function ProfilePage() {
     if (!telegramId) return;
     fetch('/api/get-transactions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
       body: JSON.stringify({ telegram_id: telegramId }),
     })
       .then(r => r.ok ? r.json() : null)
@@ -108,7 +109,7 @@ function ProfilePage() {
 
   useEffect(() => {
     if (!telegramId) { setOrderHistory([]); return; }
-    fetch(`/api/get-order-history?telegram_id=${telegramId}`)
+    fetch(`/api/get-order-history?telegram_id=${telegramId}`, { headers: getAuthHeader() })
       .then(r => r.ok ? r.json() : null)
       .then(data => setOrderHistory(data?.success ? data.orders : []))
       .catch(() => setOrderHistory([]));
@@ -386,7 +387,7 @@ function ProfilePage() {
                 setVipLoading(true);
                 fetch('/api/check-vip', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
                   body: JSON.stringify({ telegram_id: telegramId }),
                 })
                   .then(r => r.json())

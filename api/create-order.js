@@ -4,11 +4,12 @@ const { createOrder } = require('./_lib/frontpad');
 const { readUserCache } = require('./_lib/user-cache');
 const { getUser, updateBalance, insertOrder } = require('./_lib/db');
 const { geocode } = require('./_lib/geocoder');
-const { findNearestStore } = require('./_lib/nearest-store');
+const { findStoreForDelivery } = require('./_lib/nearest-store');
 const { deriveFromDbUser } = require('./_lib/subscription-state');
 const { readGiftRules } = require('./_lib/gift-rules');
 const { appendEligibleOrderGifts } = require('./_lib/order-gifts');
 const { validateSubscriptionGifts } = require('./_lib/subscription-gift-access');
+const { getAuthenticatedUserId } = require('./_lib/auth');
 
 function parseJsonBody(req) {
   try {
@@ -85,7 +86,7 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -117,6 +118,16 @@ module.exports = async (req, res) => {
       pickup_point_id,
       shc_used,
     } = body;
+
+    // telegram_id опционален (гостевой заказ без подписки), но если он заявлен,
+    // должен быть подтверждён собственным JWT — иначе можно оформить заказ,
+    // списать чужие SHC-баллы или подделать историю заказов от имени другого юзера.
+    if (telegram_id) {
+      const authedUserId = getAuthenticatedUserId(req);
+      if (!authedUserId || String(authedUserId) !== String(telegram_id)) {
+        return res.status(401).json({ success: false, error: 'Требуется авторизация' });
+      }
+    }
 
     if (!products || !products.length) {
       return res.status(400).json({ success: false, error: 'Корзина пуста' });
@@ -181,34 +192,44 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Некорректный номер телефона. Формат: +7XXXXXXXXXX' });
     }
 
-    let orderAffiliate = affiliate || '';
+    // Для доставки affiliate из браузера не используется: в UI может успеть
+    // остаться результат геокодирования от предыдущего адреса.
+    let orderAffiliate = isPickup ? (affiliate || '') : '';
     console.log(
       `[ORDER] type=${delivery_type}, affiliate_from_frontend="${affiliate}", pickup_point_id="${pickup_point_id || ''}", street="${client.street || ''}"`
     );
 
     if (!isPickup) {
-      if (orderAffiliate) {
-        console.log(`[ORDER] Using frontend affiliate: ${orderAffiliate}`);
-      } else if (client.street) {
+      if (client.street) {
         try {
           const addr = [client.street, client.home].filter(Boolean).join(', ');
           console.log(`[ORDER] Geocoding address: "${addr}"`);
           const geo = await geocode(addr);
-          if (geo) {
-            console.log(`[ORDER] Geocoded: lat=${geo.lat}, lon=${geo.lon}, formatted="${geo.formatted}"`);
-            const nearest = findNearestStore(geo.lat, geo.lon);
-            if (nearest) {
-              orderAffiliate = nearest.affiliate;
-              console.log(`[ORDER] Nearest store: ${nearest.name} (${nearest.distanceText}), affiliate=${nearest.affiliate}`);
-            }
-          } else {
+          if (!geo) {
             console.log(`[ORDER] Geocode returned null for "${addr}"`);
+            return res.status(400).json({
+              success: false,
+              error: 'Не удалось определить зону доставки. Проверьте адрес или выберите улицу из подсказок.'
+            });
           }
+
+          console.log(`[ORDER] Geocoded: lat=${geo.lat}, lon=${geo.lon}, formatted="${geo.formatted}"`);
+          const nearest = findStoreForDelivery(addr, geo.lat, geo.lon);
+          if (!nearest) {
+            return res.status(500).json({ success: false, error: 'Не удалось определить филиал для доставки' });
+          }
+
+          orderAffiliate = nearest.affiliate;
+          console.log(`[ORDER] Nearest store: ${nearest.name} (${nearest.distanceText}), affiliate=${nearest.affiliate}`);
         } catch (geoErr) {
           console.error('[ORDER] Geocode error:', geoErr.message);
+          return res.status(502).json({
+            success: false,
+            error: 'Не удалось определить зону доставки. Попробуйте оформить заказ ещё раз.'
+          });
         }
       } else {
-        console.log('[ORDER] No street provided, skipping geocode');
+        return res.status(400).json({ success: false, error: 'Укажите адрес доставки' });
       }
     }
 
@@ -289,6 +310,15 @@ module.exports = async (req, res) => {
     });
 
     if (!orderResult.success) {
+      console.warn('[ORDER] Frontpad rejected:', JSON.stringify({
+        code: orderResult.error?.code || 'UNKNOWN',
+        product_ids: orderProducts
+          .map(product => String(product.frontpad_id || product.frontpadId || product.sku || product.product_id || product.id || ''))
+          .filter(Boolean)
+          .slice(0, 50),
+        affiliate: orderAffiliate || '',
+        delivery_type: isPickup ? 'pickup' : 'delivery',
+      }));
       return res.status(500).json({
         success: false,
         error: orderResult.error?.message || 'Ошибка создания заказа в Frontpad',

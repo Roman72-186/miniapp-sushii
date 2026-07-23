@@ -2,21 +2,35 @@
 // Очищает payment_method_id и запоминает, что пользователь отключил автосписание.
 
 const { getUser, cancelAutoRenew } = require('./_lib/db');
-const { writeUserCache } = require('./_lib/user-cache');
+const { authMiddleware } = require('./_lib/auth');
+
+function clearAutoRenewCache(telegramId) {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const cachePath = path.join(__dirname, '..', 'data', 'users', `${telegramId}.json`);
+    if (fs.existsSync(cachePath)) {
+      fs.unlinkSync(cachePath);
+      console.log('[cancel-subscription] Кэш автопродления очищен:', cachePath);
+    }
+  } catch (e) {
+    console.error('[cancel-subscription] Ошибка очистки кэша:', e.message);
+  }
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id, contact_id } = req.body || {};
+  let authorized = false;
+  authMiddleware(req, res, () => { authorized = true; });
+  if (!authorized) return;
 
-  if (!telegram_id) {
-    return res.status(400).json({ error: 'telegram_id обязателен' });
-  }
+  const telegram_id = req.userId;
 
   try {
     const user = await getUser(telegram_id);
@@ -29,6 +43,8 @@ module.exports = async (req, res) => {
 
     // Если метода оплаты уже нет, всё равно фиксируем намерение пользователя на будущее.
     if (!user.payment_method_id && autoRenewDisabled) {
+      // Старый кэш мог всё ещё содержать PaymentID. Удаляем его и при повторной отмене.
+      clearAutoRenewCache(telegram_id);
       return res.status(200).json({
         success: true,
         already_inactive: true,
@@ -47,18 +63,8 @@ module.exports = async (req, res) => {
     // Убираем payment_method_id и ставим флаг отмены — подписка остаётся активной до конца срока
     await cancelAutoRenew(telegram_id);
 
-    // Очищаем кэш пользователя (чтобы изменения применились сразу)
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const cachePath = path.join(__dirname, '..', 'data', 'users', `${telegram_id}.json`);
-      if (fs.existsSync(cachePath)) {
-        fs.unlinkSync(cachePath);
-        console.log('[cancel-subscription] Кэш очищен:', cachePath);
-      }
-    } catch (e) {
-      console.error('[cancel-subscription] Ошибка очистки кэша:', e.message);
-    }
+    // Удаляем и файловый кэш, в котором legacy-версии хранили PaymentID.
+    clearAutoRenewCache(telegram_id);
 
     // TODO: Здесь можно добавить отправку уведомления в WatBot
     // Например: await sendBotMessage(telegram_id, 'Ваша подписка отменена...');

@@ -1,17 +1,21 @@
 // api/get-transactions.js — История начислений: комиссии (амбассадоры) + SHC бонусы (все)
 
 const { getTransactions, getTotalEarnings, getUser, getReferralBonuses, getReferrals } = require('./_lib/db');
+const { authMiddleware } = require('./_lib/auth');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
-  const { telegram_id } = req.body || {};
-  if (!telegram_id) return res.status(400).json({ error: 'telegram_id обязателен' });
+  let authorized = false;
+  authMiddleware(req, res, () => { authorized = true; });
+  if (!authorized) return;
+
+  const telegram_id = req.userId;
 
   try {
     const user = await getUser(telegram_id);

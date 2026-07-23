@@ -29,6 +29,23 @@ function authMiddleware(req, res, next) {
 }
 
 /**
+ * Возвращает userId из Bearer-токена без ответа 401 — для эндпоинтов,
+ * где identity опциональна (гостевой чекаут), но если она заявлена
+ * в теле запроса, должна быть подтверждена собственным JWT.
+ */
+function getAuthenticatedUserId(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  const token = authHeader.split(' ')[1];
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    return payload.userId || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
  * Генерация JWT токена
  */
 function generateToken(user) {
@@ -56,6 +73,7 @@ function generateRefreshToken(user) {
 
 module.exports = {
   authMiddleware,
+  getAuthenticatedUserId,
   generateToken,
   generateRefreshToken,
   JWT_SECRET,

@@ -9,6 +9,7 @@ import { getAttributionForRequest } from '../analytics/attribution';
 import { reachGoal, YM_GOALS } from '../analytics/metrika';
 import { trackPurchase } from '../analytics/ecommerce';
 import { getOrderGiftSource, isSubscriptionGiftItem } from '../utils/subscriptionGifts';
+import { getAuthHeader } from '../utils/webAuth';
 
 /**
  * Формирует datetime строку для Frontpad (YYYY-MM-DD HH:MM:SS)
@@ -141,10 +142,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
     return () => { if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current); };
   }, [street, deliveryType, streetConfirmed, fetchSuggestions]);
 
-  // Определение ближайшей точки: только после подтверждённой улицы + заполненного дома
+  // Проверяем улицу и дом через сервер, даже если адрес вставлен автозаполнением браузера.
   const nearestTimerRef = useRef(null);
   const fetchNearestStore = useCallback(async (addr) => {
-    if (!addr || addr.length < 3) { setNearestStore(null); return; }
+    if (!addr || addr.length < 3) {
+      setNearestStore(null);
+      setStreetConfirmed(false);
+      return null;
+    }
     setNearestLoading(true);
     try {
       const res = await fetch('/api/nearest-store', {
@@ -153,9 +158,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
         body: JSON.stringify({ address: addr }),
       });
       const data = await res.json();
-      setNearestStore(data.success && data.nearest ? data.nearest : null);
+      const nearest = data.success && data.nearest ? data.nearest : null;
+      setNearestStore(nearest);
+      setStreetConfirmed(Boolean(nearest));
+      return nearest;
     } catch {
       setNearestStore(null);
+      setStreetConfirmed(false);
+      return null;
     } finally {
       setNearestLoading(false);
     }
@@ -163,12 +173,15 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
 
   useEffect(() => {
     if (deliveryType !== 'delivery') { setNearestStore(null); return; }
-    if (!streetConfirmed || !home.trim()) { setNearestStore(null); return; }
+    if (street.trim().length < 2 || !home.trim()) {
+      setNearestStore(null);
+      return;
+    }
     const addr = `${street.trim()}, ${home.trim()}`;
     if (nearestTimerRef.current) clearTimeout(nearestTimerRef.current);
     nearestTimerRef.current = setTimeout(() => fetchNearestStore(addr), 500);
     return () => { if (nearestTimerRef.current) clearTimeout(nearestTimerRef.current); };
-  }, [street, home, deliveryType, streetConfirmed, fetchNearestStore]);
+  }, [street, home, deliveryType, fetchNearestStore]);
 
   const handleSuggestPick = (item) => {
     // Извлекаем только улицу из формата "Россия, Калининград, улица Багратиона, 100"
@@ -186,6 +199,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setError(null);
+    let resolvedNearestStore = nearestStore;
 
     if (!name.trim()) { setError('Укажите имя'); return; }
     if (!phone.trim()) { setError('Укажите телефон'); return; }
@@ -198,9 +212,14 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
 
     if (deliveryType === 'delivery') {
       if (!street.trim()) { setError('Укажите улицу'); return; }
-      if (!streetConfirmed) { setError('Выберите улицу из списка подсказок'); return; }
       if (!home.trim()) { setError('Укажите номер дома'); return; }
-      if (!nearestStore) { setError('Не удалось определить пункт для доставки — проверьте адрес'); return; }
+      if (!resolvedNearestStore) {
+        resolvedNearestStore = await fetchNearestStore(`${street.trim()}, ${home.trim()}`);
+      }
+      if (!resolvedNearestStore) {
+        setError('Не удалось распознать улицу и дом — проверьте адрес');
+        return;
+      }
     } else {
       if (!storesConfigLoaded) { setError('Не удалось загрузить доступные точки самовывоза'); return; }
       if (!selectedPickup) { setError('Самовывоз временно недоступен'); return; }
@@ -216,7 +235,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
 
       const res = await fetch('/api/create-order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify({
           products: items.map(item => ({
             id: item.product.sku || item.product.frontpadId || item.product.id,
@@ -245,7 +264,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           delivery_type: deliveryType,
           affiliate: deliveryType === 'pickup'
             ? selectedPickup?.affiliate || ''
-            : nearestStore?.affiliate || '',
+            : resolvedNearestStore?.affiliate || '',
           pickup_point_id: deliveryType === 'pickup' ? selectedPickup?.id || '' : '',
           pickup_point_address: deliveryType === 'pickup' ? pickupAddress : '',
           datetime: timeType === 'scheduled' ? buildDatetime(scheduledTime) : '',
@@ -287,7 +306,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
         try {
           const claimRes = await fetch('/api/claim-gift', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
             body: JSON.stringify({
               telegram_id: telegramId,
               address: deliveryType === 'pickup' ? selectedPickup?.address || null : null,
@@ -553,7 +572,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
                       }}
                       onFocus={() => setSuggestOpen(true)}
                       onBlur={() => setTimeout(() => setSuggestOpen(false), 200)}
-                      autoComplete="off"
+                      autoComplete="address-line1"
                       required
                       aria-required="true"
                       role="combobox"
@@ -593,7 +612,10 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
                       type="text"
                       placeholder="Дом"
                       value={home}
-                      onChange={e => setHome(e.target.value)}
+                      onChange={e => {
+                        setHome(e.target.value);
+                        setNearestStore(null);
+                      }}
                       required
                       aria-required="true"
                       autoComplete="address-line2"
