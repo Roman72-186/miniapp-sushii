@@ -44,6 +44,13 @@ async function ensureMigrations() {
     await pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS attribution_json TEXT');
     await pool.query('ALTER TABLE payments ADD COLUMN IF NOT EXISTS attribution_json TEXT');
 
+    // Гонка идемпотентности вебхука YooKassa — см. пояснение в db.js рядом с этим же индексом.
+    try {
+      await pool.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_yookassa_unique ON payments(yookassa_payment_id)');
+    } catch (e) {
+      console.error('[db-pg] не удалось создать UNIQUE-индекс payments.yookassa_payment_id (возможны дубликаты в данных):', e.message);
+    }
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS email_notifications_log (
         id SERIAL PRIMARY KEY,

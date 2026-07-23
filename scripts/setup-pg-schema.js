@@ -78,6 +78,7 @@ const INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_users_phone      ON users(phone)`,
   `CREATE INDEX IF NOT EXISTS idx_users_partner    ON users(partner_code)`,
   `CREATE INDEX IF NOT EXISTS idx_payments_tid     ON payments(telegram_id)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_yookassa_unique ON payments(yookassa_payment_id)`,
   `CREATE INDEX IF NOT EXISTS idx_tx_ambassador    ON transactions(ambassador_id)`,
   `CREATE INDEX IF NOT EXISTS idx_tx_referral      ON transactions(referral_id)`,
   `CREATE INDEX IF NOT EXISTS idx_rb_user          ON referral_bonuses(user_id)`,

@@ -184,6 +184,16 @@ function getDb() {
   try { _db.exec('ALTER TABLE orders ADD COLUMN attribution_json TEXT'); } catch {}
   try { _db.exec('ALTER TABLE payments ADD COLUMN attribution_json TEXT'); } catch {}
 
+  // Гонка идемпотентности вебхука YooKassa: код-проверка (getPaymentByYooKassaId)
+  // не защищает от двух параллельных доставок одного webhook — обе могут пройти
+  // SELECT до того, как любая вставит запись. UNIQUE-индекс делает вставку
+  // атомарной проверкой на стороне БД (см. api/yookassa-webhook.js).
+  try {
+    _db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_yookassa_unique ON payments(yookassa_payment_id)');
+  } catch (e) {
+    console.error('[db] не удалось создать UNIQUE-индекс payments.yookassa_payment_id (возможны дубликаты в данных):', e.message);
+  }
+
   _db.exec(`
     CREATE TABLE IF NOT EXISTS email_notifications_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

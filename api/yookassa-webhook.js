@@ -38,6 +38,14 @@ function parseAttribution(metadata) {
   }
 }
 
+// UNIQUE-констрейнт на payments.yookassa_payment_id (SQLite: SQLITE_CONSTRAINT_UNIQUE,
+// Postgres: 23505) — так распознаём, что конкурентный запрос уже вставил этот платёж.
+function isDuplicateKeyError(err) {
+  const code = err?.code;
+  if (code === 'SQLITE_CONSTRAINT_UNIQUE' || code === '23505') return true;
+  return /unique constraint/i.test(String(err?.message || ''));
+}
+
 /**
  * Верифицирует платёж через YooKassa API (fallback если IP проверка не прошла)
  */
@@ -93,17 +101,43 @@ module.exports = async (req, res) => {
       return res.status(200).json({ status: 'ignored', reason: 'no metadata' });
     }
 
-    // YooKassa может повторно доставить один и тот же webhook. Не продлеваем
-    // подписку и не создаём повторный заказ, если этот платёж уже обработан.
+    const isOneTime = String(tarif) === '9990';
+    const paymentAmount = Number(payment.amount?.value) || 0;
+
+    // YooKassa может повторно доставить один и тот же webhook, включая параллельную
+    // доставку двух копий одновременно. Этот SELECT — быстрый путь для типичного
+    // случая (последовательный повтор), но сам по себе гонку не закрывает: два
+    // конкурентных запроса могут одновременно пройти проверку до того, как любой
+    // из них вставит запись. Настоящая защита — атомарная вставка ниже, которая
+    // опирается на UNIQUE-констрейнт payments.yookassa_payment_id в БД.
     const existingPayment = await getPaymentByYooKassaId(payment.id);
     if (existingPayment) {
       console.log('webhook: duplicate payment ignored', { paymentId: payment.id });
       return res.status(200).json({ status: 'already_processed' });
     }
 
-    const isOneTime = String(tarif) === '9990';
+    // Вставляем платёж ДО любых побочных эффектов (заказ во Frontpad, продление
+    // подписки, начисление SHC), чтобы при гонке проигравший запрос остановился
+    // здесь и не продублировал эти эффекты.
+    try {
+      await recordPayment({
+        telegram_id: String(telegramId),
+        tariff: String(tarif),
+        amount: paymentAmount,
+        months,
+        yookassa_payment_id: payment.id || null,
+        attributionJson,
+      });
+    } catch (insertErr) {
+      if (isDuplicateKeyError(insertErr)) {
+        console.log('webhook: duplicate payment ignored (race)', { paymentId: payment.id });
+        return res.status(200).json({ status: 'already_processed' });
+      }
+      console.error('webhook: failed to record payment', insertErr.message);
+      return res.status(500).json({ error: 'Internal error' });
+    }
+
     const now = new Date();
-    const paymentAmount = Number(payment.amount?.value) || 0;
 
     // 1. Читаем кэш + SQLite для телефона (раньше — чтобы знать текущую подписку)
     let cached = null;
@@ -166,7 +200,7 @@ module.exports = async (req, res) => {
     const autoRenewDisabled = isAutoRenewDisabled(dbUser);
     const shouldStorePaymentMethod = !isOneTime && !autoRenewDisabled;
 
-    // 3. SQLite: записываем платёж + начисляем комиссии
+    // 3. SQLite: продлеваем подписку + начисляем комиссии (сам платёж уже записан выше)
     try {
       // Обновляем пользователя в SQLite
       await upsertUser({
@@ -177,16 +211,6 @@ module.exports = async (req, res) => {
         subscription_start: (isOneTime || isRenewal) ? undefined : formatDate(now),
         subscription_end: isOneTime ? undefined : formatDate(endDate),
         payment_method_id: shouldStorePaymentMethod ? (paymentMethodId || undefined) : undefined,
-      });
-
-      // Записываем платёж
-      const paymentDbId = await recordPayment({
-        telegram_id: String(telegramId),
-        tariff: String(tarif),
-        amount: paymentAmount,
-        months,
-        yookassa_payment_id: payment.id || null,
-        attributionJson,
       });
 
       // Амбассадорские комиссии (processCommissions) — отключены намеренно

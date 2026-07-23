@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_telegram_id ON payments(telegram_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_yookassa_unique ON payments(yookassa_payment_id);
 
 -- ─── 3. transactions (комиссии амбассадоров) ─────────────────
 CREATE TABLE IF NOT EXISTS transactions (
