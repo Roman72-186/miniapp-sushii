@@ -37,6 +37,7 @@ data/image-cache/
 data/users/
 data/gifts/
 data/avatars/
+data/backups/
 
 # Archive of old scripts (kept locally but not in git)
 /_archive
