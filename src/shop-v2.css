@@ -677,9 +677,9 @@ a.user-avatar {
   background: linear-gradient(to top, rgba(15,15,17,0.90) 0%, transparent 100%);
   display: flex;
   justify-content: center;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.2s ease-out !important;
-  pointer-events: none;
+  pointer-events: auto;
 }
 .shop-page .shop-card:hover .shop-card__action-overlay {
   opacity: 1;

@@ -660,13 +660,6 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           </div>
         </div>
 
-        <div
-          className="shop-form-error"
-          role="alert"
-          aria-live="assertive"
-        >
-          {error}
-        </div>
       </form>
 
       {/* SHC баллы */}
@@ -715,6 +708,15 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
       {/* Фиксированный футер */}
       <div className="shop-checkout__footer">
         <div className="shop-checkout__footer-inner">
+          {error && (
+            <div
+              className="shop-form-error"
+              role="alert"
+              aria-live="assertive"
+            >
+              {error}
+            </div>
+          )}
           <div className="shop-checkout__summary">
             <div>Сумма заказа: <span className="shop-checkout__summary-total">{total}₽</span></div>
             {shcApplied > 0 && (
