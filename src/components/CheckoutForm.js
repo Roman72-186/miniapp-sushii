@@ -77,10 +77,11 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
   const timeSlots = useMemo(() => getTimeSlots(), []);
   const [scheduledTime, setScheduledTime] = useState(timeSlots[0]?.value || '');
 
-  const activePoints = PICKUP_POINTS.filter(
-    p => !enabledPoints || enabledPoints[p.id] !== false
-  );
-  const selectedPickup = activePoints.find(p => p.id === pickupPoint) || PICKUP_POINTS.find(p => p.id === pickupPoint);
+  const storesConfigLoaded = enabledPoints !== null;
+  const activePoints = storesConfigLoaded
+    ? PICKUP_POINTS.filter(p => enabledPoints[p.id] !== false)
+    : [];
+  const selectedPickup = activePoints.find(p => p.id === pickupPoint) || activePoints[0] || null;
   const hasGiftItems = useMemo(
     () => items.some(item => item?.product?.gift),
     [items]
@@ -200,6 +201,9 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
       if (!streetConfirmed) { setError('Выберите улицу из списка подсказок'); return; }
       if (!home.trim()) { setError('Укажите номер дома'); return; }
       if (!nearestStore) { setError('Не удалось определить пункт для доставки — проверьте адрес'); return; }
+    } else {
+      if (!storesConfigLoaded) { setError('Не удалось загрузить доступные точки самовывоза'); return; }
+      if (!selectedPickup) { setError('Самовывоз временно недоступен'); return; }
     }
     if (timeType === 'scheduled' && !scheduledTime) { setError('Выберите время'); return; }
 
@@ -379,7 +383,11 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
             <h3 className="shop-form-section__title">Пункт самовывоза</h3>
             <div className="shop-form-section__block">
               <div className="shop-radio-group">
-                {activePoints.length === 0 ? (
+                {!storesConfigLoaded ? (
+                  <div className="shop-radio-hint" style={{ padding: '8px 0' }}>
+                    Загрузка доступных точек...
+                  </div>
+                ) : activePoints.length === 0 ? (
                   <div className="shop-radio-hint" style={{ padding: '8px 0' }}>
                     Самовывоз временно недоступен
                   </div>

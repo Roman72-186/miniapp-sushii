@@ -5,6 +5,16 @@ const fs = require('fs');
 
 const storesPath = path.join(__dirname, '..', '..', 'config', 'stores.json');
 const stores = JSON.parse(fs.readFileSync(storesPath, 'utf8'));
+const { readStates } = require('../stores-config');
+
+function getActiveStores(states = readStates()) {
+  const points = states?.points || {};
+  return stores.filter(store => points[String(store.id)] !== false);
+}
+
+function findActiveStoreById(storeId, states = readStates()) {
+  return getActiveStores(states).find(store => String(store.id) === String(storeId)) || null;
+}
 
 function haversine(lat1, lon1, lat2, lon2) {
   const toRad = (d) => (d * Math.PI) / 180;
@@ -20,11 +30,11 @@ function formatDistance(km) {
   return km < 1 ? `${Math.round(km * 1000)} м` : `${km.toFixed(1)} км`;
 }
 
-function findNearestStore(lat, lon) {
+function findNearestStore(lat, lon, states = readStates()) {
   let nearest = null;
   let minDist = Infinity;
 
-  for (const store of stores) {
+  for (const store of getActiveStores(states)) {
     const dist = haversine(lat, lon, store.lat, store.lon);
     if (dist < minDist) {
       minDist = dist;
@@ -35,8 +45,8 @@ function findNearestStore(lat, lon) {
   return nearest;
 }
 
-function findAllSorted(lat, lon) {
-  return stores
+function findAllSorted(lat, lon, states = readStates()) {
+  return getActiveStores(states)
     .map((s) => {
       const dist = haversine(lat, lon, s.lat, s.lon);
       return { ...s, distance: dist, distanceText: formatDistance(dist) };
@@ -44,4 +54,9 @@ function findAllSorted(lat, lon) {
     .sort((a, b) => a.distance - b.distance);
 }
 
-module.exports = { findNearestStore, findAllSorted };
+module.exports = {
+  findNearestStore,
+  findAllSorted,
+  findActiveStoreById,
+  getActiveStores,
+};
