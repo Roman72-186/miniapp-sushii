@@ -9,7 +9,7 @@ RUN npm run build
 
 # Stage 2: Production
 FROM node:20-alpine
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ su-exec
 WORKDIR /app
 COPY --from=build /app/build ./build
 COPY --from=build /app/api ./api
@@ -20,5 +20,8 @@ COPY --from=build /app/server.js .
 COPY --from=build /app/package*.json ./
 RUN npm ci --omit=dev && apk del python3 make g++
 RUN mkdir -p data/users data/gifts
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 3001
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server.js"]
