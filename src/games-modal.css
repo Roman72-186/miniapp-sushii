@@ -184,3 +184,15 @@
   color: #f5923a;
   font-weight: 600;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .games-modal__overlay,
+  .games-modal__panel {
+    animation: none;
+  }
+
+  .games-modal__card,
+  .games-modal__play {
+    transition: none;
+  }
+}

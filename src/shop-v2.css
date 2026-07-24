@@ -27,8 +27,8 @@
   --v3-accent-bg:     rgba(60, 200, 161, 0.10);
   --v3-accent-border: rgba(60, 200, 161, 0.28);
   --v3-text:          #E8E8E8;
-  --v3-muted:         #71717A;
-  --v3-dim:           #52525B;
+  --v3-muted:         #A1A1AA;
+  --v3-dim:           #8B8B95;
   --v3-danger:        #EF4444;
   --v3-warning:       #F59E0B;
   --v3-r-sm:          8px;
@@ -109,6 +109,28 @@ body.shop-body { background: #0F0F11 !important; }
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* Видимый keyboard focus не зависит от теней, отключённых flat-темой. */
+.shop-page *:focus-visible,
+.shop-cart *:focus-visible,
+.shop-checkout *:focus-visible,
+.modal-portal *:focus-visible {
+  outline: 3px solid var(--v3-accent) !important;
+  outline-offset: 2px;
+}
+
+.shop-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .shop-page .shop-header__actions {
@@ -190,7 +212,7 @@ body.shop-body { background: #0F0F11 !important; }
   min-width: 20px;
   height: 20px;
   border-radius: 10px;
-  animation: v3-badge-bump 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: v3-badge-bump 0.24s cubic-bezier(0.22, 1, 0.36, 1);
   font-size: 11px;
   font-weight: 800;
   display: flex;
@@ -578,6 +600,12 @@ a.user-avatar {
   box-shadow: none;
 }
 
+/* Категории каталога изолированы: браузер не рисует далёкие секции заранее. */
+.shop-page .shop-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 2500px;
+}
+
 .shop-page .shop-card__image-wrap {
   background: var(--v3-inset);
   box-shadow: none;
@@ -585,6 +613,21 @@ a.user-avatar {
   position: relative;
   overflow: hidden;
   aspect-ratio: 1 / 1;
+}
+
+.shop-page .shop-card__image-button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.shop-page .shop-card__image-button:disabled {
+  cursor: default;
 }
 
 .shop-page .shop-card__name {
@@ -680,6 +723,32 @@ a.user-avatar {
   opacity: 1;
   transition: opacity 0.2s ease-out !important;
   pointer-events: auto;
+  z-index: 1;
+}
+
+/* Мобильные сценарии рассчитаны на управление пальцем. */
+@media (max-width: 767px), (pointer: coarse) {
+  .shop-page button,
+  .shop-cart button,
+  .shop-checkout button,
+  .modal-portal button {
+    min-height: 44px;
+  }
+
+  .shop-page .shop-header__back,
+  .shop-page .shop-header__cart,
+  .shop-page .shop-header__profile,
+  .shop-page .shop-search__clear,
+  .product-modal-sheet__close,
+  .games-modal__close {
+    min-width: 44px;
+  }
+
+  .shop-form-field__input,
+  .shop-form-field__textarea,
+  .shop-time-picker__select {
+    min-height: 44px;
+  }
 }
 .shop-page .shop-card:hover .shop-card__action-overlay {
   opacity: 1;
@@ -1431,10 +1500,8 @@ a.user-avatar {
 }
 
 @keyframes v3-badge-bump {
-  0%   { transform: scale(1); }
-  35%  { transform: scale(1.45); }
-  65%  { transform: scale(0.88); }
-  100% { transform: scale(1); }
+  from { opacity: 0.65; transform: scale(0.82); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 @keyframes v3-shimmer {
@@ -1476,12 +1543,12 @@ a.user-avatar {
 
 /* --- Счётчик товара: появляется с поп-анимацией --- */
 .shop-card__counter {
-  animation: v3-counter-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: v3-counter-in 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* --- FAB badge: bump при изменении числа --- */
 .shop-cart-fab__badge {
-  animation: v3-badge-bump 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: v3-badge-bump 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* --- Skeleton card (шиммер-лоадер для сетки товаров) --- */
@@ -1559,11 +1626,15 @@ a.user-avatar {
   .edit-profile-modal__content,
   .shop-skeleton-card__image,
   .shop-skeleton-card__line,
+  .shop-header__cart-badge,
   .shop-cart-fab__badge,
   .shop-card__counter,
-  .pf-accordion__item {
+  .pf-accordion__item,
+  .product-modal-overlay,
+  .product-modal-sheet {
     animation: none !important;
   }
+  .product-modal-sheet { transition: none !important; }
   .shop-landing__card,
   .pf-quick__btn,
   .pf-modal__tariff-btn,

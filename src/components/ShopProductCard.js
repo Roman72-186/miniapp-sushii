@@ -4,20 +4,24 @@ import OptimizedImage from './OptimizedImage';
 function ShopProductCard({ product, quantity, onAdd, onUpdateQuantity, onImageClick }) {
   return (
     <div className="shop-card">
-      <div
-        className="shop-card__image-wrap"
-        onClick={() => onImageClick && onImageClick(product)}
-        style={onImageClick ? { cursor: 'pointer' } : undefined}
-      >
-        <OptimizedImage
-          className="shop-card__image"
-          src={product.image || '/logo.jpg'}
-          alt={product.cleanName || product.name}
-          loading="lazy"
-          width={480}
-          widths={[240, 320, 480, 640]}
-          sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
-        />
+      <div className="shop-card__image-wrap">
+        <button
+          type="button"
+          className="shop-card__image-button"
+          onClick={() => onImageClick?.(product)}
+          aria-label={`Открыть описание товара «${product.cleanName || product.name}»`}
+          disabled={!onImageClick}
+        >
+          <OptimizedImage
+            className="shop-card__image"
+            src={product.image || '/logo.jpg'}
+            alt=""
+            loading="lazy"
+            width={480}
+            widths={[240, 320, 480, 640]}
+            sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
+          />
+        </button>
         <div className="shop-card__action-overlay" onClick={e => e.stopPropagation()}>
           {quantity > 0 ? (
             <div className="shop-card__counter">

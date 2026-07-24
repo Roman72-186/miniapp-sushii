@@ -205,23 +205,28 @@ function ProfilePage() {
   };
 
   const tariffBadgeLabel = { '290': '290 ₽', '490': '690 ₽', '1190': '1390 ₽', '9990': 'АМБА' };
-  const error = !userLoading && !telegramId ? 'Telegram ID не найден' : null;
+
+  useEffect(() => {
+    if (!userLoading && !telegramId) {
+      window.location.replace('/login?return_to=%2Fprofile');
+    }
+  }, [userLoading, telegramId]);
 
   return (
-    <div className="shop-page">
+    <main className="shop-page">
       <header className="shop-header">
-        <button className="shop-header__back" onClick={handleBack}>←</button>
+        <button className="shop-header__back" onClick={handleBack} aria-label="Назад">←</button>
         <div className="shop-header__center">
-          <span className="shop-header__title">Личный кабинет</span>
+          <h1 className="shop-header__title">Личный кабинет</h1>
         </div>
         <div className="shop-header__spacer" />
       </header>
 
       {userLoading ? (
         <BrandLoader text="Загружаем профиль" />
-      ) : error ? (
+      ) : !telegramId ? (
         <div className="shop-loading">
-          <span className="shop-loading__text" style={{ color: '#e53935' }}>{error}</span>
+          <span className="shop-loading__text">Переходим на страницу входа…</span>
         </div>
       ) : (
         <div className="pf-page">
@@ -697,7 +702,7 @@ function ProfilePage() {
           onSaved={async () => { await sync(true); setRequireEmailOpen(false); }}
         />
       )}
-    </div>
+    </main>
   );
 }
 

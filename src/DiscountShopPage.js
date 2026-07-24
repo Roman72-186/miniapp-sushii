@@ -198,8 +198,6 @@ function SubCard({ product, onSelect, onImageClick, disabled }) {
     
     if (disabled) return;
     
-    console.log('SubCard: Select button clicked for product:', product.name);
-    
     // Вызываем обработчик выбора, передавая ему продукт
     if (onSelect) {
       onSelect(product);
@@ -208,21 +206,25 @@ function SubCard({ product, onSelect, onImageClick, disabled }) {
 
   return (
     <div className="shop-card">
-      <div
-        className="shop-card__image-wrap"
-        onClick={() => onImageClick && onImageClick(product)}
-        style={onImageClick ? { cursor: 'pointer' } : undefined}
-      >
-        <OptimizedImage
-          src={imgError ? '/logo.jpg' : product.image}
-          alt={product.name}
-          className="shop-card__image"
-          onError={() => setImgError(true)}
-          loading="lazy"
-          width={480}
-          widths={[240, 320, 480, 640]}
-          sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
-        />
+      <div className="shop-card__image-wrap">
+        <button
+          type="button"
+          className="shop-card__image-button"
+          onClick={() => onImageClick?.(product)}
+          aria-label={`Открыть описание подарка «${product.name}»`}
+          disabled={!onImageClick}
+        >
+          <OptimizedImage
+            src={imgError ? '/logo.jpg' : product.image}
+            alt=""
+            className="shop-card__image"
+            onError={() => setImgError(true)}
+            loading="lazy"
+            width={480}
+            widths={[240, 320, 480, 640]}
+            sizes="(max-width: 520px) 50vw, (max-width: 900px) 33vw, 260px"
+          />
+        </button>
       </div>
 
       <div className="shop-card__body">
@@ -582,8 +584,6 @@ function DiscountShopPage() {
   };
 
   const handleGiftSelect = (product) => {
-    console.log('handleGiftSelect called with product:', product);
-    
     // Проверяем, есть ли уже подарок в корзине
     if (hasGiftInCart) {
       setGiftView(null);
@@ -634,8 +634,9 @@ function DiscountShopPage() {
 
   if (orderNumber) {
     return (
-      <div className="shop-page">
+      <main className="shop-page">
         <div className="shop-success">
+          <h1 className="shop-visually-hidden">Статус заказа</h1>
           <div className="shop-success__icon">✅</div>
           <h2 className="shop-success__title">Заказ принят!</h2>
           <p className="shop-success__order-num">Номер заказа: {orderNumber}</p>
@@ -646,7 +647,7 @@ function DiscountShopPage() {
             Вернуться в меню
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -656,7 +657,8 @@ function DiscountShopPage() {
 
     return (
       <>
-      <div className="shop-page">
+      <main className="shop-page">
+        <h1 className="shop-visually-hidden">{giftCategory?.name}</h1>
         <header className="shop-header">
           <button 
             className="shop-header__back" 
@@ -692,7 +694,7 @@ function DiscountShopPage() {
         {modalProduct && (
           <ProductModal product={modalProduct} onClose={() => setModalProduct(null)} />
         )}
-      </div>
+      </main>
       <SubscriptionRequiredModal
         isOpen={subscriptionModalOpen}
         onClose={() => setSubscriptionModalOpen(false)}
@@ -703,7 +705,8 @@ function DiscountShopPage() {
 
   return (
     <>
-    <div className="shop-page">
+    <main className="shop-page">
+      <h1 className="shop-visually-hidden">Sushi House</h1>
       <header className="shop-header">
         <div className="shop-header__center">
           <img src="/logo.jpg" alt="Sushi House" className="shop-header__logo" onClick={handleLogoClick} />
@@ -836,27 +839,31 @@ function DiscountShopPage() {
           className="shop-search__input"
           type="text"
           placeholder="🔍 Поиск по меню..."
+          aria-label="Поиск по меню"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
         {searchQuery && (
-          <button className="shop-search__clear" onClick={() => setSearchQuery('')}>✕</button>
+          <button type="button" className="shop-search__clear" onClick={() => setSearchQuery('')} aria-label="Очистить поиск">✕</button>
         )}
       </div>
 
-      {!searchQuery && <nav className="shop-tabs" ref={tabsNavRef}>
+      {!searchQuery && <nav className="shop-tabs" ref={tabsNavRef} aria-label="Категории меню">
         {DISCOUNT_CATEGORIES.map(category => (
           <button
+            type="button"
             key={category.id}
             ref={el => { tabsItemRefs.current[category.id] = el; }}
             className={`shop-tabs__item ${visibleCategory === category.id ? 'shop-tabs__item--active' : ''}`}
             onClick={() => scrollToCategory(category.id)}
+            aria-pressed={visibleCategory === category.id}
           >
             <span className="shop-tabs__icon">{category.icon}</span>
             <span className="shop-tabs__name">{category.tab}</span>
           </button>
         ))}
         <button
+          type="button"
           className="shop-tabs__item shop-tabs__item--games"
           onClick={() => setGamesOpen(true)}
         >
@@ -951,7 +958,7 @@ function DiscountShopPage() {
       )}
 
       <AppFooter />
-    </div>
+    </main>
 
     {/* Всё с position:fixed вынесено за shop-page (иначе transform анимации ломает fixed) */}
     {hasActiveSubscription && cart.count > 0 && !showCart && !showCheckout && (

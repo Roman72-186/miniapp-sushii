@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TARIFF_DATA, getTariffMonthPrice, PUBLIC_TARIFF_IDS } from '../config/tariffs';
 import { usePricing } from '../hooks/usePricing';
 import { normalizePhone } from '../utils/phone';
+import ModalPortal from './ModalPortal';
 
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
 
@@ -14,6 +15,7 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
   const [pdnConsent, setPdnConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const selectedTariffRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) setError('');
@@ -74,12 +76,19 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
   };
 
   return (
-    <>
+    <ModalPortal onClose={loading ? undefined : onClose} initialFocusRef={selectedTariffRef}>
       <div className="shop-locked-overlay" onClick={loading ? undefined : onClose} />
-      <div className="pf-modal pf-modal--subscription" role="dialog" aria-modal="true" aria-label="Оформление подписки">
+      <div
+        className="pf-modal pf-modal--subscription"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="subscription-modal-title"
+        aria-describedby="subscription-modal-description"
+        tabIndex="-1"
+      >
         <div className="pf-modal__handle" />
-        <div className="pf-modal__title">Оформите подписку</div>
-        <div className="pf-modal__subtitle">
+        <h2 id="subscription-modal-title" className="pf-modal__title">Оформите подписку</h2>
+        <div id="subscription-modal-description" className="pf-modal__subtitle">
           Меню можно смотреть бесплатно. Для заказа нужна активная подписка.
         </div>
 
@@ -92,9 +101,11 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
                 return (
                   <button
                     key={tariffId}
+                    ref={tariffId === selectedTariff ? selectedTariffRef : null}
                     type="button"
                     className={`pf-modal__tariff-btn${tariffId === selectedTariff ? ' pf-modal__tariff-btn--best' : ''}`}
                     onClick={() => setSelectedTariff(tariffId)}
+                    aria-pressed={tariffId === selectedTariff}
                   >
                     <div className="pf-modal__tariff-row">
                       <span className="pf-modal__tariff-name">{price} ₽ / месяц</span>
@@ -124,8 +135,9 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
         ) : (
           <form className="pf-modal__contact-form" onSubmit={handleSubmit}>
             <div className="shop-form-field">
-              <label className="shop-form-field__label">Имя</label>
+              <label className="shop-form-field__label" htmlFor="subscription-name">Имя</label>
               <input
+                id="subscription-name"
                 className="shop-form-field__input"
                 type="text"
                 value={name}
@@ -135,8 +147,9 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
               />
             </div>
             <div className="shop-form-field">
-              <label className="shop-form-field__label">Телефон</label>
+              <label className="shop-form-field__label" htmlFor="subscription-phone">Телефон</label>
               <input
+                id="subscription-phone"
                 className="shop-form-field__input"
                 type="tel"
                 inputMode="tel"
@@ -159,7 +172,7 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
               </span>
             </label>
 
-            {error && <div className="shop-payment__error">{error}</div>}
+            {error && <div className="shop-payment__error" role="alert" aria-live="assertive">{error}</div>}
 
             <button type="submit" className="shop-payment__btn" disabled={loading}>
               {loading ? 'Переходим к оплате...' : `Оплатить ${selectedPrice} ₽`}
@@ -175,7 +188,7 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
           </form>
         )}
       </div>
-    </>
+    </ModalPortal>
   );
 }
 

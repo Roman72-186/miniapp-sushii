@@ -1,27 +1,15 @@
 // src/components/ProductModal.js — Полноэкранная модалка товара (bottom-sheet)
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import OptimizedImage from './OptimizedImage';
+import ModalPortal from './ModalPortal';
 
 function ProductModal({ product, onClose }) {
   const sheetRef = useRef(null);
+  const closeButtonRef = useRef(null);
   const touchStartY = useRef(null);
   const touchCurrentY = useRef(0);
   const isDragging = useRef(false);
-
-  // Закрытие по Escape
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  // Блокировка скролла body
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, []);
 
   // Свайп вниз для закрытия
   const handleTouchStart = useCallback((e) => {
@@ -71,11 +59,15 @@ function ProductModal({ product, onClose }) {
   const isGift = product.gift || product.price === 0;
 
   return (
-    <>
+    <ModalPortal onClose={onClose} initialFocusRef={closeButtonRef}>
       <div className="product-modal-overlay" onClick={onClose} />
       <div
         className="product-modal-sheet"
         ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="product-modal-title"
+        tabIndex="-1"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -92,13 +84,19 @@ function ProductModal({ product, onClose }) {
             widths={[480, 640, 960, 1280]}
             sizes="(max-width: 720px) 100vw, 720px"
           />
-          <button className="product-modal-sheet__close" onClick={onClose}>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="product-modal-sheet__close"
+            onClick={onClose}
+            aria-label="Закрыть карточку товара"
+          >
             &times;
           </button>
         </div>
 
         <div className="product-modal-sheet__content">
-          <h2 className="product-modal-sheet__name">
+          <h2 id="product-modal-title" className="product-modal-sheet__name">
             {product.cleanName || product.name}
           </h2>
 
@@ -123,7 +121,7 @@ function ProductModal({ product, onClose }) {
           </div>
         </div>
       </div>
-    </>
+    </ModalPortal>
   );
 }
 

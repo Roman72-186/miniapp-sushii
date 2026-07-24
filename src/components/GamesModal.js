@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GAMES } from '../config/games';
+import ModalPortal from './ModalPortal';
 import '../games-modal.css';
 
 function GamesModal({ isOpen, onClose }) {
@@ -19,13 +20,21 @@ function GamesModal({ isOpen, onClose }) {
   };
 
   return (
+    <ModalPortal onClose={onClose}>
     <div className="games-modal__overlay" onClick={onClose}>
-      <div className="games-modal__panel" onClick={e => e.stopPropagation()}>
-        <button className="games-modal__close" onClick={onClose} aria-label="Закрыть">✕</button>
+      <div
+        className="games-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="games-modal-title"
+        tabIndex="-1"
+        onClick={e => e.stopPropagation()}
+      >
+        <button type="button" className="games-modal__close" onClick={onClose} aria-label="Закрыть">✕</button>
 
         {!selected ? (
           <>
-            <h3 className="games-modal__title">🎮 Игры</h3>
+            <h2 id="games-modal-title" className="games-modal__title">🎮 Игры</h2>
             <div className="games-modal__list">
               {GAMES.map(game => (
                 <button
@@ -45,7 +54,7 @@ function GamesModal({ isOpen, onClose }) {
             <button className="games-modal__back" onClick={() => setSelectedId(null)}>
               ← К списку игр
             </button>
-            <h3 className="games-modal__title">{selected.icon} {selected.name}</h3>
+            <h2 id="games-modal-title" className="games-modal__title">{selected.icon} {selected.name}</h2>
 
             <div className="games-modal__section">
               <p className="games-modal__section-title">Награда</p>
@@ -76,6 +85,7 @@ function GamesModal({ isOpen, onClose }) {
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

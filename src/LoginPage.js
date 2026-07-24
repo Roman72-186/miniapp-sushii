@@ -242,7 +242,7 @@ function LoginPage() {
   }[step];
 
   return (
-    <div className="shop-page">
+    <main className="shop-page">
       <div className="shop-payment" style={{ paddingTop: 40 }}>
 
         {/* Логотип */}
@@ -253,10 +253,10 @@ function LoginPage() {
             style={{ width: 80, height: 80, borderRadius: 16, objectFit: 'cover' }}
             onError={e => { e.target.style.display = 'none'; }}
           />
-          <div style={{ marginTop: 12, fontSize: 20, fontWeight: 700, color: '#fff' }}>
+          <h1 style={{ margin: '12px 0 0', fontSize: 20, fontWeight: 700, color: '#fff' }}>
             Суши-Хаус 39
-          </div>
-          <div style={{ marginTop: 4, fontSize: 14, color: '#71717A' }}>{subtitle}</div>
+          </h1>
+          <div style={{ marginTop: 4, fontSize: 14, color: '#A1A1AA' }}>{subtitle}</div>
         </div>
 
         {/* ШАГ 1: Телефон */}
@@ -264,8 +264,9 @@ function LoginPage() {
           <form onSubmit={handleCheckPhone}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Номер телефона</label>
+                <label className="shop-form-field__label" htmlFor="login-phone">Номер телефона</label>
                 <input
+                  id="login-phone"
                   className="shop-form-field__input"
                   type="tel"
                   placeholder="+7 (___) ___-__-__"
@@ -273,6 +274,9 @@ function LoginPage() {
                   onChange={e => setPhone(e.target.value)}
                   autoFocus
                   disabled={loading}
+                  autoComplete="tel"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'login-error' : undefined}
                 />
               </div>
             </div>
@@ -284,7 +288,7 @@ function LoginPage() {
                 onChange={e => setPdnConsent(e.target.checked)}
                 style={{ marginTop: 2, accentColor: '#3CC8A1', width: 16, height: 16, flexShrink: 0, cursor: 'pointer' }}
               />
-              <label htmlFor="pdn-consent" style={{ fontSize: 12, color: '#71717A', lineHeight: '1.5', cursor: 'pointer' }}>
+              <label htmlFor="pdn-consent" style={{ fontSize: 12, color: '#A1A1AA', lineHeight: '1.5', cursor: 'pointer' }}>
                 Я согласен(а) с{' '}
                 <a href="https://sushi-house.zenky.app/legal/personal-data-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#3CC8A1' }}>
                   политикой обработки персональных данных
@@ -295,7 +299,7 @@ function LoginPage() {
                 </a>
               </label>
             </div>
-            {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
+            {error && <div id="login-error" className="shop-payment__error" role="alert" aria-live="assertive" style={{ marginTop: 12 }}>{error}</div>}
             <button
               type="submit"
               className="shop-payment__btn"
@@ -311,12 +315,13 @@ function LoginPage() {
         {step === 'password' && (
           <form onSubmit={handleLoginPassword}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14 }}>
+              <div style={{ marginBottom: 14, color: '#A1A1AA', fontSize: 14 }}>
                 Номер: <span style={{ color: '#fff', fontWeight: 600 }}>+{normalizePhone(phone)}</span>
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Пароль</label>
+                <label className="shop-form-field__label" htmlFor="login-password">Пароль</label>
                 <input
+                  id="login-password"
                   className="shop-form-field__input"
                   type="password"
                   placeholder="Введите пароль"
@@ -324,10 +329,13 @@ function LoginPage() {
                   onChange={e => setPassword(e.target.value)}
                   autoFocus
                   disabled={loading}
+                  autoComplete="current-password"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'login-error' : undefined}
                 />
               </div>
             </div>
-            {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
+            {error && <div id="login-error" className="shop-payment__error" role="alert" aria-live="assertive" style={{ marginTop: 12 }}>{error}</div>}
             <button
               type="submit"
               className="shop-payment__btn"
@@ -348,7 +356,7 @@ function LoginPage() {
             </div>
             <button
               type="button"
-              style={{ background: 'none', border: 'none', color: '#71717A', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
+              style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
               onClick={() => { setStep('phone'); setError(''); setPassword(''); }}
             >
               ← Изменить номер
@@ -360,12 +368,13 @@ function LoginPage() {
         {step === 'email' && (
           <form onSubmit={handleSendEmail}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14, lineHeight: 1.5 }}>
+              <div style={{ marginBottom: 14, color: '#A1A1AA', fontSize: 14, lineHeight: 1.5 }}>
                 Введите email — мы отправим код подтверждения
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Email</label>
+                <label className="shop-form-field__label" htmlFor="login-email">Email</label>
                 <input
+                  id="login-email"
                   className="shop-form-field__input"
                   type="email"
                   placeholder="example@mail.ru"
@@ -373,10 +382,13 @@ function LoginPage() {
                   onChange={e => setEmail(e.target.value)}
                   autoFocus
                   disabled={loading}
+                  autoComplete="email"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'login-error' : undefined}
                 />
               </div>
             </div>
-            {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
+            {error && <div id="login-error" className="shop-payment__error" role="alert" aria-live="assertive" style={{ marginTop: 12 }}>{error}</div>}
             <button
               type="submit"
               className="shop-payment__btn"
@@ -387,7 +399,7 @@ function LoginPage() {
             </button>
             <button
               type="button"
-              style={{ background: 'none', border: 'none', color: '#71717A', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
+              style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
               onClick={() => { setStep('phone'); setError(''); }}
             >
               ← Изменить номер
@@ -399,13 +411,14 @@ function LoginPage() {
         {step === 'otp' && (
           <form onSubmit={handleOtpNext}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14, lineHeight: 1.5 }}>
+              <div style={{ marginBottom: 14, color: '#A1A1AA', fontSize: 14, lineHeight: 1.5 }}>
                 Мы отправили 4-значный код на{' '}
                 <span style={{ color: '#fff', fontWeight: 600 }}>{email}</span>
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Код из письма</label>
+                <label className="shop-form-field__label" htmlFor="login-otp">Код из письма</label>
                 <input
+                  id="login-otp"
                   className="shop-form-field__input"
                   type="text"
                   inputMode="numeric"
@@ -416,12 +429,15 @@ function LoginPage() {
                   onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   autoFocus
                   disabled={loading}
+                  autoComplete="one-time-code"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'login-error' : undefined}
                   style={{ fontSize: 28, letterSpacing: 8, textAlign: 'center' }}
                 />
               </div>
             </div>
 
-            {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
+            {error && <div id="login-error" className="shop-payment__error" role="alert" aria-live="assertive" style={{ marginTop: 12 }}>{error}</div>}
 
             <button
               type="submit"
@@ -434,7 +450,7 @@ function LoginPage() {
 
             <div style={{ textAlign: 'center', marginTop: 14 }}>
               {resendIn > 0 ? (
-                <span style={{ fontSize: 13, color: '#71717A' }}>
+                <span style={{ fontSize: 13, color: '#A1A1AA' }}>
                   Отправить повторно через {resendIn} сек.
                 </span>
               ) : (
@@ -451,7 +467,7 @@ function LoginPage() {
 
             <button
               type="button"
-              style={{ background: 'none', border: 'none', color: '#71717A', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
+              style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: 13, cursor: 'pointer', display: 'block', margin: '10px auto 0' }}
               onClick={() => { setStep('email'); setError(''); setCode(''); }}
             >
               ← Изменить email
@@ -463,13 +479,14 @@ function LoginPage() {
         {step === 'set-password' && (
           <form onSubmit={handleSetPassword}>
             <div className="shop-payment__card" style={{ padding: '20px 16px' }}>
-              <div style={{ marginBottom: 14, color: '#71717A', fontSize: 14 }}>
+              <div style={{ marginBottom: 14, color: '#A1A1AA', fontSize: 14 }}>
                 Создайте пароль для быстрого входа в следующий раз
               </div>
               {isNewUser && (
                 <div className="shop-form-field">
-                  <label className="shop-form-field__label">Ваше имя</label>
+                  <label className="shop-form-field__label" htmlFor="register-name">Ваше имя</label>
                   <input
+                    id="register-name"
                     className="shop-form-field__input"
                     type="text"
                     placeholder="Как вас зовут?"
@@ -477,12 +494,16 @@ function LoginPage() {
                     onChange={e => setName(e.target.value)}
                     autoFocus
                     disabled={loading}
+                    autoComplete="name"
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? 'login-error' : undefined}
                   />
                 </div>
               )}
               <div className="shop-form-field">
-                <label className="shop-form-field__label">Новый пароль</label>
+                <label className="shop-form-field__label" htmlFor="register-password">Новый пароль</label>
                 <input
+                  id="register-password"
                   className="shop-form-field__input"
                   type="password"
                   placeholder="Минимум 6 символов"
@@ -490,21 +511,28 @@ function LoginPage() {
                   onChange={e => setPassword(e.target.value)}
                   autoFocus={!isNewUser}
                   disabled={loading}
+                  autoComplete="new-password"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'login-error' : undefined}
                 />
               </div>
               <div className="shop-form-field" style={{ marginBottom: 0 }}>
-                <label className="shop-form-field__label">Повторите пароль</label>
+                <label className="shop-form-field__label" htmlFor="register-password-confirm">Повторите пароль</label>
                 <input
+                  id="register-password-confirm"
                   className="shop-form-field__input"
                   type="password"
                   placeholder="Повторите пароль"
                   value={passwordConfirm}
                   onChange={e => setPasswordConfirm(e.target.value)}
                   disabled={loading}
+                  autoComplete="new-password"
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? 'login-error' : undefined}
                 />
               </div>
             </div>
-            {error && <div className="shop-payment__error" style={{ marginTop: 12 }}>{error}</div>}
+            {error && <div id="login-error" className="shop-payment__error" role="alert" aria-live="assertive" style={{ marginTop: 12 }}>{error}</div>}
             <button
               type="submit"
               className="shop-payment__btn"
@@ -519,7 +547,7 @@ function LoginPage() {
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 24, paddingBottom: 24 }}>
-        <span style={{ fontSize: 13, color: '#71717A' }}>Нужна помощь? </span>
+        <span style={{ fontSize: 13, color: '#A1A1AA' }}>Нужна помощь? </span>
         <a
           href="https://t.me/roman_chatbots"
           target="_blank"
@@ -529,7 +557,7 @@ function LoginPage() {
           Техническая поддержка
         </a>
       </div>
-    </div>
+    </main>
   );
 }
 
