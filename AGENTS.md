@@ -346,6 +346,40 @@ Domain: `https://sushi-house-39.ru`. VPS: `ssh root@64.188.63.249`.
 
 **Dockerfile** копирует в прод-образ: `build/`, `api/`, `config/`, `public/`, `scripts/`, `server.js`. Разовые миграции через `docker exec miniapp-sushii-app-1 node /app/scripts/<name>.js` — например `backfill-names.js` уже запущен разово после добавления полей `first_name/last_name/middle_name`.
 
+**Непривилегированный пользователь в контейнере**: `Dockerfile`/`docker-entrypoint.sh` — процесс `node server.js` работает от `node` (не root). Entrypoint стартует под root, идемпотентно `chown -R node:node /app/data` (существующие данные в volume созданы root'ом до этого фикса), затем передаёт управление через `su-exec`.
+
+### Backup volume `app-data`
+
+Два независимых cron-бэкапа на VPS (`root`'s crontab, посмотреть: `crontab -l`):
+
+- **`0 3 * * * /root/backup-sushii-db.sh`** — существовал ранее. Бэкапит только легаси `data/sushii.db` (SQLite, сейчас не основное хранилище — прод работает на Postgres/Supabase) через `docker exec ... node /app/scripts/backup-db.js`, кладёт результат **внутри самого volume** (`data/backups/`), ротация 14 дней. Даёт быстрый rollback файла, но НЕ защищает от потери/порчи volume целиком.
+- **`30 3 * * * /root/backup-app-data.sh`** (добавлен 2026-07-24) — архивирует весь volume `app-data` (`tar czf`, кроме регенерируемого `image-cache/` и уже существующей `backups/`, чтобы не дублировать SQLite-бэкапы рекурсивно) в директорию **вне volume** — `/root/backups/miniapp-sushii/app-data-<timestamp>.tar.gz`. Ротация — хранить последние 14 дней. Лог: `/var/log/sushii-volume-backup.log`.
+
+**Восстановление из бэкапа `app-data-*.tar.gz`:**
+```bash
+# 1. Остановить app, чтобы не писал поверх во время восстановления
+docker compose -f /root/miniapp-sushii/docker-compose.yml stop app
+
+# 2. (опционально) сохранить текущее состояние volume на всякий случай
+tar czf /root/backups/miniapp-sushii/pre-restore-$(date +%Y%m%d-%H%M%S).tar.gz \
+  -C /var/lib/docker/volumes/miniapp-sushii_app-data/_data .
+
+# 3. Очистить volume и распаковать архив (архив уже содержит все файлы
+# от корня data/, включая sushii.db/, products/, users/, gifts/ и т.д. —
+# кроме image-cache/, он пересоздастся сам при первых запросах картинок)
+rm -rf /var/lib/docker/volumes/miniapp-sushii_app-data/_data/*
+tar xzf /root/backups/miniapp-sushii/app-data-<TIMESTAMP>.tar.gz \
+  -C /var/lib/docker/volumes/miniapp-sushii_app-data/_data
+
+# 4. Владелец после восстановления — root (сохранённый tar). Docker
+# entrypoint сам поправит на node:node при следующем старте контейнера,
+# ручной chown не обязателен.
+docker compose -f /root/miniapp-sushii/docker-compose.yml start app
+docker compose -f /root/miniapp-sushii/docker-compose.yml logs --tail=30 app
+curl -s -o /dev/null -w "%{http_code}\n" https://sushi-house-39.ru/
+```
+Проверено вживую 2026-07-24: ручной запуск `backup-app-data.sh`, распаковка в отдельную директорию, побайтовое сравнение восстановленного файла с оригиналом в volume — идентичны, все 225 файлов `users/` на месте.
+
 **Built-in cron**: `server.js` schedules `runSubscriptionCron()` daily at 10:00 UTC (13:00 MSK) via `setTimeout`. There is also an external HTTP endpoint `POST /api/cron-subscriptions` (requires `CRON_SECRET` header) for manual triggers.
 
 ## Obsidian Knowledge Base
