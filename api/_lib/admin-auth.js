@@ -43,4 +43,13 @@ function checkAuth(req, res) {
   return true;
 }
 
-module.exports = { getAdminPassword, generateToken, validateToken, checkAuth };
+// Сравнение через хеш уравнивает длину буферов (timingSafeEqual иначе бросает
+// исключение при несовпадающей длине), поэтому сравнение по времени не зависит
+// ни от длины введённого пароля, ни от того, сколько символов совпало с начала.
+function safeCompare(a, b) {
+  const bufA = crypto.createHash('sha256').update(String(a)).digest();
+  const bufB = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+module.exports = { getAdminPassword, generateToken, validateToken, checkAuth, safeCompare };

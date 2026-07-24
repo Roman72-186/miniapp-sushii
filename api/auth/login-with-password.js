@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const { getUserByPhone } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
+const { checkRateLimit, getClientIp } = require('../_lib/rate-limit');
 
 function normalizePhone(raw) {
   const nums = String(raw || '').replace(/\D/g, '');
@@ -25,6 +26,18 @@ module.exports = async (req, res) => {
   if (!rawPhone || !password) return res.status(400).json({ error: 'Укажите телефон и пароль' });
 
   const phone = normalizePhone(rawPhone);
+
+  // Приложенческий rate limit — та же защита, что у login-by-phone.js (п.16
+  // аудита): nginx лимитирует этот путь по IP, но не по номеру телефона, а
+  // bcrypt.compare сам по себе не спасает от подбора пароля без ограничения
+  // числа попыток.
+  const clientIp = getClientIp(req);
+  if (!checkRateLimit(`login-with-password:phone:${phone}`, { max: 10, windowMs: 10 * 60 * 1000 })) {
+    return res.status(429).json({ error: 'Слишком много попыток для этого номера. Попробуйте позже.' });
+  }
+  if (!checkRateLimit(`login-with-password:ip:${clientIp}`, { max: 30, windowMs: 10 * 60 * 1000 })) {
+    return res.status(429).json({ error: 'Слишком много попыток. Попробуйте позже.' });
+  }
 
   try {
     // Ищем хеш пароля в Supabase

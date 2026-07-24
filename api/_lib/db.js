@@ -194,6 +194,18 @@ function getDb() {
     console.error('[db] не удалось создать UNIQUE-индекс payments.yookassa_payment_id (возможны дубликаты в данных):', e.message);
   }
 
+  // Регистрация нового веб-пользователя по телефону (api/auth/login-by-phone.js)
+  // не была защищена от гонки: два параллельных запроса с одним и тем же ещё
+  // не зарегистрированным номером проходили проверку "нет такого номера" оба
+  // и создавали два разных telegram_id с одинаковым phone. UNIQUE-индекс не
+  // трогает NULL (SQLite не считает NULL равным NULL), поэтому не мешает
+  // пользователям без телефона.
+  try {
+    _db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone_unique ON users(phone)');
+  } catch (e) {
+    console.error('[db] не удалось создать UNIQUE-индекс users.phone (возможны дубликаты в данных):', e.message);
+  }
+
   _db.exec(`
     CREATE TABLE IF NOT EXISTS email_notifications_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

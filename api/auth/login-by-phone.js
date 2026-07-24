@@ -50,7 +50,27 @@ module.exports = async (req, res) => {
     if (rawName && !existingUser) {
       const webId = 'web_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
       const name = String(rawName).trim();
-      await upsertUser({ telegram_id: webId, phone, name });
+      try {
+        await upsertUser({ telegram_id: webId, phone, name });
+      } catch (err) {
+        // Гонка: два параллельных запроса регистрации на один номер — один уже
+        // создал пользователя (UNIQUE-индекс users.phone), берём его вместо
+        // падения с 500. SQLite и Postgres формулируют ошибку по-разному —
+        // проверяем оба варианта (better-sqlite3 бросает Error с текстом,
+        // pg — код 23505 + имя констрейнта).
+        const isPhoneUniqueViolation =
+          String(err.message).includes('UNIQUE constraint failed: users.phone') ||
+          (err.code === '23505' && String(err.constraint || err.message).includes('idx_users_phone_unique'));
+        if (isPhoneUniqueViolation) {
+          const racedUser = await getUserByPhone(phone);
+          if (racedUser) {
+            const token = generateToken(racedUser);
+            const refreshToken = generateRefreshToken(racedUser);
+            return res.status(200).json({ success: true, userId: racedUser.telegram_id, name: racedUser.name, phone, tarif: racedUser.tariff || null, isExistingUser: true, token, refreshToken });
+          }
+        }
+        throw err;
+      }
       const newUser = await getUser(webId);
       const token = generateToken(newUser);
       const refreshToken = generateRefreshToken(newUser);

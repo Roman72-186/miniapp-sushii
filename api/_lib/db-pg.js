@@ -51,6 +51,18 @@ async function ensureMigrations() {
       console.error('[db-pg] не удалось создать UNIQUE-индекс payments.yookassa_payment_id (возможны дубликаты в данных):', e.message);
     }
 
+    // Гонка при регистрации нового веб-пользователя (api/auth/login-by-phone.js)
+    // — см. пояснение в db.js рядом с этим же индексом. Перед накаткой на прод
+    // 2026-07-24 проверено read-only запросом: дублей phone в боевой таблице
+    // users не найдено (225 уникальных номеров на 225 непустых строк).
+    // Postgres, как и SQLite, не считает NULL равным NULL — пользователей без
+    // телефона индекс не затрагивает.
+    try {
+      await pool.query('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone_unique ON users(phone)');
+    } catch (e) {
+      console.error('[db-pg] не удалось создать UNIQUE-индекс users.phone (возможны дубликаты в данных):', e.message);
+    }
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS email_notifications_log (
         id SERIAL PRIMARY KEY,
