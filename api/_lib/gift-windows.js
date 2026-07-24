@@ -4,11 +4,7 @@
  * Парсит дату DD.MM.YYYY → Date (полночь UTC)
  */
 function parseDDMMYYYY(str) {
-  // 🔍 DEBUG: Логируем входную строку
-  console.log('[gift-windows] parseDDMMYYYY вызван с:', str);
-
   if (!str) {
-    console.log('[gift-windows] Пустая строка → null');
     return null;
   }
 
@@ -34,9 +30,7 @@ function parseDDMMYYYY(str) {
     return null;
   }
 
-  const result = new Date(Date.UTC(yyyy, mm - 1, dd));
-  console.log('[gift-windows] Дата успешно распарсена:', result.toISOString());
-  return result;
+  return new Date(Date.UTC(yyyy, mm - 1, dd));
 }
 
 /**

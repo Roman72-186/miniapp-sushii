@@ -22,28 +22,15 @@ function isActiveByDates({ subscriptionStart, subscriptionEnd }) {
   const start = parseDDMMYYYY(subscriptionStart);
   const end = parseDDMMYYYY(subscriptionEnd);
 
-  // 🔍 DEBUG: Логируем проверку дат
-  console.log('[subscription-state] isActiveByDates:', {
-    subscriptionStart,
-    subscriptionEnd,
-    today: today.toISOString(),
-    startParsed: start ? start.toISOString() : null,
-    endParsed: end ? end.toISOString() : null,
-  });
-
   if (!start && !end) {
-    console.log('[subscription-state] Нет дат начала и окончания → false');
     return false;
   }
   if (start && today < start) {
-    console.log('[subscription-state] Сегодня раньше даты начала → false');
     return false;
   }
   if (end && today > end) {
-    console.log('[subscription-state] Сегодня позже даты окончания → false');
     return false;
   }
-  console.log('[subscription-state] Подписка активна по датам → true');
   return true;
 }
 
@@ -57,7 +44,6 @@ function deriveSubscriptionState({
 }) {
   // Защита от null/undefined
   if (!tariff && !subscriptionStatus && !subscriptionStart && !subscriptionEnd) {
-    console.warn('[subscription-state] Все поля подписки пустые');
     return {
       subscriptionStatus: 'неактивно',
       autoRenewStatus: 'неактивно',
@@ -71,44 +57,23 @@ function deriveSubscriptionState({
   const activeByDates = isActiveByDates({ subscriptionStart, subscriptionEnd });
   const isAutoRenewDisabled = normalizeBoolean(autoRenewDisabled);
 
-  // 🔍 DEBUG: Логируем входные данные
-  console.log('[subscription-state] deriveSubscriptionState вызван:', {
-    tariff,
-    subscriptionStatus,
-    subscriptionStart,
-    subscriptionEnd,
-    paymentMethodId,
-    autoRenewDisabled: isAutoRenewDisabled,
-    normalizedStatus,
-    hasSubscriptionWindow,
-    activeByDates,
-  });
-
   let resolvedSubscriptionStatus = 'неактивно';
   if (normalizedStatus === 'неактивно') {
     resolvedSubscriptionStatus = 'неактивно';
-    console.log('[subscription-state] Статус неактивно по normalizedStatus');
   } else if (hasSubscriptionWindow) {
     resolvedSubscriptionStatus = activeByDates ? 'активно' : 'неактивно';
-    console.log('[subscription-state] Статус определён по датам:', resolvedSubscriptionStatus);
   } else if (normalizedStatus === 'активно') {
     resolvedSubscriptionStatus = 'активно';
-    console.log('[subscription-state] Статус активно по normalizedStatus');
   }
 
   const hasPaymentMethod = Boolean(normalizePaymentMethodId(paymentMethodId)) && !isAutoRenewDisabled;
 
-  const result = {
+  return {
     subscriptionStatus: resolvedSubscriptionStatus,
     autoRenewStatus: hasPaymentMethod ? 'активно' : 'неактивно',
     hasPaymentMethod,
     activeByDates,
   };
-  
-  // 🔍 DEBUG: Логируем результат
-  console.log('[subscription-state] Результат:', result);
-
-  return result;
 }
 
 function deriveFromDbUser(user) {
@@ -132,16 +97,8 @@ function deriveFromDbUser(user) {
 }
 
 function deriveFromCache(cache) {
-  // 🔍 DEBUG: Логируем входной кэш
-  console.log('[subscription-state] deriveFromCache вход:', {
-    cache: cache ? 'exists' : 'null/undefined',
-    tarif: cache?.tarif,
-    variables: cache?.variables ? 'exists' : 'null/undefined',
-  });
-
   // ФИКС: Добавляем защиту от null/undefined
   if (!cache) {
-    console.warn('[subscription-state] Кэш пуст, возвращаем неактивно');
     return {
       subscriptionStatus: 'неактивно',
       autoRenewStatus: 'неактивно',
@@ -151,15 +108,6 @@ function deriveFromCache(cache) {
   }
 
   const variables = cache?.variables || {};
-
-  // 🔍 DEBUG: Логируем переменные
-  console.log('[subscription-state] deriveFromCache переменные:', {
-    'статусСписания': variables['статусСписания'],
-    'датаНачала': variables['датаНачала'],
-    'датаОКОНЧАНИЯ': variables['датаОКОНЧАНИЯ'],
-    'PaymentID': variables['PaymentID'],
-    'auto_renew_disabled': variables['auto_renew_disabled'],
-  });
 
   return deriveSubscriptionState({
     tariff: cache?.tarif || null,

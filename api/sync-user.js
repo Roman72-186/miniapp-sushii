@@ -25,23 +25,11 @@ module.exports = async (req, res) => {
   const telegram_id = req.userId;
   const { force, tg_name } = req.body || {};
 
-  // 🔍 DEBUG: Логируем входящий запрос
-  console.log('[sync-user] Запрос:', { telegram_id, force, tg_name: tg_name ? 'exists' : 'empty' });
-
   try {
     // Обновляем имя из Telegram только если в БД пусто И имя не тестовое
     if (tg_name) {
       const existing = await getUser(telegram_id);
       const isTestName = tg_name.toLowerCase().includes('test') || tg_name.toLowerCase().includes('user');
-
-      // 🔍 DEBUG: Логируем проверку имени
-      console.log('[sync-user] Проверка имени:', {
-        telegram_id,
-        tg_name,
-        existing_name: existing?.name,
-        is_test_name: isTestName,
-        should_update: !existing || (!existing.name && !isTestName),
-      });
 
       if (!existing) {
         // Создаём нового пользователя с именем из Telegram (если не тестовое)
@@ -59,28 +47,11 @@ module.exports = async (req, res) => {
       const cached = await readUserCache(telegram_id);
       if (cached && cached.syncedAt) {
         const age = Date.now() - new Date(cached.syncedAt).getTime();
-        
-        // 🔍 DEBUG: Логируем проверку TTL
-        console.log('[sync-user] Проверка кэша:', {
-          telegram_id,
-          age_ms: age,
-          age_sec: Math.round(age / 1000),
-          ttl_ms: CACHE_TTL_MS,
-          ttl_min: CACHE_TTL_MS / 60000,
-          is_valid: age < CACHE_TTL_MS,
-        });
-        
+
         if (age < CACHE_TTL_MS) {
-          console.log('[sync-user] Кэш валиден, возвращаем из кэша');
           return res.status(200).json({ success: true, data: cached, fromCache: true });
-        } else {
-          console.log('[sync-user] Кэш устарел (age=%d сек), обновляем', Math.round(age / 1000));
         }
-      } else {
-        console.log('[sync-user] Кэш не найден или не имеет syncedAt');
       }
-    } else {
-      console.log('[sync-user] Принудительное обновление (force=true)');
     }
 
     // 2. SQLite — единственный источник данных
@@ -113,17 +84,6 @@ module.exports = async (req, res) => {
         details: 'Не удалось найти пользователя в базе данных'
       });
     }
-
-    // 🔍 DEBUG: Логируем данные из БД
-    console.log('[sync-user] Данные из БД для', telegram_id, ':', {
-      tariff: dbUser?.tariff,
-      subscription_status: dbUser?.subscription_status,
-      subscription_start: dbUser?.subscription_start,
-      subscription_end: dbUser?.subscription_end,
-      payment_method_id: dbUser?.payment_method_id,
-      auto_renew_disabled: dbUser?.auto_renew_disabled,
-      is_ambassador: dbUser?.is_ambassador,
-    });
 
     // Проверка корректности дат
     if (dbUser.subscription_status === 'активно' && (!dbUser.subscription_start || !dbUser.subscription_end)) {
@@ -158,14 +118,6 @@ module.exports = async (req, res) => {
       });
     }
     
-    // 🔍 DEBUG: Логируем вычисленные значения
-    console.log('[sync-user] Вычисленные теги и тариф:', {
-      tarif,
-      tags,
-      hasActiveSubscription,
-      isAmbassador,
-    });
-
     // Читаем датаПодарка из blob-store
     let giftDate = '';
     try {
@@ -197,9 +149,7 @@ module.exports = async (req, res) => {
       'avatar_url': dbUser?.avatar_url || '',
     };
 
-    // 🔍 DEBUG: Вычисляем статус подписки через deriveFromDbUser
     const derived = deriveFromDbUser(dbUser);
-    console.log('[sync-user] Derived subscription:', derived);
 
     // Проверяем, нужна ли веб-регистрация (только для legacy Telegram-пользователей)
     let needsWebRegistration = false;
@@ -224,23 +174,12 @@ module.exports = async (req, res) => {
       needsWebRegistration,
       listItem: dbUser ? { name: dbUser.name, telefon: dbUser.phone } : null,
     };
-    
-    // 🔍 DEBUG: Логируем итоговый объект кэша
-    console.log('[sync-user] Итоговые данные кэша:', {
-      telegram_id: cacheData.telegram_id,
-      tarif: cacheData.tarif,
-      tags: cacheData.tags,
-      'variables.статусСписания': cacheData.variables['статусСписания'],
-      'variables.датаНачала': cacheData.variables['датаНачала'],
-      'variables.датаОКОНЧАНИЯ': cacheData.variables['датаОКОНЧАНИЯ'],
-    });
 
     // 3. Записываем в файловый кэш
     await writeUserCache(telegram_id, cacheData);
 
     return res.status(200).json({ success: true, data: cacheData, fromCache: false });
   } catch (error) {
-    // 🔍 DEBUG: Логируем полную ошибку
     console.error('[sync-user] Критическая ошибка:', {
       message: error.message,
       stack: error.stack,
