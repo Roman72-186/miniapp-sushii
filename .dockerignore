@@ -5,3 +5,7 @@ build
 .vercel
 .claude
 .git
+data
+*.db
+opencode.jsonc
+.secrets.lock.local
