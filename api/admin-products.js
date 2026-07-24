@@ -26,6 +26,27 @@ const BUILD_DIR = path.join(__dirname, '..', 'build');
 const DATA_DIR = path.join(__dirname, '..', 'data', 'products');
 
 /**
+ * Нормализация названия товара для сравнения между каталогами: между ними
+ * гуляют варианты написания одного и того же товара (ё/е, э/е, дефис вместо
+ * пробела — например «Запечённый Мидзуи» / «Запеченный Мидзуи», «Суши
+ * сэндвич с лососем» / «Суши-сендвич с лососем»), из-за которых точное
+ * сравнение (даже без учёта регистра) не находило совпадение и enabled не
+ * синхронизировался. Не трогает случаи, где названия действительно разные
+ * товары (напр. «Кето лосось-креветка» vs «-креветки», «Суши пицца №1
+ * (лосось)» vs «Суши-пицца лосось») — такие остаются несинхронизированными
+ * осознанно, это не опечатка написания, а расхождение самого названия.
+ */
+function normalizeProductName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/ё/g, 'е')
+    .replace(/э/g, 'е')
+    .replace(/[-–—]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Читает JSON каталог: сначала из data/products/ (админские правки),
  * потом fallback на build/ (оригинал)
  */
@@ -128,9 +149,9 @@ const handler = async (req, res) => {
       saveCatalog(catalog.file, data);
 
       // Синхронизация enabled по имени товара в связанных каталогах
-      // (регистронезависимое сравнение — в разных каталогах регистр может отличаться)
+      // (normalizeProductName — регистр и ё/е, э/е, дефисы не считаются различием)
       if (enabled !== undefined && enabled !== null) {
-        const itemNameLower = data.items[idx].name.toLowerCase();
+        const itemNameNorm = normalizeProductName(data.items[idx].name);
         const syncGroup = SYNC_GROUPS.find(g => g.includes(catalogId));
         if (syncGroup) {
           for (const otherId of syncGroup) {
@@ -141,7 +162,7 @@ const handler = async (req, res) => {
             if (!otherData || !otherData.items) continue;
             let changed = false;
             for (const item of otherData.items) {
-              if (item.name.toLowerCase() === itemNameLower) {
+              if (normalizeProductName(item.name) === itemNameNorm) {
                 item.enabled = Boolean(enabled);
                 changed = true;
               }
