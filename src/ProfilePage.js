@@ -11,6 +11,7 @@ import GiftPeriodsHistory from './components/GiftPeriodsHistory';
 import UserAvatar from './components/UserAvatar';
 import { useOrderRating } from './hooks/useOrderRating';
 import { getAuthHeader } from './utils/webAuth';
+import { formatPhoneDisplay } from './utils/phone';
 
 function ProfilePage() {
   useEffect(() => {
@@ -192,7 +193,7 @@ function ProfilePage() {
     if (!raw) return '—';
     const digits = raw.replace(/\D/g, '');
     if (digits.length === 11) return `+${digits[0]} (${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7,9)}-${digits.slice(9)}`;
-    if (digits.length === 10) return `+7 (${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6,8)}-${digits.slice(8)}`;
+    if (digits.length === 10) return formatPhoneDisplay('7' + digits);
     return `+${digits}`;
   };
 

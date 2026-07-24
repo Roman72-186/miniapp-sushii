@@ -2,7 +2,7 @@
 // Используется и пользователем (mode="user"), и админкой (mode="admin")
 
 import React, { useState, useEffect } from 'react';
-import { normalizePhone } from '../utils/phone';
+import { normalizePhone, formatPhoneDisplay } from '../utils/phone';
 import { WEB_TOKEN_KEY } from '../utils/webAuth';
 import { getFallbackFace } from '../utils/avatar';
 import { reachGoal, YM_GOALS } from '../analytics/metrika';
@@ -16,17 +16,6 @@ function splitFullName(fullName) {
     last_name: parts[1] || '',
     middle_name: parts.slice(2).join(' ') || '',
   };
-}
-
-function formatPhoneInput(digits) {
-  const d = digits.replace(/\D/g, '').slice(0, 11);
-  if (!d) return '';
-  const n = d.startsWith('8') ? '7' + d.slice(1) : d;
-  if (n.length <= 1) return `+${n}`;
-  if (n.length <= 4) return `+${n.slice(0, 1)} (${n.slice(1)}`;
-  if (n.length <= 7) return `+${n.slice(0, 1)} (${n.slice(1, 4)}) ${n.slice(4)}`;
-  if (n.length <= 9) return `+${n.slice(0, 1)} (${n.slice(1, 4)}) ${n.slice(4, 7)}-${n.slice(7)}`;
-  return `+${n.slice(0, 1)} (${n.slice(1, 4)}) ${n.slice(4, 7)}-${n.slice(7, 9)}-${n.slice(9, 11)}`;
 }
 
 function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requireEmail = false }) {
@@ -54,7 +43,7 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
       setLastName(parts.last_name);
       setMiddleName(parts.middle_name);
     }
-    setPhone(currentUser.phone ? formatPhoneInput(currentUser.phone) : '');
+    setPhone(currentUser.phone ? formatPhoneDisplay(currentUser.phone) : '');
     setEmail(currentUser.email || '');
     setAvatarPreview(currentUser.avatar_url || '');
     setAvatarData(null);
@@ -279,7 +268,7 @@ function EditProfileModal({ mode = 'user', currentUser, onClose, onSaved, requir
             <input
               type="tel"
               value={phone}
-              onChange={e => setPhone(formatPhoneInput(e.target.value))}
+              onChange={e => setPhone(formatPhoneDisplay(e.target.value))}
               placeholder="+7 (___) ___-__-__"
               disabled={saving}
             />

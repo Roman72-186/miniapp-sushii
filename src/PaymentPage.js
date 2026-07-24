@@ -7,6 +7,7 @@ import { usePricing } from './hooks/usePricing';
 import { getAttributionForRequest } from './analytics/attribution';
 import { reachGoal, YM_GOALS } from './analytics/metrika';
 import { getAuthHeader } from './utils/webAuth';
+import { normalizePhone } from './utils/phone';
 import './shop.css';
 
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
@@ -65,7 +66,7 @@ function PaymentPage() {
     }
 
     // Проверяем телефон
-    const phone = userPhone || phoneInput.replace(/[^\d]/g, '');
+    const phone = userPhone || normalizePhone(phoneInput);
     if (!phone || phone.length < 10) {
       setError('Укажите номер телефона для чека');
       return;
