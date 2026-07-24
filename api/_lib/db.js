@@ -456,69 +456,6 @@ function getTotalEarnings(ambassadorId) {
   return row;
 }
 
-// ─── Комиссии при оплате ─────────────────────────────────
-
-/**
- * Начисляет комиссии амбассадорам при оплате реферала.
- * Вызывается из webhook после успешного платежа.
- * @returns {Array} массив начисленных транзакций
- */
-function processCommissions(referralTelegramId, paymentAmount, paymentId) {
-  const db = getDb();
-  const results = [];
-
-  const referral = getUser(referralTelegramId);
-  if (!referral || !referral.invited_by) return results;
-
-  // Level 1: 30% амбассадору, который пригласил
-  const ambassador = getUser(referral.invited_by);
-  if (!ambassador || !ambassador.is_ambassador) return results;
-
-  const commission1 = Math.round(paymentAmount * 0.30 * 100) / 100;
-
-  const txn = db.transaction(() => {
-    // Начисляем Level 1
-    recordTransaction({
-      ambassador_id: ambassador.telegram_id,
-      referral_id: referralTelegramId,
-      payment_id: paymentId,
-      payment_amount: paymentAmount,
-      commission_amount: commission1,
-      commission_percent: 30,
-      level: 1,
-    });
-    updateBalance(ambassador.telegram_id, commission1);
-    results.push({ level: 1, ambassador: ambassador.telegram_id, amount: commission1 });
-
-    // Level 2: 5% «дедушке» (кто пригласил амбассадора)
-    if (ambassador.invited_by) {
-      const grandAmbassador = getUser(ambassador.invited_by);
-      if (grandAmbassador && grandAmbassador.is_ambassador) {
-        // Проверяем, что у «дедушки» >= 10 амбассадоров
-        const ambReferrals = getReferrals(grandAmbassador.telegram_id);
-        const ambCount = ambReferrals.filter(r => r.is_ambassador).length;
-        if (ambCount >= 10) {
-          const commission2 = Math.round(paymentAmount * 0.05 * 100) / 100;
-          recordTransaction({
-            ambassador_id: grandAmbassador.telegram_id,
-            referral_id: referralTelegramId,
-            payment_id: paymentId,
-            payment_amount: paymentAmount,
-            commission_amount: commission2,
-            commission_percent: 5,
-            level: 2,
-          });
-          updateBalance(grandAmbassador.telegram_id, commission2);
-          results.push({ level: 2, ambassador: grandAmbassador.telegram_id, amount: commission2 });
-        }
-      }
-    }
-  });
-
-  txn();
-  return results;
-}
-
 // ─── Реферальная комиссия 20% → SHC ─────────────────────
 
 /**
@@ -1120,7 +1057,6 @@ module.exports = {
   recordTransaction,
   getTransactions,
   getTotalEarnings,
-  processCommissions,
   processReferralSHC,
   processReferralBonus,
   generatePartnerCode,

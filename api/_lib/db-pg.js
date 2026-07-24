@@ -340,58 +340,6 @@ async function getTotalEarnings(ambassadorId) {
   return res.rows[0];
 }
 
-// ─── Комиссии при оплате ─────────────────────────────────────
-
-async function processCommissions(referralTelegramId, paymentAmount, paymentId) {
-  const results = [];
-
-  const referral = await getUser(referralTelegramId);
-  if (!referral || !referral.invited_by) return results;
-
-  const ambassador = await getUser(referral.invited_by);
-  if (!ambassador || !ambassador.is_ambassador) return results;
-
-  const commission1 = Math.round(paymentAmount * 0.30 * 100) / 100;
-
-  await withTransaction(async (client) => {
-    await recordTransaction({
-      ambassador_id: ambassador.telegram_id,
-      referral_id: referralTelegramId,
-      payment_id: paymentId,
-      payment_amount: paymentAmount,
-      commission_amount: commission1,
-      commission_percent: 30,
-      level: 1,
-    }, client);
-    await updateBalance(ambassador.telegram_id, commission1, client);
-    results.push({ level: 1, ambassador: ambassador.telegram_id, amount: commission1 });
-
-    if (ambassador.invited_by) {
-      const grandAmbassador = await getUser(ambassador.invited_by);
-      if (grandAmbassador && grandAmbassador.is_ambassador) {
-        const ambReferrals = await getReferrals(grandAmbassador.telegram_id);
-        const ambCount = ambReferrals.filter(r => r.is_ambassador).length;
-        if (ambCount >= 10) {
-          const commission2 = Math.round(paymentAmount * 0.05 * 100) / 100;
-          await recordTransaction({
-            ambassador_id: grandAmbassador.telegram_id,
-            referral_id: referralTelegramId,
-            payment_id: paymentId,
-            payment_amount: paymentAmount,
-            commission_amount: commission2,
-            commission_percent: 5,
-            level: 2,
-          }, client);
-          await updateBalance(grandAmbassador.telegram_id, commission2, client);
-          results.push({ level: 2, ambassador: grandAmbassador.telegram_id, amount: commission2 });
-        }
-      }
-    }
-  });
-
-  return results;
-}
-
 async function processReferralSHC(referralTelegramId, subscriptionAmount) {
   const referral = await getUser(referralTelegramId);
   if (!referral || !referral.invited_by) return null;
@@ -1032,7 +980,6 @@ module.exports = {
   recordTransaction,
   getTransactions,
   getTotalEarnings,
-  processCommissions,
   processReferralSHC,
   processReferralBonus,
   generatePartnerCode,
