@@ -64,7 +64,10 @@ function readCatalog(filePath) {
 }
 
 /**
- * Сохраняет каталог в data/products/ (persistent volume)
+ * Сохраняет каталог в data/products/ (persistent volume).
+ * Пишет во временный файл и атомарно переименовывает поверх целевого —
+ * иначе конкурентная запись (или падение процесса на середине write)
+ * может оставить каталог обрезанным/битым JSON.
  */
 function saveCatalog(filePath, data) {
   const dataPath = path.join(DATA_DIR, filePath);
@@ -72,7 +75,9 @@ function saveCatalog(filePath, data) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2), 'utf-8');
+  const tmpPath = `${dataPath}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+  fs.renameSync(tmpPath, dataPath);
 }
 
 const handler = async (req, res) => {

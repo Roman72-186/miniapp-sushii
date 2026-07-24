@@ -121,7 +121,12 @@ function writeGiftRules(rules) {
     promoRules: Array.isArray(rules.promoRules) ? rules.promoRules : [],
     thresholdRules: Array.isArray(rules.thresholdRules) ? rules.thresholdRules : [],
   };
-  fs.writeFileSync(RULES_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  // Пишем во временный файл и атомарно переименовываем поверх целевого —
+  // конкурентная запись или падение процесса на середине write иначе
+  // может оставить gift-rules.json обрезанным/битым JSON.
+  const tmpPath = `${RULES_FILE}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+  fs.renameSync(tmpPath, RULES_FILE);
 }
 
 function findProductBySku(sku) {
