@@ -337,7 +337,15 @@ async function getTotalEarnings(ambassadorId) {
       COALESCE(SUM(CASE WHEN level = 2 THEN commission_amount ELSE 0 END), 0)     AS level2
     FROM transactions WHERE ambassador_id = $1
   `, [String(ambassadorId)]);
-  return res.rows[0];
+  const row = res.rows[0];
+  // pg возвращает NUMERIC/SUM(NUMERIC) строкой (во избежание потери точности
+  // за пределами JS Number) — SQLite (better-sqlite3) отдаёт настоящие числа,
+  // из-за этого разница бэкендов ломала форматирование (toLocaleString) в админке.
+  return {
+    total: Number(row.total) || 0,
+    level1: Number(row.level1) || 0,
+    level2: Number(row.level2) || 0,
+  };
 }
 
 async function processReferralSHC(referralTelegramId, subscriptionAmount) {
@@ -833,7 +841,8 @@ async function getMonthRevenue(monthStart) {
     "SELECT COALESCE(SUM(amount),0) as total FROM payments WHERE status='succeeded' AND created_at >= $1",
     [monthStart]
   );
-  return res.rows[0];
+  // pg возвращает SUM(NUMERIC) строкой — см. комментарий в getTotalEarnings.
+  return { total: Number(res.rows[0].total) || 0 };
 }
 
 async function getAdminTopReferrers(limit = 20) {
