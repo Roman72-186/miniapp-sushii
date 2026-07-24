@@ -227,14 +227,19 @@ async function getAllUsers() {
   return res.rows;
 }
 
+// balance_shc + $1 >= 0 делает списание атомарным: при списании (amount < 0)
+// UPDATE не применится, если баланс уже потрачен конкурентным запросом — вместо
+// того чтобы уйти в минус. Для начисления (amount >= 0) условие всегда истинно.
+// Возвращает true, если баланс реально изменился.
 async function updateBalance(telegramId, amount, client) {
   const q = client
     ? (sql, p) => client.query(sql, p)
     : (sql, p) => query(sql, p);
-  await q(
-    'UPDATE users SET balance_shc = balance_shc + $1, updated_at = NOW() WHERE telegram_id = $2',
+  const result = await q(
+    'UPDATE users SET balance_shc = balance_shc + $1, updated_at = NOW() WHERE telegram_id = $2 AND balance_shc + $1 >= 0',
     [amount, String(telegramId)]
   );
+  return result.rowCount > 0;
 }
 
 async function getReferrals(telegramId) {

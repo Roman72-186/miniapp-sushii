@@ -174,12 +174,11 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
-  // Проверка критичных переменных окружения
+  // Проверка критичных переменных окружения. JWT_SECRET сюда уже не попадает —
+  // api/_lib/auth.js падает при require() (задолго до app.listen), если секрет
+  // не задан или равен известной заглушке.
   if (!process.env.RESEND_API_KEY) {
     console.warn('[config] Внимание: RESEND_API_KEY не задана — отправка email через Resend отключена');
-  }
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your-super-secret-jwt-key-change-this-in-production-$(openssl rand -hex 32)') {
-    console.warn('[config] Внимание: используйте надежный JWT_SECRET в production');
   }
 
   // Cron: проверка подписок каждый день в 10:00:00 МСК (07:00 UTC)

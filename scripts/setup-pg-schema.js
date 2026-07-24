@@ -71,6 +71,27 @@ const TABLES = [
     granted_by  TEXT DEFAULT 'user',
     created_at  TIMESTAMPTZ DEFAULT NOW()
   )`,
+  // Колонки promo_code/has_promo_gift/has_threshold_gift сразу в CREATE TABLE
+  // (не через ALTER, как в db-pg.js runtime-миграциях) — те ALTER падают,
+  // если этой таблицы ещё нет на свежей базе.
+  `CREATE TABLE IF NOT EXISTS orders (
+    id                    BIGSERIAL PRIMARY KEY,
+    telegram_id           TEXT NOT NULL REFERENCES users(telegram_id),
+    frontpad_order_id     TEXT,
+    frontpad_order_number TEXT,
+    order_type            TEXT NOT NULL DEFAULT 'discount',
+    delivery_type         TEXT NOT NULL DEFAULT 'pickup',
+    address               TEXT,
+    products_json         TEXT,
+    gift_sources_json     TEXT,
+    attribution_json      TEXT,
+    total_price           INTEGER DEFAULT 0,
+    client_name           TEXT,
+    promo_code            TEXT,
+    has_promo_gift        BOOLEAN DEFAULT FALSE,
+    has_threshold_gift    BOOLEAN DEFAULT FALSE,
+    created_at            TIMESTAMPTZ DEFAULT NOW()
+  )`,
 ];
 
 const INDEXES = [
@@ -83,6 +104,7 @@ const INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_tx_referral      ON transactions(referral_id)`,
   `CREATE INDEX IF NOT EXISTS idx_rb_user          ON referral_bonuses(user_id)`,
   `CREATE INDEX IF NOT EXISTS idx_gh_telegram      ON gift_history(telegram_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_orders_telegram  ON orders(telegram_id)`,
 ];
 
 async function main() {

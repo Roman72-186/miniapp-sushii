@@ -581,6 +581,7 @@ function DiscountShopPage() {
     }
 
     cart.clear();
+    setPromoCode('');
   };
 
   const handleGiftSelect = (product) => {

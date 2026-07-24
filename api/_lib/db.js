@@ -275,12 +275,17 @@ function getUserByContactId(contactId) {
   return db.prepare('SELECT * FROM users WHERE watbot_contact_id = ?').get(String(contactId)) || null;
 }
 
+// WHERE balance_shc + ? >= 0 делает списание атомарным: при списании (amount < 0)
+// UPDATE не применится, если баланс уже потрачен конкурентным запросом — вместо
+// того чтобы уйти в минус. Для начисления (amount >= 0) условие всегда истинно.
+// Возвращает true, если баланс реально изменился.
 function updateBalance(telegramId, amount) {
   const db = getDb();
-  db.prepare(`
+  const result = db.prepare(`
     UPDATE users SET balance_shc = balance_shc + ?, updated_at = datetime('now')
-    WHERE telegram_id = ?
-  `).run(amount, String(telegramId));
+    WHERE telegram_id = ? AND balance_shc + ? >= 0
+  `).run(amount, String(telegramId), amount);
+  return result.changes > 0;
 }
 
 function updateLastAddress(telegramId, lastAddress, lastPickupPoint) {

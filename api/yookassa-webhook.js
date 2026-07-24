@@ -200,12 +200,19 @@ module.exports = async (req, res) => {
     const autoRenewDisabled = isAutoRenewDisabled(dbUser);
     const shouldStorePaymentMethod = !isOneTime && !autoRenewDisabled;
 
+    // Разовая покупка амбассадорского тарифа (9990) не должна перезаписывать
+    // tariff у пользователя с уже активной подпиской — иначе следующее
+    // автосписание (cron-subscriptions.js: getRecurringAmount(user.tariff))
+    // спишет цену амбассадорского тарифа вместо реальной цены подписки.
+    const hasActiveSubscription = dbUser?.subscription_status === 'активно';
+    const shouldUpdateTariff = !(isOneTime && hasActiveSubscription);
+
     // 3. SQLite: продлеваем подписку + начисляем комиссии (сам платёж уже записан выше)
     try {
       // Обновляем пользователя в SQLite
       await upsertUser({
         telegram_id: String(telegramId),
-        tariff: String(tarif),
+        tariff: shouldUpdateTariff ? String(tarif) : undefined,
         is_ambassador: isOneTime ? true : undefined,
         subscription_status: isOneTime ? undefined : 'активно',
         subscription_start: (isOneTime || isRenewal) ? undefined : formatDate(now),
@@ -236,9 +243,14 @@ module.exports = async (req, res) => {
         if (!updatedTags.includes('подписка30')) updatedTags.push('подписка30');
       }
 
-      // Определяем тариф из тегов (амба = 9990, далее 1190 > 490 > 290)
+      // Определяем тариф из тегов (амба = 9990, далее 1190 > 490 > 290).
+      // Если tariff в БД не обновлялся (разовая покупка амбы поверх активной
+      // подписки, см. shouldUpdateTariff выше) — кэш должен отражать ту же
+      // реальную подписку, а не подменяться разовой покупкой.
       let resolvedTarif = null;
-      if (updatedTags.includes('амба')) resolvedTarif = '9990';
+      if (!shouldUpdateTariff) {
+        resolvedTarif = dbUser?.tariff || null;
+      } else if (updatedTags.includes('амба')) resolvedTarif = '9990';
       else if (updatedTags.includes('1190')) resolvedTarif = '1190';
       else if (updatedTags.includes('490')) resolvedTarif = '490';
       else if (updatedTags.includes('290')) resolvedTarif = '290';

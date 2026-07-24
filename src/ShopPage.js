@@ -165,6 +165,7 @@ function ShopPage() {
     setShowCheckout(false);
     setOrderNumber(num);
     cart.clear();
+    setPromoCode('');
   };
 
   // Страница успеха

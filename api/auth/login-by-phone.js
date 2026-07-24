@@ -3,6 +3,7 @@
 const { getUserByPhone, upsertUser, getUser } = require('../_lib/db');
 const { generateToken, generateRefreshToken } = require('../_lib/auth');
 const { supabase } = require('../_lib/supabase');
+const { checkRateLimit, getClientIp } = require('../_lib/rate-limit');
 
 function normalizePhone(raw) {
   const nums = String(raw || '').replace(/\D/g, '');
@@ -26,6 +27,20 @@ module.exports = async (req, res) => {
   const phone = normalizePhone(rawPhone);
   if (!/^7\d{10}$/.test(phone)) {
     return res.status(400).json({ error: 'Некорректный номер телефона. Формат: +7XXXXXXXXXX' });
+  }
+
+  // Ответ этого эндпоинта — оракул: раскрывает, зарегистрирован ли номер и
+  // установлен ли для него пароль. Без ограничения скорости это давало
+  // перебрать существующие номера и понять, какие аккаунты уязвимы для
+  // email-OTP флоу (см. п.5 в статусе исправлений выше). Полностью убрать
+  // оракул нельзя, не поменяв сам флоу входа (клиенту нужно знать, что
+  // показать дальше — пароль или email), поэтому ограничиваем скорость.
+  const clientIp = getClientIp(req);
+  if (!checkRateLimit(`login-by-phone:phone:${phone}`, { max: 10, windowMs: 10 * 60 * 1000 })) {
+    return res.status(429).json({ error: 'Слишком много попыток для этого номера. Попробуйте позже.' });
+  }
+  if (!checkRateLimit(`login-by-phone:ip:${clientIp}`, { max: 30, windowMs: 10 * 60 * 1000 })) {
+    return res.status(429).json({ error: 'Слишком много попыток. Попробуйте позже.' });
   }
 
   try {

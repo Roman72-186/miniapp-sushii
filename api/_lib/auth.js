@@ -2,7 +2,20 @@
 
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+// Раньше при отсутствии JWT_SECRET сервер тихо подписывал токены публично
+// известной строкой-заглушкой — на проде это уже привело к живому инциденту
+// (см. session-handoffs): в .env оказалось скопировано ЗНАЧЕНИЕ подсказки из
+// server.js вместо настоящего секрета. Теперь при отсутствии секрета или при
+// использовании известных заглушек падаем на старте вместо тихой деградации
+// до предсказуемого значения.
+const KNOWN_PLACEHOLDER_VALUES = new Set([
+  'your-secret-key-change-in-production',
+  'your-super-secret-jwt-key-change-this-in-production-$(openssl rand -hex 32)',
+]);
+if (!process.env.JWT_SECRET || KNOWN_PLACEHOLDER_VALUES.has(process.env.JWT_SECRET)) {
+  throw new Error('JWT_SECRET не задан или равен публично известной заглушке из кода/документации. Сгенерируйте случайный секрет (например, openssl rand -base64 48) и укажите его в .env — без него сервер не может безопасно подписывать токены.');
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * Middleware для проверки JWT токена

@@ -94,6 +94,32 @@ CREATE TABLE IF NOT EXISTS gift_history (
 
 CREATE INDEX IF NOT EXISTS idx_gift_history_telegram ON gift_history(telegram_id);
 
+-- ─── 6. orders ───────────────────────────────────────────────
+-- Схема включает колонки, которые в db.js (SQLite) добавлены отдельными
+-- ALTER TABLE (promo_code, has_promo_gift, has_threshold_gift) — здесь сразу
+-- в CREATE TABLE, чтобы новая база не зависела от db-pg.js runtime-миграций
+-- (те делают ALTER TABLE orders ..., что падает, если таблицы orders ещё нет).
+CREATE TABLE IF NOT EXISTS orders (
+  id                    BIGSERIAL PRIMARY KEY,
+  telegram_id           TEXT NOT NULL REFERENCES users(telegram_id),
+  frontpad_order_id     TEXT,
+  frontpad_order_number TEXT,
+  order_type            TEXT NOT NULL DEFAULT 'discount',
+  delivery_type         TEXT NOT NULL DEFAULT 'pickup',
+  address               TEXT,
+  products_json         TEXT,
+  gift_sources_json     TEXT,
+  attribution_json      TEXT,
+  total_price           INTEGER DEFAULT 0,
+  client_name           TEXT,
+  promo_code            TEXT,
+  has_promo_gift        BOOLEAN DEFAULT FALSE,
+  has_threshold_gift    BOOLEAN DEFAULT FALSE,
+  created_at            TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_telegram ON orders(telegram_id);
+
 -- ─── web_credentials уже существует, пропускаем ─────────────
 -- CREATE TABLE IF NOT EXISTS web_credentials (
 --   phone         TEXT PRIMARY KEY,

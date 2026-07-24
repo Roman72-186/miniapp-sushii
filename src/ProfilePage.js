@@ -130,9 +130,9 @@ function ProfilePage() {
   })();
 
   const subProgress = (() => {
-    if (!profile?.датаНАЧАЛА || !profile?.датаОКОНЧАНИЯ) return null;
+    if (!profile?.датаНачала || !profile?.датаОКОНЧАНИЯ) return null;
     const parse = (s) => { const [d, m, y] = s.split('.'); return new Date(`${y}-${m}-${d}T00:00:00`); };
-    const start = parse(profile.датаНАЧАЛА);
+    const start = parse(profile.датаНачала);
     const end = parse(profile.датаОКОНЧАНИЯ);
     const total = end - start;
     if (total <= 0) return 100;

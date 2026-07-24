@@ -278,6 +278,19 @@ module.exports = async (req, res) => {
       if (shcToUse > orderTotal) {
         return res.status(400).json({ success: false, error: 'SHC скидка не может быть больше суммы заказа' });
       }
+
+      // Атомарно резервируем баллы ДО создания заказа во Frontpad. Проверка
+      // баланса выше (SELECT) и списание разнесены во времени — до этого места
+      // два параллельных запроса (двойной клик, повтор) могли оба пройти
+      // проверку с одним и тем же балансом и оба списать, уведя баланс в минус
+      // и создав два реальных заказа со скидкой. updateBalance теперь атомарна
+      // (UPDATE ... WHERE balance_shc + ? >= 0) и возвращает false, если баланс
+      // уже занят конкурентным запросом — тогда останавливаемся здесь, раньше
+      // вызова Frontpad.
+      const reserved = await updateBalance(telegram_id, -shcToUse);
+      if (!reserved) {
+        return res.status(400).json({ success: false, error: 'Недостаточно SHC баллов' });
+      }
     }
 
     const frontpadDiscount = shcToUse > 0
@@ -310,6 +323,10 @@ module.exports = async (req, res) => {
     });
 
     if (!orderResult.success) {
+      // Заказ во Frontpad не создался — возвращаем зарезервированные баллы.
+      if (shcToUse > 0 && telegram_id) {
+        await updateBalance(telegram_id, shcToUse);
+      }
       console.warn('[ORDER] Frontpad rejected:', JSON.stringify({
         code: orderResult.error?.code || 'UNKNOWN',
         product_ids: orderProducts
@@ -327,10 +344,6 @@ module.exports = async (req, res) => {
 
     if (orderResult.data?.warnings) {
       console.warn('[ORDER] Frontpad warnings:', JSON.stringify(orderResult.data.warnings));
-    }
-
-    if (shcToUse > 0 && telegram_id) {
-      await updateBalance(telegram_id, -shcToUse);
     }
 
     // Сохраняем заказ в БД
