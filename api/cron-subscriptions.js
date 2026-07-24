@@ -17,6 +17,7 @@ const {
 } = require('./_lib/db');
 const { getPriceTable } = require('./admin-pricing');
 const { sendRenewalReminderEmail } = require('./_lib/email-notifications');
+const { formatDate } = require('./_lib/time-utils');
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
@@ -30,13 +31,6 @@ function getRecurringAmount(tariff) {
 function isAutoRenewEnabled(user) {
   const disabled = user.auto_renew_disabled === true || user.auto_renew_disabled === 1 || user.auto_renew_disabled === '1';
   return Boolean(user.payment_method_id) && !disabled;
-}
-
-function formatDate(date) {
-  const d = String(date.getDate()).padStart(2, '0');
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const y = date.getFullYear();
-  return `${d}.${m}.${y}`;
 }
 
 /**

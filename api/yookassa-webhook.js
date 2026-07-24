@@ -3,6 +3,7 @@
 const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { frontpadRequest } = require('./_lib/frontpad');
 const { getUser, upsertUser, recordPayment, getPaymentByYooKassaId, processReferralSHC } = require('./_lib/db');
+const { formatDate } = require('./_lib/time-utils');
 
 // ID подписок во Frontpad
 const TARIF_PRODUCT_ID = {
@@ -11,16 +12,6 @@ const TARIF_PRODUCT_ID = {
   '1190': '1178',
   '9990': '1215',
 };
-
-/**
- * Форматирует дату в DD.MM.YYYY
- */
-function formatDate(date) {
-  const d = String(date.getDate()).padStart(2, '0');
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const y = date.getFullYear();
-  return `${d}.${m}.${y}`;
-}
 
 function isAutoRenewDisabled(user) {
   return user?.auto_renew_disabled === true || user?.auto_renew_disabled === 1 || user?.auto_renew_disabled === '1';
