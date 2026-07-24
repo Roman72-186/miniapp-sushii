@@ -30,6 +30,18 @@ function normalizePhone(raw) {
   if (nums.length === 10) return '7' + nums;
   return nums;
 }
+// Маскирование PII для логов: полный телефон/адрес не должны попадать в
+// открытый текст логов (journalctl, агрегаторы) — оставляем только то,
+// что достаточно для отладки маршрутизации, без раскрытия личных данных.
+function maskPhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.length >= 4 ? `***${digits.slice(-4)}` : '***';
+}
+function maskAddress(value) {
+  const str = String(value || '').trim();
+  return str ? `${str.slice(0, 3)}***(${str.length})` : '';
+}
+
 function sanitizePickupComment(comment) {
   return String(comment || '')
     .split(' | ')
@@ -160,29 +172,29 @@ module.exports = async (req, res) => {
     const isPickup = delivery_type === 'pickup';
 
     let orderPhone = client.phone || '';
-    console.log(`[ORDER] phone_from_form="${client.phone}"`);
+    console.log(`[ORDER] phone_from_form=${maskPhone(client.phone)}`);
 
     if (telegram_id) {
       const cache = await readUserCache(telegram_id);
       const cachedPhone = cache?.listItem?.telefon;
 
       if (cachedPhone) {
-        console.log(`[ORDER] phone_from_cache="${cachedPhone}" (overrides form)`);
+        console.log(`[ORDER] phone_from_cache=${maskPhone(cachedPhone)} (overrides form)`);
         orderPhone = cachedPhone;
       } else {
         const dbUser = await getUser(telegram_id);
         if (dbUser?.phone) {
-          console.log(`[ORDER] phone_from_db="${dbUser.phone}" (overrides form)`);
+          console.log(`[ORDER] phone_from_db=${maskPhone(dbUser.phone)} (overrides form)`);
           orderPhone = dbUser.phone;
         }
       }
     }
 
-    console.log(`[ORDER] final_phone="${orderPhone}"`);
+    console.log(`[ORDER] final_phone=${maskPhone(orderPhone)}`);
 
     // Серверная нормализация и валидация телефона
     orderPhone = normalizePhone(orderPhone);
-    console.log(`[ORDER] normalized_phone="${orderPhone}"`);
+    console.log(`[ORDER] normalized_phone=${maskPhone(orderPhone)}`);
 
     if (!orderPhone) {
       return res.status(400).json({ success: false, error: 'Не удалось определить телефон' });
@@ -196,24 +208,24 @@ module.exports = async (req, res) => {
     // остаться результат геокодирования от предыдущего адреса.
     let orderAffiliate = isPickup ? (affiliate || '') : '';
     console.log(
-      `[ORDER] type=${delivery_type}, affiliate_from_frontend="${affiliate}", pickup_point_id="${pickup_point_id || ''}", street="${client.street || ''}"`
+      `[ORDER] type=${delivery_type}, affiliate_from_frontend="${affiliate}", pickup_point_id="${pickup_point_id || ''}", street=${maskAddress(client.street)}`
     );
 
     if (!isPickup) {
       if (client.street) {
         try {
           const addr = [client.street, client.home].filter(Boolean).join(', ');
-          console.log(`[ORDER] Geocoding address: "${addr}"`);
+          console.log(`[ORDER] Geocoding address: ${maskAddress(addr)}`);
           const geo = await geocode(addr);
           if (!geo) {
-            console.log(`[ORDER] Geocode returned null for "${addr}"`);
+            console.log(`[ORDER] Geocode returned null for ${maskAddress(addr)}`);
             return res.status(400).json({
               success: false,
               error: 'Не удалось определить зону доставки. Проверьте адрес или выберите улицу из подсказок.'
             });
           }
 
-          console.log(`[ORDER] Geocoded: lat=${geo.lat}, lon=${geo.lon}, formatted="${geo.formatted}"`);
+          console.log(`[ORDER] Geocoded: lat=${geo.lat}, lon=${geo.lon}, formatted=${maskAddress(geo.formatted)}`);
           const nearest = findStoreForDelivery(addr, geo.lat, geo.lon, undefined, geo.formatted);
           if (!nearest) {
             return res.status(500).json({ success: false, error: 'Не удалось определить филиал для доставки' });
