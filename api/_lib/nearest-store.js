@@ -16,6 +16,16 @@ function getActiveStores(states = readStates()) {
   return stores.filter(store => points[String(store.id)] !== false);
 }
 
+// Некоторые точки (напр. «Гурьевск») обслуживают только свой населённый пункт,
+// а не весь Калининград, хотя геометрически могут быть ближе к городским адресам.
+function filterByLocality(list, formattedAddress) {
+  const text = String(formattedAddress || '').toLowerCase();
+  return list.filter(store => {
+    if (!store.restrictToLocality) return true;
+    return text.includes(store.restrictToLocality.toLowerCase());
+  });
+}
+
 function findActiveStoreById(storeId, states = readStates()) {
   return getActiveStores(states).find(store => String(store.id) === String(storeId)) || null;
 }
@@ -60,7 +70,7 @@ function findNearestStore(lat, lon, states = readStates()) {
   return nearest;
 }
 
-function findStoreForDelivery(address, lat, lon, states = readStates()) {
+function findStoreForDelivery(address, lat, lon, states = readStates(), formattedAddress = address) {
   const normalizedAddress = normalizeStreet(address);
   const activeStores = getActiveStores(states);
   const override = deliveryZoneOverrides.find(rule => {
@@ -76,7 +86,18 @@ function findStoreForDelivery(address, lat, lon, states = readStates()) {
     }
   }
 
-  return findNearestStore(lat, lon, states);
+  const candidates = filterByLocality(activeStores, formattedAddress);
+  let nearest = null;
+  let minDist = Infinity;
+  for (const store of candidates) {
+    const dist = haversine(lat, lon, store.lat, store.lon);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = { ...store, distance: dist, distanceText: formatDistance(dist) };
+    }
+  }
+
+  return nearest;
 }
 
 function findAllSorted(lat, lon, states = readStates()) {

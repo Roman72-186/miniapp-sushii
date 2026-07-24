@@ -214,7 +214,7 @@ module.exports = async (req, res) => {
           }
 
           console.log(`[ORDER] Geocoded: lat=${geo.lat}, lon=${geo.lon}, formatted="${geo.formatted}"`);
-          const nearest = findStoreForDelivery(addr, geo.lat, geo.lon);
+          const nearest = findStoreForDelivery(addr, geo.lat, geo.lon, undefined, geo.formatted);
           if (!nearest) {
             return res.status(500).json({ success: false, error: 'Не удалось определить филиал для доставки' });
           }

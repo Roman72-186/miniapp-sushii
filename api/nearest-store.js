@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Укажите address или lat+lon' });
     }
 
-    const nearest = findStoreForDelivery(address || formatted, userLat, userLon);
+    const nearest = findStoreForDelivery(address || formatted, userLat, userLon, undefined, formatted);
     const all = findAllSorted(userLat, userLon);
 
     return res.status(200).json({

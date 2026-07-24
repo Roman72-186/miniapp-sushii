@@ -29,6 +29,7 @@
     "address": "Гурьевск, Калининградская область",
     "lat": 54.7700,
     "lon": 20.6010,
-    "affiliate": "396"
+    "affiliate": "396",
+    "restrictToLocality": "Гурьевск"
   }
 ]
