@@ -28,7 +28,8 @@ npm run build          # Production build
 node server.js         # Backend only (port 3001)
 
 # Utility scripts
-npm run catalog        # Rebuild catalog JSON via scripts/build-catalog-master.py (Python)
+npm run catalog        # Rebuild catalog JSON via scripts/build-catalog-master.py (Python), reads Товары.csv
+npm run catalog:test   # Rebuild test-only catalog (excludes subscription tariffs) via scripts/build-test-catalog.py → public/test/catalog.json
 npm run backup:db      # Backup SQLite database
 
 # Production (VPS: ssh root@64.188.63.249)
@@ -38,6 +39,20 @@ cd miniapp-sushii && git pull && docker compose up -d --build && docker compose 
 Тесты есть (CRA default, `App.test.js`), но покрывают только базовый рендер: `npm test`. Запуск одного теста: `npm test -- --testNamePattern="имя теста"`. Линтер не настроен.
 
 **Автодеплой**: предпочтительный способ пуша+деплоя на VPS — slash-команда `/git-pushing` (под Windows через `plink`, project-aware через `projects.json`). Ручной `ssh root@...` — fallback.
+
+### Защита секретов (`scripts/protect-secrets.js`)
+
+Хеширует (SHA-256) защищённые значения, перечисленные в `config/protected-secrets.json` (`.env`/`.env.local`, ключи `API_KEY`/`CONTEXT7_API_KEY` в `opencode.jsonc`, fallback `DATABASE_URL` в `scripts/setup-pg-schema.js`), и сохраняет хеши в `.secrets.lock.local`. Существует именно из-за случая, когда захардкоженная заглушка `JWT_SECRET` из `_lib/auth.js` дословно совпала со значением на проде — это должно детектироваться до деплоя.
+
+```bash
+npm run secrets:check     # сравнить текущие значения с .secrets.lock.local, упасть при расхождении
+npm run secrets:lock      # пересчитать хеши после осознанной смены ключа (требует явного решения)
+npm run secrets:freeze    # npm run secrets:check + chmod 0444 на защищённые файлы (read-only)
+npm run secrets:unfreeze  # вернуть chmod 0600
+npm run secrets:list      # перечислить защищённые значения (без самих значений)
+```
+
+`opencode.jsonc` и `Товары.csv` должны оставаться в корне репозитория — на первый завязан `config/protected-secrets.json`, на второй — `scripts/build-catalog-master.py`.
 
 ## Правило кириллического контекста
 
