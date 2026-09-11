@@ -53,6 +53,7 @@ app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
 app.all('/api/admin/grant-gift', require('./api/admin-grant-gift'));
 app.all('/api/admin/claim-gift', require('./api/admin-claim-gift'));
 app.all('/api/admin/reset-subscription', require('./api/admin-reset-subscription'));
+app.all('/api/admin/cancel-subscription', require('./api/admin-cancel-subscription'));
 app.all('/api/admin/extend-subscription', require('./api/admin-extend-subscription'));
 app.all('/api/admin/user-notes', require('./api/admin-user-notes'));
 app.all('/api/admin/stats', require('./api/admin-stats'));

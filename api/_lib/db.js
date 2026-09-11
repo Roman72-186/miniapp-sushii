@@ -682,6 +682,8 @@ function getLastPayment(telegramId) {
 function getAdminSubscribersList() {
   return getDb().prepare(`
     SELECT u.telegram_id, u.name, u.phone, u.tariff, u.is_ambassador,
+           u.auto_renew_disabled,
+           CASE WHEN COALESCE(u.payment_method_id, '') <> '' THEN 1 ELSE 0 END AS has_payment_method,
            u.subscription_status, u.subscription_start, u.subscription_end,
            u.balance_shc, u.notes, u.created_at, u.updated_at,
            u.invited_by,

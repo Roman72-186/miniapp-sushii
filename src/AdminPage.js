@@ -48,6 +48,7 @@ function AdminPage() {
 
   // Subscribers state
   const [subscribers, setSubscribers] = useState([]);
+  const [cancelingAutoRenew, setCancelingAutoRenew] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [subsLoading, setSubsLoading] = useState(false);
@@ -504,7 +505,31 @@ function AdminPage() {
     setGrantingGift(null);
   };
 
-  // Сброс подписки
+  // Отмена будущих списаний без сброса оплаченного доступа.
+  const cancelAutoRenew = async (user) => {
+    if (cancelingAutoRenew) return;
+    if (!window.confirm('Отключить автопродление у этого пользователя? Оплаченный срок подписки сохранится.')) return;
+    setCancelingAutoRenew(user.telegram_id);
+    try {
+      const res = await fetch(`${API}/api/admin/cancel-subscription`, {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ telegram_id: user.telegram_id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Не удалось отключить автопродление');
+      // Обновляем открытую карточку сразу, без зависимости от повторной загрузки списка.
+      setSubscribers(prev => prev.map(item => item.telegram_id === user.telegram_id
+        ? { ...item, auto_renew_disabled: true, has_payment_method: false }
+        : item));
+      showToast(data.message);
+    } catch (error) {
+      showToast(error.message || 'Ошибка соединения', 'error');
+    } finally {
+      setCancelingAutoRenew(null);
+    }
+  };
+
+  // Полный сброс подписки остаётся отдельным действием.
   const resetSubscription = async (telegramId, name) => {
     if (!window.confirm(`Сбросить подписку пользователя "${name || telegramId}"?\nОн увидит экран оплаты при следующем входе.`)) return;
     setResettingSub(telegramId);
@@ -2554,6 +2579,28 @@ function AdminPage() {
         </div>
         <div style={{ fontSize: 11, color: AP.muted, marginTop: 8 }}>
           «Добавить» — выдать новый подарок. «Списать» — отметить как полученный.
+        </div>
+      </div>
+
+      <div style={styles.sheetSection}>
+        <div style={styles.sheetSectionTitle}>Автопродление</div>
+        <div style={{ color: AP.muted, fontSize: 12, marginBottom: 10 }}>
+          {selectedUser.auto_renew_disabled
+            ? 'Отключено'
+            : selectedUser.has_payment_method ? 'Включено' : 'Не подключено'}
+          {selectedUser.subscription_end && ` · Подписка до ${selectedUser.subscription_end}`}
+        </div>
+        <button
+          style={{ ...styles.giftBtnRemove, width: '100%', minHeight: 44 }}
+          onClick={() => cancelAutoRenew(selectedUser)}
+          disabled={!!cancelingAutoRenew || (!!selectedUser.auto_renew_disabled && !selectedUser.has_payment_method)}
+        >
+          {cancelingAutoRenew === selectedUser.telegram_id ? 'Отключение…'
+            : selectedUser.auto_renew_disabled && !selectedUser.has_payment_method
+              ? 'Автопродление отключено' : 'Отключить автопродление'}
+        </button>
+        <div style={{ color: AP.muted, fontSize: 11, marginTop: 8 }}>
+          Отключает будущие списания. Оплаченный срок подписки сохраняется.
         </div>
       </div>
 
