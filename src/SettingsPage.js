@@ -139,9 +139,7 @@ function SettingsPage() {
               </button>
               {expandedSection === 'cancel' && (
                 <div className="pf-accordion__body">
-                  {profile?.статусСписания !== 'активно' ? (
-                    <p className="pf-settings__info">Автосписание уже было отменено ранее.</p>
-                  ) : cancelStep === 'done' ? (
+                  {cancelStep === 'done' ? (
                     <p className="pf-settings__info pf-settings__info--success">✅ Автосписание отменено. Подписка останется активной до конца оплаченного срока.</p>
                   ) : cancelStep === 'confirm' ? (
                     <div className="pf-settings__cancel-confirm">

@@ -18,6 +18,7 @@ const {
 const { getPriceTable } = require('./admin-pricing');
 const { sendRenewalReminderEmail } = require('./_lib/email-notifications');
 const { formatDate } = require('./_lib/time-utils');
+const { deleteUserCache } = require('./_lib/user-cache');
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
@@ -31,6 +32,13 @@ function getRecurringAmount(tariff) {
 function isAutoRenewEnabled(user) {
   const disabled = user.auto_renew_disabled === true || user.auto_renew_disabled === 1 || user.auto_renew_disabled === '1';
   return Boolean(user.payment_method_id) && !disabled;
+}
+
+async function deactivateAndInvalidateCache(telegramId) {
+  await deactivateSubscription(telegramId);
+  // В файловом кэше мог остаться legacy PaymentID, поэтому после изменения
+  // статуса всегда заставляем следующий sync-user перечитать данные из БД.
+  await deleteUserCache(telegramId);
 }
 
 /**
@@ -242,7 +250,7 @@ async function runSubscriptionCronInner() {
 
         } else {
           // Списание не прошло — деактивируем
-          await deactivateSubscription(user.telegram_id);
+          await deactivateAndInvalidateCache(user.telegram_id);
           await sendMessage(
             user.telegram_id,
             `❌ <b>Не удалось продлить подписку</b>\n\nАвтосписание не прошло. Подписка (${user.tariff}₽) деактивирована.\n\n💡 Вы можете продлить подписку вручную:`,
@@ -258,7 +266,7 @@ async function runSubscriptionCronInner() {
         }
       } else {
         // Нет метода оплаты — деактивируем
-        await deactivateSubscription(user.telegram_id);
+        await deactivateAndInvalidateCache(user.telegram_id);
         await sendMessage(
           user.telegram_id,
           `📛 <b>Подписка истекла</b>\n\nВаша подписка (${user.tariff}₽) закончилась.\n\n💡 Продлите, чтобы снова получать скидки и подарки:`,
