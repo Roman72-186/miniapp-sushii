@@ -170,6 +170,15 @@ app.use(express.static(path.join(__dirname, 'data', 'products'), { setHeaders: n
 // Admin pages — serve BEFORE React build
 app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
 
+// Посадочная больше не используется: корневая и legacy-ссылка сразу ведут
+// в личный кабинет. Query сохраняем для invited_by и других безопасно
+// обрабатываемых приложением параметров.
+app.get(['/', '/subscription'], (req, res) => {
+  const queryIndex = req.originalUrl.indexOf('?');
+  const query = queryIndex >= 0 ? req.originalUrl.slice(queryIndex) : '';
+  res.redirect(302, `/profile${query}`);
+});
+
 app.use(express.static(path.join(__dirname, 'build'), { setHeaders: noCacheHeaders }));
 
 function sendLatestStaticAsset(req, res, next) {

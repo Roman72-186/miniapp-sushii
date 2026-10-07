@@ -19,7 +19,6 @@ import LoginPage from "./LoginPage"; // веб-вход по телефону
 import BenefitsPage from "./BenefitsPage"; // страница выгоды подписки
 import PartnerCodePage from "./PartnerCodePage"; // ввод кода партнёра после оплаты
 import CompleteRegistrationPage from "./CompleteRegistrationPage";
-import LandingPage from "./LandingPage";
 import NotFoundPage from "./NotFoundPage"; // страница 404
 import WordlePage from "./WordlePage"; // игра «Пятибуквенное слово»
 import TestCatalogPage from "./TestCatalogPage"; // тестовая страница обычного меню
@@ -48,7 +47,7 @@ function App() {
   const isDiscountShopPage =
     pathname === "/discount-shop";
   const isProfilePage =
-    pathname === "/profile";
+    pathname === "/" || pathname === "/profile" || pathname === "/subscription";
   const isSettingsPage =
     pathname === "/settings";
   const isAdminPage =
@@ -67,8 +66,6 @@ function App() {
     pathname === "/partner-code";
   const isCompleteRegistrationPage =
     pathname === "/complete-registration";
-  const isLandingPage =
-    pathname === "/" || pathname === "/subscription";
   const isGamePage =
     pathname === "/game";
   const isTestCatalogPage =
@@ -92,7 +89,6 @@ function App() {
   else if (isDiscountShopPage) page = <DiscountShopPage />;
   else if (isShopPage) page = <ShopPage />;
   else if (isPaymentPage) page = <PaymentPage />;
-  else if (isLandingPage) page = <LandingPage />;
   else if (isSetsReceivedPage) page = <SetsReceivedPage />;
   else if (isSetsPage) page = <SetsPage />;
   else if (isRollsPage) page = <RollsPage />;

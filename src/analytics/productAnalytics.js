@@ -104,7 +104,7 @@ export function trackPageView(pathname, previousPathname = null) {
   lastPageKey = key;
 
   trackProductEvent('page.view', 'navigation', {}, { pathname: path, previousPathname: previous });
-  if (path === '/' || path === '/benefits') trackProductEvent('subscription.landing_view', 'subscription', {}, { pathname: path, previousPathname: previous });
+  if (path === '/benefits') trackProductEvent('subscription.landing_view', 'subscription', {}, { pathname: path, previousPathname: previous });
   if (path.startsWith('/pay/')) {
     trackProductEvent('subscription.payment_form_view', 'subscription', { tariff: path.split('/')[2] || '' }, { pathname: path, previousPathname: previous });
   }
