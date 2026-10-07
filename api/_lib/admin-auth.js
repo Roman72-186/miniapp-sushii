@@ -16,22 +16,35 @@ function getAdminPassword() {
 function generateToken() {
   const token = crypto.randomBytes(32).toString('hex');
   const now = Date.now();
-  tokens.set(token, { createdAt: now, expiresAt: now + TOKEN_TTL_MS });
+  tokens.set(token, {
+    createdAt: now,
+    expiresAt: now + TOKEN_TTL_MS,
+    sessionId: crypto.randomUUID(),
+    actorId: 'shared-admin',
+    actorLabel: 'Общий администратор',
+  });
   return token;
 }
 
-function validateToken(req) {
+function getTokenEntry(req) {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.replace('Bearer ', '');
-  if (!token) return false;
+  if (!token) return null;
 
   const entry = tokens.get(token);
-  if (!entry) return false;
+  if (!entry) return null;
 
   if (Date.now() > entry.expiresAt) {
     tokens.delete(token);
-    return false;
+    return null;
   }
+  return entry;
+}
+
+function validateToken(req) {
+  const entry = getTokenEntry(req);
+  if (!entry) return false;
+  req.adminAuth = entry;
   return true;
 }
 
@@ -52,4 +65,4 @@ function safeCompare(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-module.exports = { getAdminPassword, generateToken, validateToken, checkAuth, safeCompare };
+module.exports = { getAdminPassword, generateToken, getTokenEntry, validateToken, checkAuth, safeCompare };

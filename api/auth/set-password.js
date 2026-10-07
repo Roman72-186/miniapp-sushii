@@ -82,6 +82,8 @@ module.exports = async (req, res) => {
 
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
+    req.auditActorId = String(user.telegram_id);
+    req.auditTargetId = String(user.telegram_id);
 
     console.log('[set-password] Пароль установлен для:', user.telegram_id);
 

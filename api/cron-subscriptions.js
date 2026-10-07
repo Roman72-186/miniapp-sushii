@@ -19,6 +19,7 @@ const { getPriceTable } = require('./admin-pricing');
 const { sendRenewalReminderEmail } = require('./_lib/email-notifications');
 const { formatDate } = require('./_lib/time-utils');
 const { deleteUserCache } = require('./_lib/user-cache');
+const { writeAuditEvent } = require('./_lib/audit-log');
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID;
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
@@ -39,6 +40,22 @@ async function deactivateAndInvalidateCache(telegramId) {
   // В файловом кэше мог остаться legacy PaymentID, поэтому после изменения
   // статуса всегда заставляем следующий sync-user перечитать данные из БД.
   await deleteUserCache(telegramId);
+}
+
+async function auditSubscriptionEvent(eventName, user, result, metadata = null) {
+  await writeAuditEvent({
+    eventName,
+    actorType: 'system',
+    actorId: 'subscription-cron',
+    targetType: 'user',
+    targetId: String(user.telegram_id),
+    result,
+    source: 'cron-subscriptions',
+    metadata: {
+      tariff: user.tariff || null,
+      ...(metadata || {}),
+    },
+  });
 }
 
 /**
@@ -214,6 +231,7 @@ async function runSubscriptionCronInner() {
     for (const user of expiredToday) {
       if (isAutoRenewEnabled(user)) {
         // Есть сохранённый метод оплаты — пробуем списать
+        await auditSubscriptionEvent('system.subscription.renewal_attempted', user, 'attempted');
         const result = await tryRecurringPayment(user);
 
         if (result.success && !result.pending) {
@@ -242,6 +260,9 @@ async function runSubscriptionCronInner() {
             { inline_keyboard: [[{ text: '🏠 Главное меню', callback_data: '/start' }]] }
           );
           results.renewed++;
+          await auditSubscriptionEvent('system.subscription.renewal_succeeded', user, 'succeeded', {
+            amount: result.amount,
+          });
           console.log(`cron: renewed subscription for ${user.telegram_id} until ${newEndStr}`);
 
         } else if (result.pending) {
@@ -250,6 +271,9 @@ async function runSubscriptionCronInner() {
 
         } else {
           // Списание не прошло — деактивируем
+          await auditSubscriptionEvent('system.subscription.renewal_failed', user, 'failed', {
+            reason: result.reason || 'unknown',
+          });
           await deactivateAndInvalidateCache(user.telegram_id);
           await sendMessage(
             user.telegram_id,
@@ -262,6 +286,9 @@ async function runSubscriptionCronInner() {
             }
           );
           results.deactivated++;
+          await auditSubscriptionEvent('system.subscription.expired', user, 'succeeded', {
+            reason: 'renewal_failed',
+          });
           console.log(`cron: deactivated subscription for ${user.telegram_id} (reason: ${result.reason})`);
         }
       } else {
@@ -278,6 +305,9 @@ async function runSubscriptionCronInner() {
           }
         );
         results.deactivated++;
+        await auditSubscriptionEvent('system.subscription.expired', user, 'succeeded', {
+          reason: 'auto_renew_disabled_or_missing_payment_method',
+        });
         console.log(`cron: deactivated subscription for ${user.telegram_id} (no payment method)`);
       }
     }

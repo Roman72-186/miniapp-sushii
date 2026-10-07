@@ -61,6 +61,7 @@ module.exports = async (req, res) => {
     const telegram_id = existingUser
       ? existingUser.telegram_id
       : 'web_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+    req.auditTargetId = String(telegram_id);
     const isNew = !existingUser;
 
     const finalName = (name && name.trim()) || existingUser?.name || `Клиент ${normalizedPhone}`;

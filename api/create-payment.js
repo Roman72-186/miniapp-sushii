@@ -201,6 +201,11 @@ module.exports = async (req, res) => {
       return res.status(502).json({ error: 'Не получена ссылка для оплаты' });
     }
 
+    // В аудит передаём только подтверждённые сервером значения, без телефона и имени.
+    req.auditActorId = String(paymentUserId);
+    req.auditTargetId = String(paymentUserId);
+    req.auditMetadata = { tarif: tarifStr, months: monthsNum, amount: totalAmount };
+
     return res.status(200).json({ confirmation_url: confirmationUrl });
   } catch (error) {
     console.error('create-payment error:', error);

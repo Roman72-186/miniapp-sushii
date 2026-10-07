@@ -64,6 +64,9 @@ module.exports = async (req, res) => {
         if (isPhoneUniqueViolation) {
           const racedUser = await getUserByPhone(phone);
           if (racedUser) {
+            req.auditAuthenticated = true;
+            req.auditActorId = String(racedUser.telegram_id);
+            req.auditTargetId = String(racedUser.telegram_id);
             const token = generateToken(racedUser);
             const refreshToken = generateRefreshToken(racedUser);
             return res.status(200).json({ success: true, userId: racedUser.telegram_id, name: racedUser.name, phone, tarif: racedUser.tariff || null, isExistingUser: true, token, refreshToken });
@@ -72,6 +75,9 @@ module.exports = async (req, res) => {
         throw err;
       }
       const newUser = await getUser(webId);
+      req.auditAuthenticated = true;
+      req.auditActorId = String(webId);
+      req.auditTargetId = String(webId);
       const token = generateToken(newUser);
       const refreshToken = generateRefreshToken(newUser);
       console.log('[login-by-phone] Новый веб-пользователь:', webId);

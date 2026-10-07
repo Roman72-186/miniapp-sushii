@@ -1,5 +1,5 @@
 // api/admin-login.js - Авторизация в админке
-const { getAdminPassword, generateToken, safeCompare } = require('./_lib/admin-auth');
+const { getAdminPassword, generateToken, getTokenEntry, safeCompare } = require('./_lib/admin-auth');
 const { checkRateLimit, getClientIp } = require('./_lib/rate-limit');
 
 module.exports = async (req, res) => {
@@ -42,5 +42,7 @@ module.exports = async (req, res) => {
   }
 
   const token = generateToken();
+  req.headers.authorization = `Bearer ${token}`;
+  req.adminAuth = getTokenEntry(req);
   return res.status(200).json({ success: true, token });
 };

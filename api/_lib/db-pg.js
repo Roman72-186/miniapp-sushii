@@ -75,6 +75,37 @@ async function ensureMigrations() {
     `);
     await pool.query('CREATE INDEX IF NOT EXISTS idx_email_log_user ON email_notifications_log(user_id)');
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS audit_log (
+        id BIGSERIAL PRIMARY KEY,
+        occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        event_name TEXT NOT NULL,
+        event_version INTEGER NOT NULL DEFAULT 1,
+        actor_type TEXT NOT NULL,
+        actor_id TEXT,
+        actor_label TEXT,
+        actor_session_id TEXT,
+        target_type TEXT,
+        target_id TEXT,
+        result TEXT NOT NULL,
+        request_id TEXT,
+        correlation_id TEXT,
+        source TEXT,
+        http_method TEXT,
+        status_code INTEGER,
+        ip_hash TEXT,
+        client_kind TEXT,
+        changes_json TEXT,
+        metadata_json TEXT,
+        error_code TEXT
+      )
+    `);
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_log(occurred_at DESC, id DESC)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_actor_time ON audit_log(actor_type, actor_id, occurred_at DESC)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_target_time ON audit_log(target_type, target_id, occurred_at DESC)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_event_time ON audit_log(event_name, occurred_at DESC)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_request_id ON audit_log(request_id)');
+
     // Таблицы для игры «Пятибуквенное слово»
     await pool.query(`
       CREATE TABLE IF NOT EXISTS game_word_dictionary (
@@ -964,6 +995,50 @@ async function syncGameDictionary() {
   }
 }
 
+async function insertAuditLog(entry) {
+  const values = [
+    entry.occurredAt, entry.eventName, entry.eventVersion, entry.actorType, entry.actorId,
+    entry.actorLabel, entry.actorSessionId, entry.targetType, entry.targetId, entry.result,
+    entry.requestId, entry.correlationId, entry.source, entry.httpMethod, entry.statusCode,
+    entry.ipHash, entry.clientKind, entry.changesJson, entry.metadataJson, entry.errorCode,
+  ];
+  const { rows } = await query(`
+    INSERT INTO audit_log (
+      occurred_at,event_name,event_version,actor_type,actor_id,actor_label,actor_session_id,
+      target_type,target_id,result,request_id,correlation_id,source,http_method,status_code,
+      ip_hash,client_kind,changes_json,metadata_json,error_code
+    ) VALUES (${values.map((_, i) => `$${i + 1}`).join(',')}) RETURNING id
+  `, values);
+  return Number(rows[0].id);
+}
+
+async function listAuditLogs(filters = {}) {
+  const where = [];
+  const values = [];
+  const add = (column, value) => {
+    if (value !== null && value !== undefined && value !== '') {
+      values.push(value);
+      where.push(`${column} = $${values.length}`);
+    }
+  };
+  if (filters.from) { values.push(filters.from); where.push(`occurred_at >= $${values.length}`); }
+  if (filters.to) { values.push(filters.to); where.push(`occurred_at <= $${values.length}`); }
+  add('event_name', filters.eventName);
+  add('actor_type', filters.actorType);
+  add('actor_id', filters.actorId);
+  add('target_type', filters.targetType);
+  add('target_id', filters.targetId);
+  add('result', filters.result);
+  add('request_id', filters.requestId);
+  if (filters.cursor) {
+    values.push(filters.cursor.occurredAt, filters.cursor.id);
+    where.push(`(occurred_at < $${values.length - 1} OR (occurred_at = $${values.length - 1} AND id < $${values.length}))`);
+  }
+  values.push(Math.min(Math.max(Number(filters.limit) || 50, 1), 101));
+  const { rows } = await query(`SELECT * FROM audit_log ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY occurred_at DESC, id DESC LIMIT $${values.length}`, values);
+  return rows.map(row => ({ ...row, occurred_at: row.occurred_at instanceof Date ? row.occurred_at.toISOString() : row.occurred_at }));
+}
+
 // ─── Экспорт (совместим с db.js) ─────────────────────────────
 
 module.exports = {
@@ -1030,4 +1105,6 @@ module.exports = {
   assignUserWord,
   setUserWordStatus,
   syncGameDictionary,
+  insertAuditLog,
+  listAuditLogs,
 };

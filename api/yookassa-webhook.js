@@ -4,6 +4,17 @@ const { readUserCache, writeUserCache } = require('./_lib/user-cache');
 const { frontpadRequest } = require('./_lib/frontpad');
 const { getUser, upsertUser, recordPayment, getPaymentByYooKassaId, processReferralSHC } = require('./_lib/db');
 const { formatDate } = require('./_lib/time-utils');
+const { requestContext, writeAuditEvent } = require('./_lib/audit-log');
+
+async function auditPaymentWebhook(req, event) {
+  await writeAuditEvent({
+    ...requestContext(req),
+    actorType: 'webhook',
+    actorId: 'yookassa',
+    targetType: 'payment',
+    ...event,
+  });
+}
 
 // ID подписок во Frontpad
 const TARIF_PRODUCT_ID = {
@@ -78,6 +89,13 @@ module.exports = async (req, res) => {
     const payment = await verifyPayment(rawPaymentId);
     if (!payment || payment.status !== 'succeeded') {
       console.error('webhook: payment verification failed', { paymentId: rawPaymentId });
+      await auditPaymentWebhook(req, {
+        eventName: 'user.payment.rejected',
+        targetId: String(rawPaymentId),
+        result: 'denied',
+        statusCode: 403,
+        errorCode: 'payment_verification_failed',
+      });
       return res.status(403).json({ error: 'Payment verification failed' });
     }
 
@@ -268,6 +286,18 @@ module.exports = async (req, res) => {
     }
 
     console.log('webhook: payment processed', { telegramId, tarif, months, paymentMethodId: !!paymentMethodId });
+    await auditPaymentWebhook(req, {
+      eventName: 'user.payment.succeeded',
+      targetId: String(payment.id),
+      result: 'succeeded',
+      statusCode: 200,
+      metadata: {
+        userId: String(telegramId),
+        tarif: String(tarif),
+        months,
+        amount: paymentAmount,
+      },
+    });
     return res.status(200).json({ status: 'ok' });
   } catch (error) {
     console.error('webhook error:', error);

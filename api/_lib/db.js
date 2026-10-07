@@ -110,6 +110,30 @@ function getDb() {
       created_at            TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id               INTEGER PRIMARY KEY AUTOINCREMENT,
+      occurred_at      TEXT NOT NULL,
+      event_name       TEXT NOT NULL,
+      event_version    INTEGER NOT NULL DEFAULT 1,
+      actor_type       TEXT NOT NULL,
+      actor_id         TEXT,
+      actor_label      TEXT,
+      actor_session_id TEXT,
+      target_type      TEXT,
+      target_id        TEXT,
+      result           TEXT NOT NULL,
+      request_id       TEXT,
+      correlation_id   TEXT,
+      source           TEXT,
+      http_method      TEXT,
+      status_code      INTEGER,
+      ip_hash          TEXT,
+      client_kind      TEXT,
+      changes_json     TEXT,
+      metadata_json    TEXT,
+      error_code       TEXT
+    );
+
     CREATE INDEX IF NOT EXISTS idx_referral_bonuses_user ON referral_bonuses(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_invited_by ON users(invited_by);
     CREATE INDEX IF NOT EXISTS idx_payments_telegram_id ON payments(telegram_id);
@@ -117,6 +141,11 @@ function getDb() {
     CREATE INDEX IF NOT EXISTS idx_transactions_referral ON transactions(referral_id);
     CREATE INDEX IF NOT EXISTS idx_gift_history_telegram ON gift_history(telegram_id);
     CREATE INDEX IF NOT EXISTS idx_orders_telegram ON orders(telegram_id);
+    CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_log(occurred_at DESC, id DESC);
+    CREATE INDEX IF NOT EXISTS idx_audit_actor_time ON audit_log(actor_type, actor_id, occurred_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_audit_target_time ON audit_log(target_type, target_id, occurred_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_audit_event_time ON audit_log(event_name, occurred_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_audit_request_id ON audit_log(request_id);
   `);
 
   // Таблицы для игры «Пятибуквенное слово»
@@ -1040,6 +1069,45 @@ function syncGameDictionary() {
   console.log(`[db] syncGameDictionary: ${words.length} слов`);
 }
 
+function insertAuditLog(entry) {
+  const columns = [
+    'occurred_at', 'event_name', 'event_version', 'actor_type', 'actor_id', 'actor_label',
+    'actor_session_id', 'target_type', 'target_id', 'result', 'request_id', 'correlation_id',
+    'source', 'http_method', 'status_code', 'ip_hash', 'client_kind', 'changes_json',
+    'metadata_json', 'error_code',
+  ];
+  const values = [
+    entry.occurredAt, entry.eventName, entry.eventVersion, entry.actorType, entry.actorId,
+    entry.actorLabel, entry.actorSessionId, entry.targetType, entry.targetId, entry.result,
+    entry.requestId, entry.correlationId, entry.source, entry.httpMethod, entry.statusCode,
+    entry.ipHash, entry.clientKind, entry.changesJson, entry.metadataJson, entry.errorCode,
+  ];
+  const result = getDb().prepare(`INSERT INTO audit_log (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`).run(...values);
+  return Number(result.lastInsertRowid);
+}
+
+function listAuditLogs(filters = {}) {
+  const where = [];
+  const values = [];
+  const add = (sql, value) => { if (value !== null && value !== undefined && value !== '') { where.push(sql); values.push(value); } };
+  add('occurred_at >= ?', filters.from);
+  add('occurred_at <= ?', filters.to);
+  add('event_name = ?', filters.eventName);
+  add('actor_type = ?', filters.actorType);
+  add('actor_id = ?', filters.actorId);
+  add('target_type = ?', filters.targetType);
+  add('target_id = ?', filters.targetId);
+  add('result = ?', filters.result);
+  add('request_id = ?', filters.requestId);
+  if (filters.cursor) {
+    where.push('(occurred_at < ? OR (occurred_at = ? AND id < ?))');
+    values.push(filters.cursor.occurredAt, filters.cursor.occurredAt, filters.cursor.id);
+  }
+  const limit = Math.min(Math.max(Number(filters.limit) || 50, 1), 101);
+  values.push(limit);
+  return getDb().prepare(`SELECT * FROM audit_log ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY occurred_at DESC, id DESC LIMIT ?`).all(...values);
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -1102,4 +1170,6 @@ module.exports = {
   assignUserWord,
   setUserWordStatus,
   syncGameDictionary,
+  insertAuditLog,
+  listAuditLogs,
 };

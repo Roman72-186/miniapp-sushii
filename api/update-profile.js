@@ -58,6 +58,7 @@ module.exports = async (req, res) => {
   if (!userId) {
     return res.status(401).json({ error: 'Неверный токен' });
   }
+  req.userId = String(userId);
 
   const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
 

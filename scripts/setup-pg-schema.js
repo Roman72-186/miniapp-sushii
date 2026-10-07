@@ -92,6 +92,29 @@ const TABLES = [
     has_threshold_gift    BOOLEAN DEFAULT FALSE,
     created_at            TIMESTAMPTZ DEFAULT NOW()
   )`,
+  `CREATE TABLE IF NOT EXISTS audit_log (
+    id               BIGSERIAL PRIMARY KEY,
+    occurred_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    event_name       TEXT NOT NULL,
+    event_version    INTEGER NOT NULL DEFAULT 1,
+    actor_type       TEXT NOT NULL,
+    actor_id         TEXT,
+    actor_label      TEXT,
+    actor_session_id TEXT,
+    target_type      TEXT,
+    target_id        TEXT,
+    result           TEXT NOT NULL,
+    request_id       TEXT,
+    correlation_id   TEXT,
+    source           TEXT,
+    http_method      TEXT,
+    status_code      INTEGER,
+    ip_hash          TEXT,
+    client_kind      TEXT,
+    changes_json     TEXT,
+    metadata_json    TEXT,
+    error_code       TEXT
+  )`,
 ];
 
 const INDEXES = [
@@ -105,6 +128,11 @@ const INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_rb_user          ON referral_bonuses(user_id)`,
   `CREATE INDEX IF NOT EXISTS idx_gh_telegram      ON gift_history(telegram_id)`,
   `CREATE INDEX IF NOT EXISTS idx_orders_telegram  ON orders(telegram_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_time        ON audit_log(occurred_at DESC, id DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_actor_time  ON audit_log(actor_type, actor_id, occurred_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_target_time ON audit_log(target_type, target_id, occurred_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_event_time  ON audit_log(event_name, occurred_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_request_id  ON audit_log(request_id)`,
 ];
 
 async function main() {

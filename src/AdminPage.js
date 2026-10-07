@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from './UserContext';
 import EditProfileModal from './components/EditProfileModal';
+import AuditLogTab from './components/admin/AuditLogTab';
 
 // Подключаем Montserrat через Google Fonts
 if (typeof document !== 'undefined' && !document.getElementById('montserrat-font')) {
@@ -958,10 +959,11 @@ function AdminPage() {
     add:           '👤 Добавить пользователя',
     'add-product': '➕ Добавить товар',
     stores:        '📍 Точки самовывоза',
+    audit:         '📜 Журнал',
   };
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, ...(tab === 'audit' ? { maxWidth: 1100 } : {}) }}>
       <style>{`
         .adm-user-grid {
           display: grid;
@@ -1111,6 +1113,7 @@ function AdminPage() {
               { id: 'banners', title: 'Баннеры', text: 'Слайдер на главной' },
               { id: 'stores', title: 'Точки', text: 'Самовывоз и доступность' },
               { id: 'referrals', title: 'Рефералы', text: 'Топ и история SHC' },
+              { id: 'audit', title: 'Журнал', text: 'Действия персонала, клиентов и системы' },
               { id: 'add', title: 'Добавить пользователя', text: 'Ручная подписка' },
               { id: 'add-product', title: 'Добавить товар', text: 'Новая позиция' },
             ].map(section => (
@@ -1126,6 +1129,9 @@ function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* ─── Audit Log Tab ─── */}
+      {tab === 'audit' && <AuditLogTab token={token} />}
 
       {/* ─── Products Tab ─── */}
       {tab === 'products' && (

@@ -52,6 +52,8 @@ module.exports = async (req, res) => {
 
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
+    req.auditActorId = String(user.telegram_id);
+    req.auditTargetId = String(user.telegram_id);
 
     console.log('[verify-otp] Успешный вход:', user.telegram_id);
 

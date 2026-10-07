@@ -12,6 +12,7 @@ jest.mock('../api/_lib/db', () => ({
   processReferralSHC: jest.fn(),
   hasEmailNotification: jest.fn(),
   recordEmailNotification: jest.fn(),
+  insertAuditLog: jest.fn().mockResolvedValue(1),
 }));
 
 jest.mock('../api/_lib/user-cache', () => ({
