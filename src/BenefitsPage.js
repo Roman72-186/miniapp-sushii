@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { PUBLIC_TARIFF_IDS, TARIFF_DATA } from './config/tariffs';
+import { trackProductEvent } from './analytics/productAnalytics';
 import './shop.css';
 
 const ROLL_EXAMPLES = [
@@ -35,6 +36,7 @@ function BenefitsPage() {
   const tid = telegramId ? `?telegram_id=${telegramId}` : '';
 
   const handleTariff = (price) => {
+    trackProductEvent('subscription.tariff_selected', 'subscription', { tariff: price });
     window.location.href = `/pay/${price}${tid}`;
   };
 

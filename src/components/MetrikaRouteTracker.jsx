@@ -1,20 +1,29 @@
 import { useEffect, useRef } from 'react';
 import { ymHit } from '../analytics/metrika';
+import { trackPageView } from '../analytics/productAnalytics';
 
 function currentPath() {
+  return window.location.pathname;
+}
+
+function currentMetrikaPath() {
   return `${window.location.pathname}${window.location.search}${window.location.hash}`;
 }
 
 export default function MetrikaRouteTracker() {
   const previousUrlRef = useRef(null);
+  const previousPathRef = useRef(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const sendHit = () => {
       const path = currentPath();
-      ymHit(path, document.title, previousUrlRef.current);
-      previousUrlRef.current = `${window.location.origin}${path}`;
+      const metrikaPath = currentMetrikaPath();
+      ymHit(metrikaPath, document.title, previousUrlRef.current);
+      trackPageView(path, previousPathRef.current);
+      previousPathRef.current = path;
+      previousUrlRef.current = `${window.location.origin}${metrikaPath}`;
     };
 
     const timer = setTimeout(sendHit, 0);

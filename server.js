@@ -5,7 +5,9 @@ const { auditHttp } = require('./api/_lib/audit-log');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json({ limit: '8mb' }));
+// Traefik connects from a private Docker network. Only trusted private proxies
+// may supply forwarding headers used by Express to derive req.ip.
+app.set('trust proxy', 'loopback, linklocal, uniquelocal');
 app.use((req, res, next) => {
   const incomingRequestId = String(req.headers['x-request-id'] || '');
   req.requestId = crypto.randomUUID();
@@ -21,6 +23,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Public analytics has a deliberately small body limit. Register it before
+// the general parser so oversized payloads are rejected before JSON parsing.
+app.post('/api/analytics/events', express.json({ limit: '32kb' }), require('./api/analytics-events'));
+app.use(express.json({ limit: '8mb' }));
 
 // API routes (handlers manage CORS and method checks internally)
 app.all('/api/sync-user', require('./api/sync-user'));
@@ -48,7 +55,6 @@ app.all('/api/user-order-rating', require('./api/user-order-rating'));
 app.all('/api/update-profile', auditHttp({ eventName: 'user.profile.updated', changeFields: ['first_name', 'last_name', 'middle_name', 'phone'] }), require('./api/update-profile'));
 app.all('/api/upload-avatar', require('./api/upload-avatar'));
 app.all('/api/image', require('./api/image'));
-
 // Auth API
 app.all('/api/auth/login-by-phone', auditHttp({
   eventName: (status, req) => status >= 400 ? 'user.auth.login_failed' : (req.auditAuthenticated ? 'user.auth.login_succeeded' : null),
@@ -67,6 +73,7 @@ app.all('/api/admin/login', auditHttp({
   targetType: 'admin_session',
 }), require('./api/admin-login'));
 app.all('/api/admin/audit-log', require('./api/admin-audit-log'));
+app.get('/api/admin/funnel', require('./api/admin-funnel'));
 app.all('/api/admin/products', auditHttp({ eventName: 'admin.product.updated', actorType: 'staff', targetType: 'product', metadataFields: ['catalog', 'index', 'enabled', 'price', 'discount'] }), require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));
 app.all('/api/admin/grant-gift', auditHttp({ eventName: 'admin.gift.granted', actorType: 'staff', metadataFields: ['type'] }), require('./api/admin-grant-gift'));

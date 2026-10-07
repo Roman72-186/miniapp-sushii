@@ -115,6 +115,19 @@ const TABLES = [
     metadata_json    TEXT,
     error_code       TEXT
   )`,
+  `CREATE TABLE IF NOT EXISTS analytics_events (
+    id                BIGSERIAL PRIMARY KEY,
+    event_id          UUID NOT NULL UNIQUE,
+    occurred_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    session_id        UUID NOT NULL,
+    user_id           TEXT,
+    event_name        TEXT NOT NULL,
+    funnel            TEXT NOT NULL,
+    pathname          TEXT NOT NULL,
+    previous_pathname TEXT,
+    client_kind       TEXT NOT NULL,
+    metadata_json     JSONB NOT NULL DEFAULT '{}'::jsonb
+  )`,
 ];
 
 const INDEXES = [
@@ -133,6 +146,9 @@ const INDEXES = [
   `CREATE INDEX IF NOT EXISTS idx_audit_target_time ON audit_log(target_type, target_id, occurred_at DESC)`,
   `CREATE INDEX IF NOT EXISTS idx_audit_event_time  ON audit_log(event_name, occurred_at DESC)`,
   `CREATE INDEX IF NOT EXISTS idx_audit_request_id  ON audit_log(request_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_analytics_funnel_time ON analytics_events(funnel, occurred_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_analytics_session_time ON analytics_events(session_id, occurred_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_analytics_event_time   ON analytics_events(event_name, occurred_at DESC)`,
 ];
 
 async function main() {

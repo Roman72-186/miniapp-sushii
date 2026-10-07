@@ -10,6 +10,7 @@ const { readGiftRules } = require('./_lib/gift-rules');
 const { appendEligibleOrderGifts } = require('./_lib/order-gifts');
 const { validateSubscriptionGifts } = require('./_lib/subscription-gift-access');
 const { getAuthenticatedUserId } = require('./_lib/auth');
+const { UUID_RE, recordServerAnalyticsEvent } = require('./_lib/product-analytics');
 
 function parseJsonBody(req) {
   try {
@@ -118,6 +119,9 @@ module.exports = async (req, res) => {
     }
 
     const body = parseJsonBody(req);
+    const analyticsSessionId = UUID_RE.test(String(body.analytics_session_id || ''))
+      ? String(body.analytics_session_id)
+      : null;
     const {
       products,
       client,
@@ -357,6 +361,18 @@ module.exports = async (req, res) => {
     if (orderResult.data?.warnings) {
       console.warn('[ORDER] Frontpad warnings:', JSON.stringify(orderResult.data.warnings));
     }
+
+    await recordServerAnalyticsEvent({
+      sessionId: analyticsSessionId,
+      userId: getAuthenticatedUserId(req),
+      eventName: 'order.created',
+      funnel: 'order',
+      pathname: '/checkout-complete',
+      metadata: {
+        order_type: body.order_type || 'discount',
+        delivery_type: isPickup ? 'pickup' : 'delivery',
+      },
+    });
 
     // Сохраняем заказ в БД
     if (telegram_id) {

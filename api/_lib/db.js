@@ -134,6 +134,20 @@ function getDb() {
       error_code       TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS analytics_events (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id          TEXT NOT NULL UNIQUE,
+      occurred_at       TEXT NOT NULL,
+      session_id        TEXT NOT NULL,
+      user_id           TEXT,
+      event_name        TEXT NOT NULL,
+      funnel            TEXT NOT NULL,
+      pathname          TEXT NOT NULL,
+      previous_pathname TEXT,
+      client_kind       TEXT NOT NULL,
+      metadata_json     TEXT
+    );
+
     CREATE INDEX IF NOT EXISTS idx_referral_bonuses_user ON referral_bonuses(user_id);
     CREATE INDEX IF NOT EXISTS idx_users_invited_by ON users(invited_by);
     CREATE INDEX IF NOT EXISTS idx_payments_telegram_id ON payments(telegram_id);
@@ -146,6 +160,9 @@ function getDb() {
     CREATE INDEX IF NOT EXISTS idx_audit_target_time ON audit_log(target_type, target_id, occurred_at DESC);
     CREATE INDEX IF NOT EXISTS idx_audit_event_time ON audit_log(event_name, occurred_at DESC);
     CREATE INDEX IF NOT EXISTS idx_audit_request_id ON audit_log(request_id);
+    CREATE INDEX IF NOT EXISTS idx_analytics_funnel_time ON analytics_events(funnel, occurred_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_analytics_session_time ON analytics_events(session_id, occurred_at);
+    CREATE INDEX IF NOT EXISTS idx_analytics_event_time ON analytics_events(event_name, occurred_at DESC);
   `);
 
   // Таблицы для игры «Пятибуквенное слово»
@@ -1108,6 +1125,33 @@ function listAuditLogs(filters = {}) {
   return getDb().prepare(`SELECT * FROM audit_log ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY occurred_at DESC, id DESC LIMIT ?`).all(...values);
 }
 
+function insertAnalyticsEvent(entry) {
+  const result = getDb().prepare(`
+    INSERT OR IGNORE INTO analytics_events (
+      event_id, occurred_at, session_id, user_id, event_name, funnel,
+      pathname, previous_pathname, client_kind, metadata_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    entry.eventId, entry.occurredAt, entry.sessionId, entry.userId, entry.eventName,
+    entry.funnel, entry.pathname, entry.previousPathname, entry.clientKind, entry.metadataJson
+  );
+  return result.changes > 0;
+}
+
+function listAnalyticsEvents(funnel, since) {
+  return getDb().prepare(`
+    SELECT occurred_at, session_id, event_name, pathname, previous_pathname
+    FROM analytics_events
+    WHERE funnel IN (?, 'navigation') AND occurred_at >= ?
+    ORDER BY occurred_at ASC, id ASC
+  `).all(String(funnel), String(since));
+}
+
+function pruneAnalyticsEvents(days = 180) {
+  return getDb().prepare("DELETE FROM analytics_events WHERE occurred_at < datetime('now', ?)")
+    .run(`-${Math.max(1, Number(days) || 180)} days`).changes;
+}
+
 module.exports = {
   getDb,
   upsertUser,
@@ -1172,4 +1216,7 @@ module.exports = {
   syncGameDictionary,
   insertAuditLog,
   listAuditLogs,
+  insertAnalyticsEvent,
+  listAnalyticsEvents,
+  pruneAnalyticsEvents,
 };

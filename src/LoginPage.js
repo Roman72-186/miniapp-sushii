@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { normalizePhone } from './utils/phone';
 import { getSafeReturnUrl, saveWebAuth } from './utils/webAuth';
 import { reachGoal, YM_GOALS } from './analytics/metrika';
+import { trackProductEvent } from './analytics/productAnalytics';
 import './shop.css';
 
 function LoginPage() {
@@ -68,6 +69,9 @@ function LoginPage() {
       });
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Ошибка входа'); return; }
+      trackProductEvent('auth.credentials_requested', 'auth', {
+        error_stage: data.hasPassword ? 'password' : (data.requiresEmail ? 'email' : 'direct'),
+      });
 
       if (data.hasPassword) {
         setPassword('');
@@ -183,6 +187,7 @@ function LoginPage() {
       const data = await resp.json();
       if (!resp.ok || !data.success) { setError(data.error || 'Неверный пароль'); return; }
       saveWebAuth(data);
+      trackProductEvent('auth.credentials_verified', 'auth', { error_stage: 'password' });
       reachGoal(YM_GOALS.AUTH_PHONE_SUCCESS);
       finishLogin();
     } catch {

@@ -3,6 +3,7 @@ import { TARIFF_DATA, getTariffMonthPrice, PUBLIC_TARIFF_IDS } from '../config/t
 import { usePricing } from '../hooks/usePricing';
 import { normalizePhone } from '../utils/phone';
 import ModalPortal from './ModalPortal';
+import { getAnalyticsSessionId, trackProductEvent } from '../analytics/productAnalytics';
 
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
 
@@ -60,6 +61,7 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
           months: 1,
           name: name.trim(),
           phone: normalizedPhone,
+          analytics_session_id: getAnalyticsSessionId(),
         }),
       });
       const data = await response.json();
@@ -68,6 +70,7 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
       }
 
       sessionStorage.setItem(PENDING_PAYMENT_KEY, String(Date.now()));
+      trackProductEvent('subscription.payment_redirect', 'subscription', { tariff: selectedTariff, months: 1 });
       window.location.href = data.confirmation_url;
     } catch (err) {
       setError(err.message || 'Ошибка оплаты. Попробуйте ещё раз.');
@@ -120,7 +123,10 @@ function SubscriptionRequiredModal({ isOpen, onClose }) {
             <button
               type="button"
               className="shop-payment__btn"
-              onClick={() => setStep('contacts')}
+              onClick={() => {
+                trackProductEvent('subscription.tariff_selected', 'subscription', { tariff: selectedTariff, months: 1 });
+                setStep('contacts');
+              }}
             >
               Продолжить за {selectedPrice} ₽
             </button>

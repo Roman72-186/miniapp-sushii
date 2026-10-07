@@ -5,6 +5,7 @@ const { frontpadRequest } = require('./_lib/frontpad');
 const { getUser, upsertUser, recordPayment, getPaymentByYooKassaId, processReferralSHC } = require('./_lib/db');
 const { formatDate } = require('./_lib/time-utils');
 const { requestContext, writeAuditEvent } = require('./_lib/audit-log');
+const { recordServerAnalyticsEvent } = require('./_lib/product-analytics');
 
 async function auditPaymentWebhook(req, event) {
   await writeAuditEvent({
@@ -297,6 +298,14 @@ module.exports = async (req, res) => {
         months,
         amount: paymentAmount,
       },
+    });
+    await recordServerAnalyticsEvent({
+      sessionId: payment.metadata?.analytics_session_id,
+      userId: null,
+      eventName: 'subscription.payment_succeeded',
+      funnel: 'subscription',
+      pathname: '/payment-confirmed',
+      metadata: { tariff: String(tarif), months },
     });
     return res.status(200).json({ status: 'ok' });
   } catch (error) {

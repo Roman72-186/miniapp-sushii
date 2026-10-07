@@ -4,6 +4,7 @@ import { useUser } from './UserContext';
 import OptimizedImage from './components/OptimizedImage';
 import UserAvatar from './components/UserAvatar';
 import { useOrderRating } from './hooks/useOrderRating';
+import { trackProductEvent } from './analytics/productAnalytics';
 
 const SITE_URL = 'https://sushi-house-39.ru';
 const HERO_IMAGE = '/new_set/%D0%A1%D0%B5%D1%82%20%C2%AB%D0%A2%D0%B8%D1%85%D0%B8%D0%B9%20%D0%B2%D0%B5%D1%87%D0%B5%D1%80%C2%BB.jpg';
@@ -312,6 +313,7 @@ function LandingPage() {
   }, [userLoading, hasActiveSubscription]);
 
   const openTariff = (tariffId) => {
+    trackProductEvent('subscription.tariff_selected', 'subscription', { tariff: tariffId });
     window.location.href = `/pay/${tariffId}`;
   };
 

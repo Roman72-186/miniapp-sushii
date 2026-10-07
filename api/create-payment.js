@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const { getPriceTable } = require('./admin-pricing');
 const { getUser, upsertUser } = require('./_lib/db');
 const { getAuthenticatedUserId } = require('./_lib/auth');
+const { UUID_RE } = require('./_lib/product-analytics');
 
 const VALID_TARIFS = ['290', '490', '1190', '9990'];
 const VALID_MONTHS = [1, 3, 5];
@@ -47,6 +48,9 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Метод не поддерживается' });
 
   const { telegram_id, tarif, months, phone: reqPhone, name: reqName } = req.body || {};
+  const analyticsSessionId = UUID_RE.test(String(req.body?.analytics_session_id || ''))
+    ? String(req.body.analytics_session_id)
+    : null;
   const attribution = sanitizeAttribution(req.body?.attribution);
 
   // telegram_id опционален (гостевой чекаут по телефону), но если он заявлен —
@@ -165,6 +169,7 @@ module.exports = async (req, res) => {
       tarif: tarifStr,
       months: String(monthsNum),
       ...(attribution ? { attribution_json: JSON.stringify(attribution) } : {}),
+      ...(analyticsSessionId ? { analytics_session_id: analyticsSessionId } : {}),
     },
   };
 

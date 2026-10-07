@@ -8,6 +8,7 @@ import { getAttributionForRequest } from './analytics/attribution';
 import { reachGoal, YM_GOALS } from './analytics/metrika';
 import { getAuthHeader } from './utils/webAuth';
 import { normalizePhone } from './utils/phone';
+import { getAnalyticsSessionId } from './analytics/productAnalytics';
 import './shop.css';
 
 const PENDING_PAYMENT_KEY = 'pending_payment_check';
@@ -86,6 +87,7 @@ function PaymentPage() {
           ...(!telegramId ? { name } : {}),
           ...(tariff.oneTime ? {} : { months }),
           attribution: getAttributionForRequest(),
+          analytics_session_id: getAnalyticsSessionId(),
         }),
       });
 

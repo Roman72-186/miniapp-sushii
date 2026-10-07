@@ -106,6 +106,25 @@ async function ensureMigrations() {
     await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_event_time ON audit_log(event_name, occurred_at DESC)');
     await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_request_id ON audit_log(request_id)');
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS analytics_events (
+        id BIGSERIAL PRIMARY KEY,
+        event_id UUID NOT NULL UNIQUE,
+        occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        session_id UUID NOT NULL,
+        user_id TEXT,
+        event_name TEXT NOT NULL,
+        funnel TEXT NOT NULL,
+        pathname TEXT NOT NULL,
+        previous_pathname TEXT,
+        client_kind TEXT NOT NULL,
+        metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb
+      )
+    `);
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_analytics_funnel_time ON analytics_events(funnel, occurred_at DESC)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_analytics_session_time ON analytics_events(session_id, occurred_at)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_analytics_event_time ON analytics_events(event_name, occurred_at DESC)');
+
     // Таблицы для игры «Пятибуквенное слово»
     await pool.query(`
       CREATE TABLE IF NOT EXISTS game_word_dictionary (
@@ -1039,6 +1058,38 @@ async function listAuditLogs(filters = {}) {
   return rows.map(row => ({ ...row, occurred_at: row.occurred_at instanceof Date ? row.occurred_at.toISOString() : row.occurred_at }));
 }
 
+async function insertAnalyticsEvent(entry) {
+  const { rowCount } = await query(`
+    INSERT INTO analytics_events (
+      event_id, occurred_at, session_id, user_id, event_name, funnel,
+      pathname, previous_pathname, client_kind, metadata_json
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb)
+    ON CONFLICT (event_id) DO NOTHING
+  `, [
+    entry.eventId, entry.occurredAt, entry.sessionId, entry.userId, entry.eventName,
+    entry.funnel, entry.pathname, entry.previousPathname, entry.clientKind, entry.metadataJson,
+  ]);
+  return rowCount > 0;
+}
+
+async function listAnalyticsEvents(funnel, since) {
+  const { rows } = await query(`
+    SELECT occurred_at, session_id::text, event_name, pathname, previous_pathname
+    FROM analytics_events
+    WHERE funnel IN ($1, 'navigation') AND occurred_at >= $2
+    ORDER BY occurred_at ASC, id ASC
+  `, [String(funnel), String(since)]);
+  return rows.map(row => ({
+    ...row,
+    occurred_at: row.occurred_at instanceof Date ? row.occurred_at.toISOString() : row.occurred_at,
+  }));
+}
+
+async function pruneAnalyticsEvents(days = 180) {
+  const { rowCount } = await query("DELETE FROM analytics_events WHERE occurred_at < NOW() - ($1 || ' days')::interval", [String(Math.max(1, Number(days) || 180))]);
+  return rowCount;
+}
+
 // ─── Экспорт (совместим с db.js) ─────────────────────────────
 
 module.exports = {
@@ -1107,4 +1158,7 @@ module.exports = {
   syncGameDictionary,
   insertAuditLog,
   listAuditLogs,
+  insertAnalyticsEvent,
+  listAnalyticsEvents,
+  pruneAnalyticsEvents,
 };

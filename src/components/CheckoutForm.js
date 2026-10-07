@@ -7,6 +7,7 @@ import { normalizePhone } from '../utils/phone';
 import { PICKUP_POINTS } from '../config/pickupPoints';
 import { getAttributionForRequest } from '../analytics/attribution';
 import { reachGoal, YM_GOALS } from '../analytics/metrika';
+import { getAnalyticsSessionId, trackProductEvent } from '../analytics/productAnalytics';
 import { trackPurchase } from '../analytics/ecommerce';
 import { getOrderGiftSource, isSubscriptionGiftItem } from '../utils/subscriptionGifts';
 import { getAuthHeader } from '../utils/webAuth';
@@ -229,6 +230,10 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
     setSubmitting(true);
 
     try {
+      trackProductEvent('order.submitted', 'order', {
+        order_type: 'discount',
+        delivery_type: deliveryType,
+      });
       const pickupAddress = selectedPickup ? selectedPickup.address : '';
       const paymentLabel = payment === 'card' ? 'Оплата картой' : 'Оплата наличными';
       const timeLabel = timeType === 'scheduled' ? `Ко времени: ${scheduledTime}` : 'Как можно скорее';
@@ -279,6 +284,7 @@ function CheckoutForm({ items, total, telegramId, onBack, onSuccess, promoCode }
           shc_used: shcApplied > 0 ? shcApplied : undefined,
           promo_code: promoCode || undefined,
           attribution: getAttributionForRequest(),
+          analytics_session_id: getAnalyticsSessionId(),
         }),
       });
 

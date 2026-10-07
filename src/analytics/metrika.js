@@ -1,3 +1,5 @@
+import { trackMetrikaGoal } from './productAnalytics';
+
 const YM_COUNTER_ID = Number(process.env.REACT_APP_YM_COUNTER_ID);
 const SITE_URL = process.env.REACT_APP_SITE_URL || 'https://sushi-house-39.ru';
 const APP_ENV = process.env.REACT_APP_APP_ENV || process.env.NODE_ENV;
@@ -78,6 +80,7 @@ export function ymHit(path, title = document.title, referer) {
 }
 
 export function reachGoal(goalId, params = {}) {
+  trackMetrikaGoal(goalId, params);
   if (!canUseMetrika() || typeof window.ym !== 'function') return;
   window.ym(YM_COUNTER_ID, 'reachGoal', goalId, params);
 }
