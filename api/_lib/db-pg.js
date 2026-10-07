@@ -515,6 +515,28 @@ async function getExpiredToday() {
   return res.rows;
 }
 
+async function getExpiredReminderCandidates(daysAfterEnd) {
+  const target = new Date();
+  target.setDate(target.getDate() - daysAfterEnd);
+  const targetStr = fmt(target);
+  target.setHours(0, 0, 0, 0);
+  const eventSince = new Date(target.getTime() - 86400000).toISOString();
+  const res = await query(`
+    SELECT u.telegram_id, u.name, u.first_name, u.email, u.tariff, u.subscription_end
+    FROM users u
+    WHERE u.subscription_status = 'неактивно'
+      AND u.subscription_end = $1
+      AND u.email IS NOT NULL AND BTRIM(u.email) <> ''
+      AND EXISTS (
+        SELECT 1 FROM audit_log a
+        WHERE a.target_type = 'user' AND a.target_id = u.telegram_id
+          AND a.event_name = 'system.subscription.expired' AND a.result = 'succeeded'
+          AND a.occurred_at >= $2
+      )
+  `, [targetStr, eventSince]);
+  return res.rows;
+}
+
 async function cancelAutoRenew(telegramId) {
   await query(
     'UPDATE users SET payment_method_id = NULL, auto_renew_disabled = TRUE, updated_at = NOW() WHERE telegram_id = $1',
@@ -1124,6 +1146,7 @@ module.exports = {
   getReferralBonuses,
   getExpiringSubscriptions,
   getExpiredToday,
+  getExpiredReminderCandidates,
   cancelAutoRenew,
   deactivateSubscription,
   renewSubscription,

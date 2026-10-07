@@ -21,10 +21,10 @@ async function sendEmail({ to, subject, html }) {
     });
     const data = await resp.json();
     if (!resp.ok) {
-      console.error('[email-notifications] Resend error:', JSON.stringify(data));
+      console.error('[email-notifications] Resend error:', resp.status);
       return false;
     }
-    console.log('[email-notifications] sent:', to, '| subject:', subject, '| id:', data.id);
+    console.log('[email-notifications] sent, id:', data.id);
     return true;
   } catch (err) {
     console.error('[email-notifications] Exception:', err.message);
@@ -132,4 +132,23 @@ async function sendRenewalReminderEmail(email, firstName, tariff, endDate, amoun
   });
 }
 
-module.exports = { sendGiftAvailableEmail, sendRenewalReminderEmail };
+async function sendExpiredSubscriptionEmail(email, firstName, dayAfterEnd) {
+  if (!email || ![1, 2].includes(dayAfterEnd)) return false;
+  const hello = firstName ? `Здравствуйте, ${escapeHtml(firstName)}!` : 'Здравствуйте!';
+  const html = `
+    <div style="font-family:sans-serif;max-width:440px;margin:0 auto;padding:32px;background:#1a1a1a;border-radius:16px;color:#fff;">
+      <div style="font-size:22px;font-weight:700;margin-bottom:24px;">Суши-Хаус 39</div>
+      <p>${hello}</p>
+      <p>Ваша подписка закончилась. Если хотите снова получать скидки и подарки, её можно оформить на сайте.</p>
+      <p style="margin:28px 0;"><a href="${APP_URL}/profile" style="display:inline-block;background:#3CC8A1;color:#000;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:700;">Оформить подписку</a></p>
+      <p style="color:#9fb0c3;font-size:12px;">Если вы уже оформили подписку, письмо можно проигнорировать.</p>
+    </div>
+  `;
+  return sendEmail({
+    to: email,
+    subject: dayAfterEnd === 1 ? 'Ваша подписка закончилась — её можно оформить снова' : 'Напоминаем о возможности оформить подписку',
+    html,
+  });
+}
+
+module.exports = { sendGiftAvailableEmail, sendRenewalReminderEmail, sendExpiredSubscriptionEmail };

@@ -8,6 +8,8 @@ const crypto = require('crypto');
 const {
   getExpiringSubscriptions,
   getExpiredToday,
+  getExpiredReminderCandidates,
+  getUser,
   deactivateSubscription,
   renewSubscription,
   recordPayment,
@@ -16,7 +18,7 @@ const {
   recordEmailNotification,
 } = require('./_lib/db');
 const { getPriceTable } = require('./admin-pricing');
-const { sendRenewalReminderEmail } = require('./_lib/email-notifications');
+const { sendRenewalReminderEmail, sendExpiredSubscriptionEmail } = require('./_lib/email-notifications');
 const { formatDate } = require('./_lib/time-utils');
 const { deleteUserCache } = require('./_lib/user-cache');
 const { writeAuditEvent } = require('./_lib/audit-log');
@@ -173,7 +175,7 @@ async function runSubscriptionCronInner() {
   const startTime = Date.now();
   console.log('cron: starting subscription check at', new Date().toISOString());
 
-  const results = { reminded1: 0, emailsSent: 0, renewed: 0, deactivated: 0, errors: 0 };
+  const results = { reminded1: 0, emailsSent: 0, expiredEmailsSent: 0, renewed: 0, deactivated: 0, errors: 0 };
 
   // 1. Напоминание за 1 день
   try {
@@ -314,6 +316,38 @@ async function runSubscriptionCronInner() {
   } catch (err) {
     console.error('cron: error in expiration processing:', err.message);
     results.errors++;
+  }
+
+  // Два отдельных письма: на следующий день и через два дня после окончания.
+  for (const dayAfterEnd of [1, 2]) {
+    try {
+      const candidates = await getExpiredReminderCandidates(dayAfterEnd);
+      for (const candidate of candidates) {
+        try {
+          // После выборки пользователь мог продлить подписку. Проверяем снова.
+          const user = await getUser(candidate.telegram_id);
+          if (!user?.email || user.subscription_status !== 'неактивно'
+              || user.subscription_end !== candidate.subscription_end) continue;
+          const notificationType = `subscription_expired_day_${dayAfterEnd}`;
+          const contextKey = String(candidate.subscription_end);
+          if (await hasEmailNotification(user.telegram_id, notificationType, contextKey)) continue;
+          const sent = await sendExpiredSubscriptionEmail(
+            user.email, user.first_name || user.name, dayAfterEnd
+          );
+          if (sent) {
+            await recordEmailNotification(user.telegram_id, notificationType, contextKey);
+            results.expiredEmailsSent++;
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        } catch (error) {
+          console.warn(`cron: expired reminder failed for ${candidate.telegram_id}:`, error.message);
+          results.errors++;
+        }
+      }
+    } catch (error) {
+      console.error(`cron: error in expired reminders day ${dayAfterEnd}:`, error.message);
+      results.errors++;
+    }
   }
 
   const duration = Date.now() - startTime;

@@ -73,6 +73,7 @@ app.all('/api/admin/login', auditHttp({
   targetType: 'admin_session',
 }), require('./api/admin-login'));
 app.all('/api/admin/audit-log', require('./api/admin-audit-log'));
+app.all('/api/admin/audit-user', require('./api/admin-audit-user'));
 app.get('/api/admin/funnel', require('./api/admin-funnel'));
 app.all('/api/admin/products', auditHttp({ eventName: 'admin.product.updated', actorType: 'staff', targetType: 'product', metadataFields: ['catalog', 'index', 'enabled', 'price', 'discount'] }), require('./api/admin-products'));
 app.all('/api/admin/subscribers', require('./api/admin-subscribers'));

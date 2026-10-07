@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import useAdminAuditLog from '../../hooks/useAdminAuditLog';
 import {
   AUDIT_ACTOR_LABELS,
@@ -69,7 +69,29 @@ function JsonBlock({ title, value }) {
   );
 }
 
-function DetailsModal({ entry, onClose, onFilterTarget }) {
+function DetailsModal({ entry, token, onClose, onFilterTarget }) {
+  const [user, setUser] = useState(null);
+  const [userError, setUserError] = useState('');
+  const [userLoading, setUserLoading] = useState(false);
+  useEffect(() => {
+    if (entry?.target_type !== 'user' || !entry.target_id || !token) return;
+    let active = true;
+    setUser(null);
+    setUserError('');
+    setUserLoading(true);
+    fetch(`/api/admin/audit-user?id=${encodeURIComponent(entry.target_id)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || 'Не удалось загрузить карточку');
+        if (active) setUser(data.user);
+      })
+      .catch(error => { if (active) setUserError(error.message || 'Не удалось загрузить карточку'); })
+      .finally(() => { if (active) setUserLoading(false); });
+    return () => { active = false; };
+  }, [entry?.target_type, entry?.target_id, token]);
+
   if (!entry) return null;
   const rows = [
     ['Время (Екатеринбург)', formatDate(entry.occurred_at)],
@@ -103,6 +125,35 @@ function DetailsModal({ entry, onClose, onFilterTarget }) {
             </div>
           ))}
         </div>
+        {entry.target_type === 'user' && entry.target_id && (
+          <div style={styles.detailSection}>
+            <div style={styles.sheetTitle}>Карточка пользователя</div>
+            {userLoading && <div role="status">Загрузка карточки…</div>}
+            {userError && <div role="alert">{userError}</div>}
+            {user && (
+              <div style={styles.detailGrid}>
+                {[
+                  ['Имя', user.first_name || user.name], ['Фамилия', user.last_name], ['Отчество', user.middle_name],
+                  ['ID', user.telegram_id], ['Телефон', user.phone],
+                  ['Email', user.email], ['Тариф', user.tariff ? `${user.tariff} ₽` : null],
+                  ['Статус подписки', user.subscription_status],
+                  ['Начало подписки', user.subscription_start], ['Конец подписки', user.subscription_end],
+                  ['Автопродление', user.auto_renew_disabled ? 'Отключено' : user.has_payment_method ? 'Включено' : 'Не подключено'],
+                  ['Баланс SHC', user.balance_shc], ['Амбассадор', user.is_ambassador ? 'Да' : 'Нет'],
+                  ['Партнёрский код', user.partner_code],
+                  ['Пригласил', user.invited_by], ['Последний адрес', user.last_address],
+                  ['Пункт самовывоза', user.last_pickup_point], ['Заметки', user.notes],
+                  ['Зарегистрирован', user.created_at], ['Обновлён', user.updated_at],
+                ].map(([label, value]) => (
+                  <div key={label} style={styles.detailRow}>
+                    <span style={styles.detailLabel}>{label}</span>
+                    <span style={styles.detailValue}>{value === null || value === undefined || value === '' ? '—' : String(value)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {entry.target_type === 'user' && entry.target_id && (
           <button type="button" style={styles.secondaryButton} onClick={() => onFilterTarget(entry.target_id)}>
             Показать историю этого пользователя
@@ -207,7 +258,7 @@ export default function AuditLogTab({ token, enabled = true }) {
         </>
       )}
 
-      <DetailsModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} onFilterTarget={filterTarget} />
+      <DetailsModal entry={selectedEntry} token={token} onClose={() => setSelectedEntry(null)} onFilterTarget={filterTarget} />
     </div>
   );
 }

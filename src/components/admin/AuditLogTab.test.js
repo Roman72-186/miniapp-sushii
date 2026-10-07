@@ -62,7 +62,12 @@ test('применяет фильтры к API', async () => {
 test('догружает следующую страницу и открывает безопасные детали', async () => {
   global.fetch = jest.fn()
     .mockResolvedValueOnce(response({ success: true, items: [ENTRY], nextCursor: 'cursor-2', hasMore: true }))
-    .mockResolvedValueOnce(response({ success: true, items: [{ ...ENTRY, id: 2, event_name: 'user.payment.succeeded' }], nextCursor: null, hasMore: false }));
+    .mockResolvedValueOnce(response({ success: true, items: [{ ...ENTRY, id: 2, event_name: 'user.payment.succeeded' }], nextCursor: null, hasMore: false }))
+    .mockResolvedValueOnce(response({ success: true, user: {
+      telegram_id: 'web_test_1', name: 'Тестовый пользователь', phone: '79990000000',
+      email: 'client@example.test', subscription_status: 'неактивно', subscription_end: '31.10.2026',
+    } }))
+    .mockResolvedValueOnce(response({ success: true, items: [], hasMore: false }));
   render(<AuditLogTab token="admin-token" />);
   expect(await screen.findAllByText('Подписка продлена')).not.toHaveLength(0);
   fireEvent.click(screen.getByRole('button', { name: 'Загрузить ещё' }));
@@ -72,8 +77,11 @@ test('догружает следующую страницу и открывае
   fireEvent.click(screen.getByRole('button', { name: 'Детали: Подписка продлена' }));
   expect(screen.getByRole('dialog', { name: 'Подробности события' })).toHaveTextContent('req-1');
   expect(screen.getByText(/31.10.2026/)).toBeInTheDocument();
+  expect(await screen.findByText('client@example.test')).toBeInTheDocument();
+  expect(screen.getByText('79990000000')).toBeInTheDocument();
+  expect(fetch.mock.calls[2][0]).toContain('/api/admin/audit-user?id=web_test_1');
   fireEvent.click(screen.getByRole('button', { name: 'Показать историю этого пользователя' }));
-  await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
-  expect(fetch.mock.calls[2][0]).toContain('targetType=user');
-  expect(fetch.mock.calls[2][0]).toContain('targetId=web_test_1');
+  await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4));
+  expect(fetch.mock.calls[3][0]).toContain('targetType=user');
+  expect(fetch.mock.calls[3][0]).toContain('targetId=web_test_1');
 });

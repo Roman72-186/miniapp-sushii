@@ -1,6 +1,7 @@
 jest.mock('../api/_lib/db', () => ({
   insertAuditLog: jest.fn(),
   listAuditLogs: jest.fn(),
+  getUser: jest.fn(),
 }));
 
 const db = require('../api/_lib/db');
@@ -15,6 +16,7 @@ const {
 } = require('../api/_lib/audit-log');
 const { generateToken } = require('../api/_lib/admin-auth');
 const auditHandler = require('../api/admin-audit-log');
+const auditUserHandler = require('../api/admin-audit-user');
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -72,6 +74,25 @@ test('API журнала требует авторизацию', async () => {
   const res = response();
   await auditHandler({ method: 'GET', headers: {}, query: {} }, res);
   expect(res.status).toHaveBeenCalledWith(401);
+});
+
+test('карточка журнала доступна только админу и не раскрывает платёжные данные', async () => {
+  const denied = response();
+  await auditUserHandler({ method: 'GET', headers: {}, query: { id: 'web_test' } }, denied);
+  expect(denied.status).toHaveBeenCalledWith(401);
+  expect(db.getUser).not.toHaveBeenCalled();
+
+  db.getUser.mockResolvedValue({
+    telegram_id: 'web_test', name: 'Тест', phone: '79990000000', email: 'client@example.test',
+    payment_method_id: 'private-payment-method', subscription_status: 'неактивно',
+  });
+  const allowed = response();
+  await auditUserHandler({ method: 'GET', headers: { authorization: `Bearer ${generateToken()}` }, query: { id: 'web_test' } }, allowed);
+  const payload = allowed.json.mock.calls[0][0];
+  expect(payload.user.phone).toBe('79990000000');
+  expect(payload.user.email).toBe('client@example.test');
+  expect(payload.user.has_payment_method).toBe(true);
+  expect(JSON.stringify(payload)).not.toContain('private-payment-method');
 });
 
 test('API отклоняет malformed cursor', async () => {
