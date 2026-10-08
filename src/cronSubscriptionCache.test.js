@@ -35,7 +35,18 @@ jest.mock('../api/_lib/email-notifications', () => ({
   sendExpiredSubscriptionEmail: mockSendExpiredSubscriptionEmail,
 }));
 
+const previousShopId = process.env.YOOKASSA_SHOP_ID;
+const previousSecretKey = process.env.YOOKASSA_SECRET_KEY;
+process.env.YOOKASSA_SHOP_ID = 'test-shop';
+process.env.YOOKASSA_SECRET_KEY = 'test-secret';
 const { runSubscriptionCron } = require('../api/cron-subscriptions');
+
+afterAll(() => {
+  if (previousShopId === undefined) delete process.env.YOOKASSA_SHOP_ID;
+  else process.env.YOOKASSA_SHOP_ID = previousShopId;
+  if (previousSecretKey === undefined) delete process.env.YOOKASSA_SECRET_KEY;
+  else process.env.YOOKASSA_SECRET_KEY = previousSecretKey;
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -91,4 +102,45 @@ test('крон удаляет кэш после деактивации подп�
   expect(mockDeactivateSubscription).toHaveBeenCalledWith('web_expired_123');
   expect(mockDeleteUserCache).toHaveBeenCalledWith('web_expired_123');
   expect(result.deactivated).toBe(1);
+});
+
+test('крон не отправляет запрос на списание без записи в постоянном журнале', async () => {
+  mockGetExpiredToday.mockResolvedValue([{
+    telegram_id: 'web_expired_123', tariff: '290',
+    payment_method_id: 'saved-test-method', auto_renew_disabled: false,
+    subscription_end: '08.10.2026',
+  }]);
+  const db = require('../api/_lib/db');
+  db.insertAuditLog.mockRejectedValueOnce(new Error('audit unavailable'));
+  global.fetch = jest.fn();
+
+  const result = await runSubscriptionCron();
+
+  expect(global.fetch).not.toHaveBeenCalled();
+  expect(result.errors).toBe(1);
+  delete global.fetch;
+});
+
+test('крон сохраняет ID и статус созданного платежа ЮKassa', async () => {
+  mockGetExpiredToday.mockResolvedValue([{
+    telegram_id: 'web_expired_123', tariff: '290',
+    payment_method_id: 'saved-test-method', auto_renew_disabled: false,
+    subscription_end: '08.10.2026',
+  }]);
+  const db = require('../api/_lib/db');
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true, json: async () => ({ id: 'test-payment-id', status: 'pending' }),
+  });
+
+  const result = await runSubscriptionCron();
+
+  expect(global.fetch).toHaveBeenCalledTimes(1);
+  expect(result.deactivated).toBe(0);
+  const entries = db.insertAuditLog.mock.calls.map(([entry]) => entry);
+  expect(entries.map(entry => entry.eventName)).toContain('system.subscription.renewal_provider_created');
+  const created = entries.find(entry => entry.eventName === 'system.subscription.renewal_provider_created');
+  expect(JSON.parse(created.metadataJson)).toEqual(expect.objectContaining({
+    providerPaymentId: 'test-payment-id', providerStatus: 'pending', amount: 290,
+  }));
+  delete global.fetch;
 });

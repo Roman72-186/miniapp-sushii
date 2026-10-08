@@ -44,7 +44,7 @@ async function deactivateAndInvalidateCache(telegramId) {
   await deleteUserCache(telegramId);
 }
 
-async function auditSubscriptionEvent(eventName, user, result, metadata = null) {
+async function auditSubscriptionEvent(eventName, user, result, metadata = null, required = false) {
   await writeAuditEvent({
     eventName,
     actorType: 'system',
@@ -57,7 +57,7 @@ async function auditSubscriptionEvent(eventName, user, result, metadata = null) 
       tariff: user.tariff || null,
       ...(metadata || {}),
     },
-  });
+  }, { bestEffort: !required });
 }
 
 /**
@@ -132,13 +132,13 @@ async function tryRecurringPayment(user) {
     if (data.status === 'succeeded') {
       // Даже мгновенно успешный платёж дальше обрабатывает webhook. Иначе
       // cron и webhook одновременно продлят подписку дважды.
-      return { success: true, pending: true, paymentId: data.id, amount };
+      return { success: true, pending: true, paymentId: data.id, amount, providerStatus: data.status };
     }
 
     // Если pending — webhook обработает позже
     if (data.status === 'pending') {
       console.log(`cron: payment pending for ${user.telegram_id}, webhook will handle`);
-      return { success: true, pending: true, paymentId: data.id, amount };
+      return { success: true, pending: true, paymentId: data.id, amount, providerStatus: data.status };
     }
 
     return { success: false, reason: data.status };
@@ -233,7 +233,17 @@ async function runSubscriptionCronInner() {
     for (const user of expiredToday) {
       if (isAutoRenewEnabled(user)) {
         // Есть сохранённый метод оплаты — пробуем списать
-        await auditSubscriptionEvent('system.subscription.renewal_attempted', user, 'attempted');
+        try {
+          // Если постоянный журнал недоступен, не создаём платёж без следа.
+          await auditSubscriptionEvent('system.subscription.renewal_attempted', user, 'attempted', {
+            amount: getRecurringAmount(user.tariff),
+            subscriptionEnd: user.subscription_end,
+          }, true);
+        } catch (error) {
+          console.error('cron: payment audit unavailable:', error.message);
+          results.errors++;
+          continue;
+        }
         const result = await tryRecurringPayment(user);
 
         if (result.success && !result.pending) {
@@ -264,10 +274,17 @@ async function runSubscriptionCronInner() {
           results.renewed++;
           await auditSubscriptionEvent('system.subscription.renewal_succeeded', user, 'succeeded', {
             amount: result.amount,
+            providerPaymentId: result.paymentId,
           });
           console.log(`cron: renewed subscription for ${user.telegram_id} until ${newEndStr}`);
 
         } else if (result.pending) {
+          // ID и статус ответа ЮKassa сохраняем до ожидания webhook.
+          await auditSubscriptionEvent('system.subscription.renewal_provider_created', user, 'succeeded', {
+            amount: result.amount,
+            providerPaymentId: result.paymentId,
+            providerStatus: result.providerStatus,
+          });
           // Pending — webhook обработает, ничего не делаем
           console.log(`cron: payment pending for ${user.telegram_id}, skipping deactivation`);
 

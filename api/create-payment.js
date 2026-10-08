@@ -6,6 +6,7 @@ const { getPriceTable } = require('./admin-pricing');
 const { getUser, upsertUser } = require('./_lib/db');
 const { getAuthenticatedUserId } = require('./_lib/auth');
 const { UUID_RE } = require('./_lib/product-analytics');
+const { writeAuditEvent, requestContext } = require('./_lib/audit-log');
 
 const VALID_TARIFS = ['290', '490', '1190', '9990'];
 const VALID_MONTHS = [1, 3, 5];
@@ -182,6 +183,25 @@ module.exports = async (req, res) => {
     const auth = Buffer.from(`${shopId}:${secretKey}`).toString('base64');
     const idempotenceKey = crypto.randomUUID();
 
+    // Не создаём платёж, если не удалось сохранить запись о попытке.
+    // audit_log хранится в БД и не зависит от ротации Docker-логов.
+    await writeAuditEvent({
+      ...requestContext(req),
+      eventName: 'user.payment.create_requested',
+      actorType: 'user',
+      actorId: String(paymentUserId),
+      targetType: 'user',
+      targetId: String(paymentUserId),
+      result: 'attempted',
+      metadata: {
+        tariff: tarifStr,
+        months: monthsNum,
+        amount: totalAmount,
+        idempotenceKey,
+        saveMethodRequested: !!body.save_payment_method,
+      },
+    }, { bestEffort: false });
+
     const response = await fetch('https://api.yookassa.ru/v3/payments', {
       method: 'POST',
       headers: {
@@ -193,8 +213,10 @@ module.exports = async (req, res) => {
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error('YooKassa create payment error:', response.status, errText);
+      console.error('YooKassa create payment error:', response.status);
+      req.auditActorId = String(paymentUserId);
+      req.auditTargetId = String(paymentUserId);
+      req.auditMetadata = { tariff: tarifStr, months: monthsNum, amount: totalAmount, providerStatusCode: response.status };
       return res.status(502).json({ error: 'Ошибка создания платежа' });
     }
 
@@ -202,14 +224,42 @@ module.exports = async (req, res) => {
     const confirmationUrl = data.confirmation?.confirmation_url;
 
     if (!confirmationUrl) {
-      console.error('YooKassa: no confirmation_url in response', JSON.stringify(data));
+      console.error('YooKassa: no confirmation_url in response', { paymentId: data.id || null, status: data.status || null });
+      req.auditActorId = String(paymentUserId);
+      req.auditTargetId = String(paymentUserId);
+      req.auditMetadata = { tariff: tarifStr, months: monthsNum, amount: totalAmount, providerPaymentId: data.id || null };
       return res.status(502).json({ error: 'Не получена ссылка для оплаты' });
     }
+
+    await writeAuditEvent({
+      ...requestContext(req),
+      eventName: 'user.payment.provider_created',
+      actorType: 'user',
+      actorId: String(paymentUserId),
+      targetType: 'user',
+      targetId: String(paymentUserId),
+      result: 'succeeded',
+      metadata: {
+        providerPaymentId: data.id || null,
+        providerStatus: data.status || null,
+        tariff: tarifStr,
+        months: monthsNum,
+        amount: totalAmount,
+        idempotenceKey,
+      },
+    }, { bestEffort: false });
 
     // В аудит передаём только подтверждённые сервером значения, без телефона и имени.
     req.auditActorId = String(paymentUserId);
     req.auditTargetId = String(paymentUserId);
-    req.auditMetadata = { tarif: tarifStr, months: monthsNum, amount: totalAmount };
+    req.auditMetadata = {
+      tarif: tarifStr,
+      months: monthsNum,
+      amount: totalAmount,
+      providerPaymentId: data.id || null,
+      providerStatus: data.status || null,
+      saveMethodRequested: !!body.save_payment_method,
+    };
 
     return res.status(200).json({ confirmation_url: confirmationUrl });
   } catch (error) {
